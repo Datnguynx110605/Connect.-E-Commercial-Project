@@ -30,8 +30,7 @@ namespace Connect.Infrastructure
             return services;
         }
 
-        private static IServiceCollection AddUnitOfWork(
-            this IServiceCollection services)
+        private static IServiceCollection AddUnitOfWork(this IServiceCollection services)
         {
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             return services;
