@@ -1,6 +1,7 @@
-using Connect.Infrastructure;
-using Connect.Application;
 using Connect.API;
+using Connect.Application;
+using Connect.Infrastructure;
+using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCustomMiddleware();
+app.UseHangfireDashboard();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

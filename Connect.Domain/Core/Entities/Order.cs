@@ -67,7 +67,7 @@ namespace Connect.Domain.Core.Entities
 
             order.CalculateTotalPrice(discountAmount);
 
-            order.RaiseDomainEvent(new OrderPlacedEvent(order.UserID, order.OrderTotalPrice, order.OrderTotalItems, order.OrderShippingMethod, order.OrderPaymentMethod));
+            order.RaiseDomainEvent(new OrderPlacedEvent(order.UserID, order.OrderID, order.OrderTotalPrice, order.OrderTotalItems, order.OrderShippingMethod, order.OrderPaymentMethod));
 
             return order;
         }

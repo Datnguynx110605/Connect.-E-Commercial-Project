@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Connect.Infrastructure.Security
+namespace Connect.Infrastructure.Settings
 {
-    public class JWTOptions
+    public sealed class JWTOptions
     {
         public const string SectionName = "Jwt";
         public string SecretKey { get; init; }

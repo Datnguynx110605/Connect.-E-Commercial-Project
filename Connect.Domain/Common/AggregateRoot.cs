@@ -8,8 +8,7 @@ namespace Connect.Domain.Common
     {
         private readonly List<DomainEvent> domainEvents = new();
         public IReadOnlyCollection<DomainEvent> DomainEvents => domainEvents.AsReadOnly();
-        protected void RaiseDomainEvent(DomainEvent domainEvent)
-            => domainEvents.Add(domainEvent);
+        protected void RaiseDomainEvent(DomainEvent domainEvent) => domainEvents.Add(domainEvent);
         public void ClearDomainEvents() => domainEvents.Clear();
     }
 }

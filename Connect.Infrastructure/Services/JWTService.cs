@@ -1,6 +1,6 @@
 ﻿using Connect.Application.Interfaces.Services;
 using Connect.Domain.Core.Entities;
-using Connect.Infrastructure.Security;
+using Connect.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;

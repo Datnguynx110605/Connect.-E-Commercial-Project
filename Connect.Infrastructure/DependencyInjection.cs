@@ -3,6 +3,8 @@ using Connect.Application.Interfaces.Services;
 using Connect.Infrastructure.Data;
 using Connect.Infrastructure.Persistences;
 using Connect.Infrastructure.Services;
+using Connect.Infrastructure.Settings;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +21,7 @@ namespace Connect.Infrastructure
             services
                 .AddDatabase(configuration)
                 .AddUnitOfWork()
-                .AddServices();
+                .AddServices(configuration);
 
             return services;
         }
@@ -36,11 +38,19 @@ namespace Connect.Infrastructure
             return services;
         }
 
-        private static IServiceCollection AddServices(this IServiceCollection services)
+        private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IJWTService, JWTService>();
+
             services.AddScoped<IPasswordService, PasswordService>();
+
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+            services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
+            services.AddScoped<IEmailService, EmailService>();
+
+            services.AddHangfire(config => config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection")));
+            services.AddHangfireServer();
 
             return services;
         }
