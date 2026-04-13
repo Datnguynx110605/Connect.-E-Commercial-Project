@@ -35,34 +35,26 @@ namespace Connect.Application.Features.Orders.Commands.CancelOrder
             var productIDs = order.OrderItems.Select(x => x.ProductID).Distinct().ToList();
             var products = await unitOfWork.Products.WhereAsync(x => productIDs.Contains(x.ProductID), cancellationToken);
 
+            foreach (var item in order.OrderItems)
+            {
+                var product = products.FirstOrDefault(p => p.ProductID == item.ProductID);
+                if (product == null)
+                    throw new Exception("Product not found");
+
+                product.AddToStock(item.Quantity);
+                unitOfWork.Products.Update(product);
+            }
+
+            order.CancelOrder();
+
             await unitOfWork.BeginTransactionAsync(cancellationToken);
-            try
+            unitOfWork.Orders.Update(order);
+            await unitOfWork.CommitTransactionAsync(cancellationToken);
+
+            return new OrderDto
             {
-                foreach (var item in order.OrderItems)
-                {
-                    var product = products.FirstOrDefault(p => p.ProductID == item.ProductID);
-                    if (product == null)
-                        throw new Exception("Product not found");
-
-                    product.AddToStock(item.Quantity);
-                    unitOfWork.Products.Update(product);
-                }
-
-                order.CancelOrder();
-
-                unitOfWork.Orders.Update(order);
-                await unitOfWork.CommitTransactionAsync(cancellationToken);
-
-                return new OrderDto
-                {
-                    OrderStatus = order.OrderStatus.ToString()
-                };
-            }
-            catch
-            {
-                await unitOfWork.RollbackTransactionAsync(cancellationToken);
-                throw;
-            }
+                OrderStatus = order.OrderStatus.ToString()
+            };
         }
     }
 }

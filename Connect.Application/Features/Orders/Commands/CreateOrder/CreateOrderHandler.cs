@@ -32,65 +32,56 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
             if (!products.Any() || products.Count() != request.items.Count)
                 throw new Exception("Products not found");
 
+            var orderItems = new List<OrderItem>();
+            foreach (var item in request.items)
+            {
+                var product = products.Single(x => x.ProductID == item.ProductID);
+                Amount quantity = Amount.Create(item.Quantity);
+                product.RemoveFromStock(quantity);
+
+                orderItems.Add(OrderItem.CreateOrderItem(product.ProductID, product.FinalPrice, quantity));
+            }
+
+            Coupon? coupon = null;
+            Currency discountAmount = coupon != null ? coupon.DiscountAmount : Currency.Create(0);
+            if (request.CouponID.HasValue)
+            {
+                coupon = await unitOfWork.Coupons.FirstOrDefaultAsync(x => x.CouponID == request.CouponID, cancellationToken);
+                if (coupon == null)
+                    throw new Exception("Coupon not found");
+
+                discountAmount = coupon.DiscountAmount;
+                coupon.UseCoupon();
+            }
+
+            ShippingMethod shipMethod = Enum.Parse<ShippingMethod>(request.OrderShippingMethod.ToString());
+            PaymentMethod payMethod = Enum.Parse<PaymentMethod>(request.OrderPaymentMethod.ToString());
+            Order order = Order.CreateOrder(currentUserService.UserID, coupon.CouponID, shipMethod, payMethod, orderItems, discountAmount);
+
             await unitOfWork.BeginTransactionAsync(cancellationToken);
-            try
+            unitOfWork.Products.UpdateRange(products);
+            if (coupon != null)
+               unitOfWork.Coupons.Update(coupon);
+            await unitOfWork.Orders.AddAsync(order, cancellationToken);
+            await unitOfWork.CommitTransactionAsync(cancellationToken);
+
+            return new OrderDto
             {
-                Amount quantity = Amount.Create(request.Quantity);
-                var orderItems = new List<OrderItem>();
-                foreach (var item in request.items)
+                UserID = order.UserID,
+                CouponID = order.CouponID,
+                OrderTotalPrice = order.OrderTotalPrice.Value,
+                OrderTotalItems = order.OrderTotalItems.Value,
+                OrderShippingMethod = order.OrderShippingMethod.ToString(),
+                OrderPaymentMethod = order.OrderPaymentMethod.ToString(),
+                OrderStatus = order.OrderStatus.ToString(),
+                OrderPaymentStatus = order.OrderPaymentStatus.ToString(),
+                OrderItems = order.OrderItems.Select(x => new OrderItemDto
                 {
-                    var product = products.Single(x => x.ProductID == item.ProductID);
-
-                    product.RemoveFromStock(quantity);
-
-                    orderItems.Add(OrderItem.CreateOrderItem(product.ProductID, product.FinalPrice, quantity));
-                }
-
-                Coupon? coupon = null;
-                Currency discountAmount = coupon != null ? coupon.DiscountAmount : Currency.Create(0);
-                if (request.CouponID.HasValue)
-                {
-                    coupon = await unitOfWork.Coupons.FirstOrDefaultAsync(x => x.CouponID == request.CouponID, cancellationToken);
-                    if (coupon == null)
-                        throw new Exception("Coupon not found");
-
-                    discountAmount = coupon.DiscountAmount;
-                    coupon.UseCoupon();
-                }
-
-                ShippingMethod shipMethod = Enum.Parse<ShippingMethod>(request.OrderShippingMethod.ToString());
-                PaymentMethod payMethod = Enum.Parse<PaymentMethod>(request.OrderPaymentMethod.ToString());
-                Order order = Order.CreateOrder(currentUserService.UserID, coupon.CouponID, shipMethod, payMethod, orderItems, discountAmount);
-
-                unitOfWork.Products.UpdateRange(products);
-                if (coupon != null)
-                    unitOfWork.Coupons.Update(coupon);
-                await unitOfWork.Orders.AddAsync(order, cancellationToken);
-                await unitOfWork.CommitTransactionAsync(cancellationToken);
-
-                return new OrderDto
-                {
-                    UserID = order.UserID,
-                    CouponID = order.CouponID,
-                    OrderTotalPrice = order.OrderTotalPrice.Value,
-                    OrderTotalItems = order.OrderTotalItems.Value,
-                    OrderShippingMethod = order.OrderShippingMethod.ToString(),
-                    OrderPaymentMethod = order.OrderPaymentMethod.ToString(),
-                    OrderStatus = order.OrderStatus.ToString(),
-                    OrderPaymentStatus = order.OrderPaymentStatus.ToString(),
-                    OrderItems = order.OrderItems.Select(x => new OrderItemDto
-                    {
-                        ProductID = x.ProductID,
-                        Quantity = x.Quantity.Value,
-                        UnitPrice = x.UnitPrice.Value,
-                    }).ToList()
-                };
-            }
-            catch
-            {
-                await unitOfWork.RollbackTransactionAsync(cancellationToken);
-                throw;
-            }
+                    ProductID = x.ProductID,
+                    Quantity = x.Quantity.Value,
+                    UnitPrice = x.UnitPrice.Value,
+                }).ToList()
+            };
         }
     }
 }
