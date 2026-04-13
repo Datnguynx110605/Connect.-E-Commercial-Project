@@ -1,5 +1,5 @@
-﻿using Connect.Application.Interfaces.Services;
-using Connect.Domain.Common;
+﻿using Connect.Application.Commons;
+using Connect.Application.Interfaces.Services;
 using Connect.Domain.Events.OrderEvents;
 using Hangfire;
 using MediatR;
@@ -10,7 +10,6 @@ using System.Text;
 
 namespace Connect.Application.Features.Orders.Commands.CreateOrder
 {
-    public record DomainEventNotification<T>(T Event) : INotification where T : DomainEvent;
     internal sealed class CreatedOrderEventHandler : INotificationHandler<DomainEventNotification<OrderPlacedEvent>>
     {
         private readonly IBackgroundJobClient backgroundJobClient;
