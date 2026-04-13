@@ -1,0 +1,21 @@
+﻿using Connect.Domain.Core.Entities;
+using Connect.Domain.Core.Enums;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Connect.Application.DTOs
+{
+    public record OrderDto
+    {
+        public int UserID { get; init; }
+        public int? CouponID { get; init; }
+        public decimal OrderTotalPrice { get; init; }
+        public int OrderTotalItems { get; init; }
+        public string OrderShippingMethod { get; init; }
+        public string OrderPaymentMethod { get; init; }
+        public string OrderPaymentStatus { get; init; }
+        public string OrderStatus { get; init; }
+        public List<OrderItemDto> OrderItems { get; init; } = new();
+    }
+}

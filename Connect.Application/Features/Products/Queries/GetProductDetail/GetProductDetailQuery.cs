@@ -1,0 +1,13 @@
+﻿using Connect.Application.DTOs;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Connect.Application.Features.Products.Queries.GetProductDetail
+{
+    public sealed record GetProductDetailQuery:IRequest<ProductDto>
+    {
+        public int ProductID { get; }
+    }
+}

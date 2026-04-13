@@ -1,0 +1,137 @@
+﻿using Connect.Domain.Common;
+using Connect.Domain.Core.Enums;
+using Connect.Domain.Core.ValueObjects;
+using Connect.Domain.Events.OrderEvents;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text;
+
+namespace Connect.Domain.Core.Entities
+{
+    public class Order:AggregateRoot
+    {
+        public int OrderID { get; private set; }
+        public int UserID { get; private set; }
+        public int? CouponID { get; private set; }
+        public Currency OrderTotalPrice { get; private set; }
+        public Amount OrderTotalItems { get; private set; }
+        public ShippingMethod OrderShippingMethod { get; private set; }
+        public PaymentMethod OrderPaymentMethod { get; private set; }
+        public PaymentStatus OrderPaymentStatus { get; private set; }
+        public OrderStatus OrderStatus { get; private set; }
+        private readonly List<OrderItem> items = new();
+        public IReadOnlyCollection<OrderItem> OrderItems => items.AsReadOnly();
+        public DateTime CreatedAt { get; private set; }
+        private Order() { }
+        private Order(int userID, int couponID, ShippingMethod shipMethod, PaymentMethod payMethod, IEnumerable<OrderItem> orderItems)
+        {
+            UserID = userID;
+            CouponID = couponID;
+            items.AddRange(orderItems);
+            OrderTotalItems = Amount.Create(orderItems.Count());
+            OrderShippingMethod = shipMethod;
+            OrderPaymentMethod = payMethod;
+            IntitalizePaymentStatus();
+            OrderStatus = OrderStatus.Pending;
+            CreatedAt = DateTime.UtcNow;
+        }
+
+        public static Order CreateOrder(int userID,int couponID, ShippingMethod shipMethod, PaymentMethod payMethod, IEnumerable<OrderItem> orderItems, Currency discountAmount)
+        {
+            if (userID <= 0)
+                throw new DomainExceptions(
+                    message: "User id is invalid",
+                    code: "INVALID-USERID",
+                    metadata: new Dictionary<string, object>
+                    {
+                        { "USERID", userID }
+                    });
+
+            if (!Enum.IsDefined(typeof(ShippingMethod), shipMethod))
+                throw new DomainExceptions(
+                    message:"Shipping method is invalid",
+                    code:"INVALID-SHIPPINGMETHOD");
+
+            if (!Enum.IsDefined(typeof(PaymentMethod), payMethod))
+                throw new DomainExceptions(
+                    message:"Payment method is invalid",
+                    code:"INVALID-PAYMENTMETHOD");
+
+            if(!orderItems.Any())
+                throw new DomainExceptions( 
+                    message:"Order item is required",
+                    code: "REQUIRED-ORDERITEM");
+
+            var order = new Order(userID,couponID, shipMethod, payMethod, orderItems);
+
+            order.CalculateTotalPrice(discountAmount);
+
+            order.RaiseDomainEvent(new OrderPlacedEvent(order.UserID, order.OrderTotalPrice, order.OrderTotalItems, order.OrderShippingMethod, order.OrderPaymentMethod));
+
+            return order;
+        }
+
+        private void CalculateTotalPrice(Currency discountAmount)
+        {
+            if(!CouponID.HasValue)
+            {
+                OrderTotalPrice = items.Select(x => x.OrderItemTotalPrice).Aggregate(Currency.Create(0), (sum, next) => sum + next);
+            }
+
+            OrderTotalPrice -=discountAmount;
+        }
+
+        public void CancelOrder()
+        {
+            if (OrderStatus != OrderStatus.Pending)
+                throw new DomainExceptions(
+                    message: "Order is already shipped",
+                    code: "UNABLE-CANCELORDER"
+                    );
+
+            OrderStatus = OrderStatus.Cancelled;
+
+            RaiseDomainEvent(new OrderCancelledEvent(UserID));
+        }
+
+        private void IntitalizePaymentStatus()
+        {
+            if (OrderPaymentMethod == PaymentMethod.Cash)
+            {
+                OrderPaymentStatus = PaymentStatus.Unpaid;
+            }
+            else OrderPaymentStatus = PaymentStatus.Pending;
+        }
+
+        public void MarkOrderStatusToCompleted()
+        {
+            if (OrderPaymentStatus == PaymentStatus.Unpaid || OrderStatus == OrderStatus.Cancelled)
+                throw new DomainExceptions(
+                    message: "Order is unpaid or cancelled",
+                    code: "INVALID-STATUS");
+
+            OrderStatus = OrderStatus.Completed;
+        }
+
+        public void MarkOrderStatusToShipping()
+        {
+            if(OrderStatus == OrderStatus.Cancelled)
+                throw new DomainExceptions(
+                    message: "Order is cancelled",
+                    code: "INVALID-STATUS");
+
+            OrderStatus = OrderStatus.Shipping;
+        }
+
+        public void MarkAsPaid()
+        {
+            if (OrderPaymentStatus == PaymentStatus.Paid)
+                throw new DomainExceptions(
+                    message: "Order is already paid",
+                    code: "PAID-ORDER");
+
+            OrderPaymentStatus = PaymentStatus.Paid;
+        }
+    }
+}
