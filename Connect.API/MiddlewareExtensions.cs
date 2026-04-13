@@ -12,6 +12,8 @@ namespace Connect.API
 
             app.UseMiddleware<ExceptionMiddleware>();
 
+            app.UseMiddleware<PerformanceMiddleware>();
+
             return app;
         }
     }
