@@ -23,7 +23,7 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
 
         public Task Handle(DomainEventNotification<OrderPlacedEvent> notification, CancellationToken cancellationToken)
         {
-            logger.LogInformation("Nhận event OrderPlaced cho đơn hàng #{OrderId}. Đang đẩy vào hàng đợi email...", notification.Event);
+            logger.LogInformation("Take event OrderPlaced for order #{OrderId}. Waiting to send email...", notification.Event);
 
             backgroundJobClient.Enqueue<IEmailService>(emailService => emailService.SendOrderConfirmationAsync(
                 notification.Event.UserID,

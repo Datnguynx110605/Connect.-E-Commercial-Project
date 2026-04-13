@@ -29,7 +29,7 @@ namespace Connect.Infrastructure.Services
             var user = await unitOfWork.Users.GetByIdAsync(userID, cancellationToken);
             if (user == null)
             {
-                _logger.LogWarning("Không tìm thấy User {UserID} để gửi email xác nhận đơn hàng #{OrderID}", userID, orderID);
+                _logger.LogWarning("Can't find User {UserID} to send confirmed email #{OrderID}", userID, orderID);
                 return;
             }
 
