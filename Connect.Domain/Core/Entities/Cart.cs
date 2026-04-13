@@ -56,7 +56,11 @@ namespace Connect.Domain.Core.Entities
             if (CartQuantity.Value > 10)
                 throw new DomainExceptions(
                    message: "Cart quantity is limited",
-                   code: "LIMITED-QUANTITY");
+                   code: "LIMITED-QUANTITY",
+                   metadata: new Dictionary<string, object>
+                   {
+                       { "Quantity", CartQuantity} 
+                   });
             else 
             {
                 CartQuantity += quantity;
@@ -69,7 +73,11 @@ namespace Connect.Domain.Core.Entities
             if (CartQuantity.Value == 0 )
                 throw new DomainExceptions(
                    message: "Cart quantity is empty ",
-                   code: "EMPTY-QUANTITY");
+                   code: "EMPTY-QUANTITY",
+                   metadata: new Dictionary<string, object>
+                   {
+                       { "Quantity", CartQuantity}
+                   });
             else
             {
                 CartQuantity -= quantity;

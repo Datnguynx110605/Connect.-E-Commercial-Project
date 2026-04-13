@@ -150,7 +150,7 @@
                     code: "INVALID-PRICE",
                     metadata: new Dictionary<string, object>
                     {
-                        { "FinalPrice", finalPrice }
+                        { "FINALPRICE", finalPrice }
                     });
 
                 FinalPrice = finalPrice;

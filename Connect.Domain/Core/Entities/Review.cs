@@ -32,7 +32,7 @@ namespace Connect.Domain.Core.Entities
                     code: "INVALID-USERID",
                     metadata: new Dictionary<string, object>
                     {
-                        { "UserID", userID }
+                        { "USERID", userID }
                     });
 
             if (productID <= 0)
@@ -41,7 +41,7 @@ namespace Connect.Domain.Core.Entities
                     code: "INVALID-ProductID",
                     metadata: new Dictionary<string, object>
                     {
-                        { "ProductID", productID }
+                        { "PRODUCTID", productID }
                     });
 
             if(string.IsNullOrWhiteSpace(body))

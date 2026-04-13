@@ -87,8 +87,11 @@ namespace Connect.Domain.Core.Entities
             if (OrderStatus != OrderStatus.Pending)
                 throw new DomainExceptions(
                     message: "Order is already shipped",
-                    code: "UNABLE-CANCELORDER"
-                    );
+                    code: "UNABLE-CANCELORDER",
+                    metadata: new Dictionary<string, object>
+                    { 
+                        { "ORDERSTATUS", OrderStatus}
+                    });
 
             OrderStatus = OrderStatus.Cancelled;
 
@@ -109,7 +112,11 @@ namespace Connect.Domain.Core.Entities
             if (OrderPaymentStatus == PaymentStatus.Unpaid || OrderStatus == OrderStatus.Cancelled)
                 throw new DomainExceptions(
                     message: "Order is unpaid or cancelled",
-                    code: "INVALID-STATUS");
+                    code: "INVALID-STATUS",
+                    metadata: new Dictionary<string, object>
+                    {
+                        { "ORDERPAYMENTSTATUS", OrderPaymentStatus}
+                    });
 
             OrderStatus = OrderStatus.Completed;
         }
@@ -119,7 +126,11 @@ namespace Connect.Domain.Core.Entities
             if(OrderStatus == OrderStatus.Cancelled)
                 throw new DomainExceptions(
                     message: "Order is cancelled",
-                    code: "INVALID-STATUS");
+                    code: "INVALID-STATUS",
+                    metadata: new Dictionary<string, object>
+                    {
+                        { "ORDERSTATUS", OrderStatus}
+                    });
 
             OrderStatus = OrderStatus.Shipping;
         }
@@ -129,7 +140,11 @@ namespace Connect.Domain.Core.Entities
             if (OrderPaymentStatus == PaymentStatus.Paid)
                 throw new DomainExceptions(
                     message: "Order is already paid",
-                    code: "PAID-ORDER");
+                    code: "PAID-ORDER",
+                    metadata: new Dictionary<string, object>
+                    {
+                        { "ORDERPAYMENTSTATUS", OrderPaymentStatus}
+                    });
 
             OrderPaymentStatus = PaymentStatus.Paid;
         }
