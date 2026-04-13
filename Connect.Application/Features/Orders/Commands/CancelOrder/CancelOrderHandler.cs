@@ -29,41 +29,40 @@ namespace Connect.Application.Features.Orders.Commands.CancelOrder
             if (order == null)
                 throw new Exception("Order not found");
 
-            if(currentUserService.UserID != order.UserID)
-                    throw new UnauthorizedAccessException("No permission to access");
+            if (currentUserService.UserID != order.UserID)
+                throw new UnauthorizedAccessException("No permission to access");
 
-            foreach (var item in order.OrderItems)
-            {
-                var productID = item.ProductID;
-                var quantity = item.Quantity;
-
-                var product = await unitOfWork.Products.GetByIdAsync(productID,cancellationToken);
-                if (product == null)
-                    throw new Exception("Product not found");
-
-                product.AddToStock(quantity);
-                unitOfWork.Products.Update(product);
-            }
-
-            order.CancelOrder();
+            var productIDs = order.OrderItems.Select(x => x.ProductID).Distinct().ToList();
+            var products = await unitOfWork.Products.WhereAsync(x => productIDs.Contains(x.ProductID), cancellationToken);
 
             await unitOfWork.BeginTransactionAsync(cancellationToken);
             try
             {
+                foreach (var item in order.OrderItems)
+                {
+                    var product = products.FirstOrDefault(p => p.ProductID == item.ProductID);
+                    if (product == null)
+                        throw new Exception("Product not found");
+
+                    product.AddToStock(item.Quantity);
+                    unitOfWork.Products.Update(product);
+                }
+
+                order.CancelOrder();
+
                 unitOfWork.Orders.Update(order);
-                await unitOfWork.SaveChangesAsync(cancellationToken);
                 await unitOfWork.CommitTransactionAsync(cancellationToken);
+
+                return new OrderDto
+                {
+                    OrderStatus = order.OrderStatus.ToString()
+                };
             }
             catch
             {
                 await unitOfWork.RollbackTransactionAsync(cancellationToken);
                 throw;
             }
-
-            return new OrderDto
-            {
-                OrderStatus = order.OrderStatus.ToString()
-            };
         }
     }
 }

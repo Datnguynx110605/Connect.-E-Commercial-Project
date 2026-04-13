@@ -32,22 +32,31 @@ namespace Connect.Application.Features.Users.Commands.CreateNewRefreshToken
             if (user.UserID != refreshToken.UserID)
                 throw new Exception("RefreshToken does not belong to this user");
 
-            refreshToken.VerifyRefreshToken();
-            refreshToken.RevokeRefreshToken();
-
-            RefreshToken newRefreshToken = RefreshToken.CreateRefreshToken(user.UserID);
-
-            unitOfWork.RefreshTokens.Update(refreshToken);
-            await unitOfWork.RefreshTokens.AddAsync(newRefreshToken, cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-
-            var newAccessToken = jwtService.GenerateAccessToken(user);
-
-            return new RefreshTokenDto
+            await unitOfWork.BeginTransactionAsync(cancellationToken);
+            try
             {
-                AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken.RefreshTokens
-            };
+                refreshToken.VerifyRefreshToken();
+                refreshToken.RevokeRefreshToken();
+
+                RefreshToken newRefreshToken = RefreshToken.CreateRefreshToken(user.UserID);
+
+                unitOfWork.RefreshTokens.Update(refreshToken);
+                await unitOfWork.RefreshTokens.AddAsync(newRefreshToken, cancellationToken);
+                await unitOfWork.CommitTransactionAsync(cancellationToken);
+
+                var newAccessToken = jwtService.GenerateAccessToken(user);
+
+                return new RefreshTokenDto
+                {
+                    AccessToken = newAccessToken,
+                    RefreshToken = newRefreshToken.RefreshTokens
+                };
+            }
+            catch
+            {
+                await unitOfWork.RollbackTransactionAsync(cancellationToken);
+                throw;
+            }
         }
     }
 }
