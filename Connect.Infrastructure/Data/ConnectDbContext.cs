@@ -19,5 +19,11 @@ namespace Connect.Infrastructure.Data
         public DbSet<Cart> Carts { get; set; }
         public DbSet<Coupon> Coupons { get; set; }
 
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ConnectDbContext).Assembly);
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }
