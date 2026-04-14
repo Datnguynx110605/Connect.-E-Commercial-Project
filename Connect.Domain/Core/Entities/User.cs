@@ -1,6 +1,5 @@
 ﻿using Connect.Domain.Common;
 using Connect.Domain.Core.ValueObjects;
-using Connect.Domain.Events.UserEvents;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -29,8 +28,6 @@ namespace Connect.Domain.Core.Entities
             Address = address;
             Role = "Customer";
             CreatedAt = DateTime.UtcNow;
-
-            RaiseDomainEvent(new UserRegisteredEvent(Email));
         }
 
         public static User CreateUserProfile(UserName name, Email email, PhoneNumber phone, PasswordHash pass, string address)
@@ -62,8 +59,6 @@ namespace Connect.Domain.Core.Entities
             Email = email;
             PhoneNumber = phone;
             Address = address;
-
-            RaiseDomainEvent(new UserUpdatedProfileEvent(name));
         }
 
         public void UpdateUserPassword(PasswordHash pass)
@@ -74,8 +69,6 @@ namespace Connect.Domain.Core.Entities
                     code: "INVALID-PASSWORDHASH");
 
             PasswordHash = pass;
-
-            RaiseDomainEvent(new UserChangedPasswordEvent(UserName));
         }
     }
 }

@@ -48,7 +48,7 @@ namespace Connect.Infrastructure.Services
                 return;
             }
 
-            var subject = $"Order Cancelled #{orderID} — Connect.";
+            var subject = $"Order Cancelled #{orderID} | Connect.";
             var body = BuildOrderCancelledHtml(user.UserName.Value, orderID);
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
@@ -71,6 +71,27 @@ namespace Connect.Infrastructure.Services
 
             var subject = $"Payment Successful — Order #{orderID} | Connect.";
             var body = BuildPaymentSuccessBillHtml(user.UserName.Value, order.OrderID, order.OrderTotalPrice.Value);
+            await SendAsync(user.Email.Value, subject, body, cancellationToken);
+        }
+
+        public async Task SendOrderCompletedAsync(int userID, int orderID, string orderStatus, CancellationToken cancellationToken=default)
+        {
+            var user = await unitOfWork.Users.GetByIdAsync(userID, cancellationToken);
+            if (user is null)
+            {
+                _logger.LogWarning("Cannot find User {UserID} to send order completed email for Order #{OrderID}", userID, orderID);
+                return;
+            }
+
+            var order = await unitOfWork.Orders.GetByIdAsync(orderID, cancellationToken);
+            if (order is null)
+            {
+                _logger.LogWarning("Cannot find Order #{OrderID} to send order completed email for User {UserID}", orderID, userID);
+                return;
+            }
+
+            var subject = $"Order is completed - Order #{orderID} | Connect.";
+            var body = BuildOrderCompletedHtml(user.UserName.Value, order.OrderID, order.OrderStatus.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 
@@ -171,6 +192,29 @@ namespace Connect.Infrastructure.Services
                     </tr>
                 </table>
                 <p style="margin-top: 20px;">Thank you for shopping with us. Your order is now being processed.</p>
+                <p>— The Connect. Team</p>
+            </body>
+            </html>
+            """;
+
+        private static string BuildOrderCompletedHtml(string userName, int orderID, string orderStatus) =>
+            $"""
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: #4CAF50;">Order Completed!</h2>
+                <p>Hi <strong>{userName}</strong>,</p>
+                <p>Thank you for your order. Here are your order details:</p>
+                <table style="border-collapse: collapse; width: 100%;">
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Order ID</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">#{orderID}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Total Price</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">#{orderStatus}</td>
+                    </tr>
+                </table>
+                <p style="margin-top: 20px;">It is our honour to give our customer the best experience</p>
                 <p>— The Connect. Team</p>
             </body>
             </html>
