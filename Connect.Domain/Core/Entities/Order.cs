@@ -147,6 +147,8 @@ namespace Connect.Domain.Core.Entities
                     });
 
             OrderPaymentStatus = PaymentStatus.Paid;
+
+            RaiseDomainEvent(new OrderPaidEvent(OrderID, UserID, OrderPaymentMethod, OrderTotalPrice));
         }
     }
 }
