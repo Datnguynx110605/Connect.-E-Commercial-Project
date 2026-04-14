@@ -53,6 +53,27 @@ namespace Connect.Infrastructure.Services
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 
+        public async Task SendPaymentSuccessBillEmailAsync(int userID, int orderID, decimal totalPrice, CancellationToken cancellationToken = default)
+        {
+            var user = await unitOfWork.Users.GetByIdAsync(userID, cancellationToken);
+            if (user is null)
+            {
+                _logger.LogWarning("Cannot find User {UserID} to send payment bill email for Order #{OrderID}", userID, orderID);
+                return;
+            }
+
+            var order = await unitOfWork.Orders.GetByIdAsync(orderID, cancellationToken);
+            if (order is null)
+            {
+                _logger.LogWarning("Cannot find Order #{OrderID} to send payment bill email for User {UserID}", orderID, userID);
+                return;
+            }
+
+            var subject = $"Payment Successful — Order #{orderID} | Connect.";
+            var body = BuildPaymentSuccessBillHtml(user.UserName.Value, order.OrderID, order.OrderTotalPrice.Value);
+            await SendAsync(user.Email.Value, subject, body, cancellationToken);
+        }
+
         private async Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken)
         {
             try
@@ -123,6 +144,33 @@ namespace Connect.Infrastructure.Services
                     </tr>
                 </table>
                 <p style="margin-top: 20px;">If you believe this is a mistake or have any questions, please contact our support team.</p>
+                <p>— The Connect. Team</p>
+            </body>
+            </html>
+            """;
+
+        private static string BuildPaymentSuccessBillHtml(string userName, int orderID, decimal totalPrice) =>
+            $"""
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto;">
+                <h2 style="color: #1976D2;">Payment Successful 🎉</h2>
+                <p>Hi <strong>{userName}</strong>,</p>
+                <p>We've received your payment. Here is your bill summary:</p>
+                <table style="border-collapse: collapse; width: 100%; margin-top: 12px;">
+                    <tr style="background-color: #f5f5f5;">
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Order ID</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">#{orderID}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Payment Status</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd; color: #2E7D32;"><strong>Paid</strong></td>
+                    </tr>
+                    <tr style="background-color: #f5f5f5;">
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>Total Amount</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>{totalPrice:N0} VND</strong></td>
+                    </tr>
+                </table>
+                <p style="margin-top: 20px;">Thank you for shopping with us. Your order is now being processed.</p>
                 <p>— The Connect. Team</p>
             </body>
             </html>
