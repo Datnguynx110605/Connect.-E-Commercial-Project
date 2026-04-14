@@ -28,6 +28,9 @@ namespace Connect.Application.Features.Users.Commands.UpdateUserPassword
             if (identity == null)
                 throw new Exception("User is not in the system");
 
+            if (!passwordService.Verify(request.OldPassword, identity.PasswordHash.Value))
+                throw new Exception("Password does not match");
+
             var newHashedPassword = passwordService.Hash(request.Password);
 
             identity.UpdateUserPassword(PasswordHash.Create(newHashedPassword));

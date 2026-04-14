@@ -13,6 +13,9 @@ namespace Connect.Application.Features.Users.Commands.UpdateUserPassword
                 .NotEmpty().WithMessage("Password is required")
                 .MaximumLength(15).WithMessage("Password is too long")
                 .MinimumLength(5).WithMessage("Password is too short");
+
+            RuleFor(x => x.OldPassword)
+                .NotEmpty().WithMessage("Password is required");
         }
     }
 }
