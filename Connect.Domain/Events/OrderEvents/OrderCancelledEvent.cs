@@ -8,9 +8,11 @@ namespace Connect.Domain.Events.OrderEvents
     public record OrderCancelledEvent:DomainEvent
     {
         public int UserID { get; }
-        public OrderCancelledEvent(int userID)
+        public int OrderID { get; }
+        public OrderCancelledEvent(int userID, int orderID)
         {
             UserID = userID;
+            OrderID = orderID;
         }
     }
 }

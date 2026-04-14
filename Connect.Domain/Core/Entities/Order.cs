@@ -95,7 +95,7 @@ namespace Connect.Domain.Core.Entities
 
             OrderStatus = OrderStatus.Cancelled;
 
-            RaiseDomainEvent(new OrderCancelledEvent(UserID));
+            RaiseDomainEvent(new OrderCancelledEvent(UserID, OrderID));
         }
 
         private void IntitalizePaymentStatus()

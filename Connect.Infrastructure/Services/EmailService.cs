@@ -1,5 +1,6 @@
 ﻿using Connect.Application.Interfaces.Persistences;
 using Connect.Application.Interfaces.Services;
+using Connect.Infrastructure.Persistences;
 using Connect.Infrastructure.Settings;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -35,6 +36,20 @@ namespace Connect.Infrastructure.Services
 
             var subject = $"Order Confirmation #{orderID} — Connect.";
             var body = BuildOrderConfirmationHtml(user.UserName.Value, orderID, totalPrice);
+            await SendAsync(user.Email.Value, subject, body, cancellationToken);
+        }
+
+        public async Task SendOrderCancelledAsync(int userID, int orderID, CancellationToken cancellationToken = default)
+        {
+            var user = await unitOfWork.Users.GetByIdAsync(userID, cancellationToken);
+            if (user is null)
+            {
+                _logger.LogWarning("Cannot find User {UserID} to send cancellation email for Order #{OrderID}", userID, orderID);
+                return;
+            }
+
+            var subject = $"Order Cancelled #{orderID} — Connect.";
+            var body = BuildOrderCancelledHtml(user.UserName.Value, orderID);
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 
@@ -85,6 +100,29 @@ namespace Connect.Infrastructure.Services
                     </tr>
                 </table>
                 <p style="margin-top: 20px;">We'll notify you once your order is shipped.</p>
+                <p>— The Connect. Team</p>
+            </body>
+            </html>
+            """;
+
+        private static string BuildOrderCancelledHtml(string userName, int orderID) =>
+            $"""
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: #E53935;">Order Cancelled</h2>
+                <p>Hi <strong>{userName}</strong>,</p>
+                <p>We're sorry to let you know that your order has been cancelled.</p>
+                <table style="border-collapse: collapse; width: 100%;">
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Order ID</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">#{orderID}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Status</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">Cancelled</td>
+                    </tr>
+                </table>
+                <p style="margin-top: 20px;">If you believe this is a mistake or have any questions, please contact our support team.</p>
                 <p>— The Connect. Team</p>
             </body>
             </html>
