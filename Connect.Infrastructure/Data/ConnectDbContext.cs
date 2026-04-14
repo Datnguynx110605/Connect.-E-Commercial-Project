@@ -1,4 +1,4 @@
-﻿using Connect.Application.Features.Orders.Commands.CreateOrder;
+﻿using Connect.Application.Commons;
 using Connect.Domain.Common;
 using Connect.Domain.Core.Entities;
 using MediatR;

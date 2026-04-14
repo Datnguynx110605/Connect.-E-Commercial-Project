@@ -89,38 +89,6 @@ namespace Connect.Infrastructure.Services
             </body>
             </html>
             """;
-
-        public async Task SendOtpEmailAsync(string userEmail, string otpCode, CancellationToken cancellationToken = default)
-        {
-            var user = await unitOfWork.Users.FirstOrDefaultNoTrackingAsync(x => x.Email.Value == userEmail, cancellationToken);
-            if (user == null)
-            {
-                _logger.LogWarning("Can't find User with email {Email} to send OTP email", userEmail);
-                return;
-            }
-
-            var subject = "Verify your Connect. account";
-            var body = BuildOtpEmailHtml(user.UserName.Value, otpCode);
-            await SendAsync(user.Email.Value, subject, body, cancellationToken);
-        }
-
-        private static string BuildOtpEmailHtml(string userName, string otpCode) =>
-            $"""
-            <html>
-            <body style="font-family: Arial, sans-serif; color: #333;">
-                <h2 style="color: #4CAF50;">Welcome to Connect.!</h2>
-                <p>Hi <strong>{userName}</strong>,</p>
-                <p>Thank you for registering. Use the OTP code below to verify your account:</p>
-                <div style="margin: 24px 0; text-align: center;">
-                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #4CAF50;">
-                        {otpCode}
-                    </span>
-                </div>
-                <p>This code expires in <strong>10 minutes</strong>. Do not share it with anyone.</p>
-                <p>— The Connect. Team</p>
-            </body>
-            </html>
-            """;
-            }
+    }
 }
 

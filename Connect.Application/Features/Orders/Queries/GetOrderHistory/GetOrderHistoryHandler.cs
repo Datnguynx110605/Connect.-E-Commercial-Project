@@ -38,7 +38,12 @@ namespace Connect.Application.Features.Orders.Queries.GetOrderHistory
                 OrderPaymentMethod = order.OrderPaymentMethod.ToString(),
                 OrderStatus = order.OrderStatus.ToString(),
                 OrderPaymentStatus = order.OrderPaymentStatus.ToString(),
-                OrderItems = order.OrderItems.ToList()
+                OrderItems = order.OrderItems.Select(x => new OrderItemDto
+                {
+                    ProductID = x.ProductID,
+                    Quantity = x.Quantity.Value,
+                    UnitPrice = x.UnitPrice.Value,
+                }).ToList()
             };
         }
     }
