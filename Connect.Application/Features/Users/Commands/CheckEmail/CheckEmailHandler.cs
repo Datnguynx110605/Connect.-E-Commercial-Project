@@ -1,0 +1,46 @@
+﻿using Connect.Application.Interfaces.Persistences;
+using Connect.Application.Interfaces.Services;
+using Connect.Domain.Core.ValueObjects;
+using FluentResults;
+using MediatR;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Connect.Application.Features.Users.Commands.CheckEmail
+{
+    internal sealed class CheckEmailHandler : IRequestHandler<CheckEmailCommand, Result>
+    {
+        private readonly IUnitOfWork unitOfWork;
+        private readonly IEmailVerificationService verificationService;
+        private readonly IEmailService emailService;
+        private readonly IConfiguration configuration;
+        public CheckEmailHandler(IUnitOfWork _unitOfWork, IEmailVerificationService _verificationService, IEmailService _emailService, IConfiguration _configuration)
+        {
+            unitOfWork = _unitOfWork;
+            verificationService = _verificationService;
+            emailService = _emailService;
+            configuration = _configuration;
+        }
+
+        public async Task<Result> Handle(CheckEmailCommand request, CancellationToken cancellationToken)
+        {
+            bool emailExist = await unitOfWork.Users.AnyAsync(x => x.Email.Value == request.Email, cancellationToken);
+            if (emailExist)
+                throw new Exception("Email already exists");
+
+            Email email = Email.Create(request.Email);
+
+            var token = verificationService.GenerateVerificationToken(request.Email);
+
+            var frontendBaseUrl = configuration["Frontend:BaseUrl"];
+            var encodedToken = Uri.EscapeDataString(token);
+            var verificationUrl = $"{frontendBaseUrl}/verify-email?token={encodedToken}";
+
+            await emailService.SendEmailVerificationAsync(request.Email, verificationUrl, cancellationToken);
+
+            return Result.Ok();
+        }
+    }
+}

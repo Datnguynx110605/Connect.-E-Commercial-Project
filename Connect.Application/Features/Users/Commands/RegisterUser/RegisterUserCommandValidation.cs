@@ -15,9 +15,8 @@ namespace Connect.Application.Features.Users.Commands.RegisterUser
                 .MaximumLength(10).WithMessage("UserName is too long")
                 .Matches(@"^[a-z]+$").WithMessage("UserName must only contain lowercase letters");
 
-            RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email is required")
-                .EmailAddress().WithMessage("Invalid Email");
+            RuleFor(x => x.RegistrationSessionToken)
+            .NotEmpty().WithMessage("Registration session token is required.");
 
             RuleFor(x => x.PhoneNumber)
                 .NotEmpty().WithMessage("Phone number is required")

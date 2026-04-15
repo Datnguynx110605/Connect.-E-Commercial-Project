@@ -95,6 +95,13 @@ namespace Connect.Infrastructure.Services
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 
+        public async Task SendEmailVerificationAsync(string toEmail, string verificationUrl, CancellationToken cancellationToken = default)
+        {
+            var subject = "Verify your email — Connect.";
+            var body = BuildEmailVerificationHtml(verificationUrl);
+            await SendAsync(toEmail, subject, body, cancellationToken);
+        }
+
         private async Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken)
         {
             try
@@ -216,6 +223,49 @@ namespace Connect.Infrastructure.Services
                 </table>
                 <p style="margin-top: 20px;">It is our honour to give our customer the best experience</p>
                 <p>— The Connect. Team</p>
+            </body>
+            </html>
+            """;
+
+        private static string BuildEmailVerificationHtml(string verificationUrl) =>
+            $"""
+            <html>
+            <body style="margin:0;padding:0;background:#f9f9f7;font-family:sans-serif">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr><td align="center" style="padding:48px 16px">
+                  <table width="560" cellpadding="0" cellspacing="0"
+                         style="background:#ffffff;border-radius:12px;overflow:hidden">
+                    <tr>
+                      <td style="background:#1a1a1a;padding:32px 40px">
+                        <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:500">
+                          Connect.
+                        </h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:40px">
+                        <h2 style="margin:0 0 12px;font-size:20px;font-weight:500;color:#1a1a1a">
+                          Verify your email address
+                        </h2>
+                        <p style="margin:0 0 32px;font-size:15px;line-height:1.6;color:#5f5e5a">
+                          Click the button below to verify your email. 
+                          This link expires in <strong>30 minutes</strong>.
+                        </p>
+                        <a href="{verificationUrl}"
+                           style="display:inline-block;padding:14px 32px;
+                                  background:#1a1a1a;color:#ffffff;
+                                  text-decoration:none;border-radius:8px;
+                                  font-size:15px;font-weight:500">
+                          Verify email
+                        </a>
+                        <p style="margin:32px 0 0;font-size:13px;color:#888780">
+                          If you didn't create an account, you can safely ignore this email.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td></tr>
+              </table>
             </body>
             </html>
             """;

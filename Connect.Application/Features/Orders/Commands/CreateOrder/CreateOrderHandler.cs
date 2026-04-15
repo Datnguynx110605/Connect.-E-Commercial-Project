@@ -32,18 +32,8 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
             if (!products.Any() || products.Count() != request.items.Count)
                 throw new Exception("Products not found");
 
-            var orderItems = new List<OrderItem>();
-            foreach (var item in request.items)
-            {
-                var product = products.Single(x => x.ProductID == item.ProductID);
-                Amount quantity = Amount.Create(item.Quantity);
-                product.RemoveFromStock(quantity);
-
-                orderItems.Add(OrderItem.CreateOrderItem(product.ProductID, product.FinalPrice, quantity));
-            }
-
             Coupon? coupon = null;
-            Currency discountAmount = coupon != null ? coupon.DiscountAmount : Currency.Create(0);
+            Currency discountAmount = Currency.Create(0);
             if (request.CouponID.HasValue)
             {
                 coupon = await unitOfWork.Coupons.FirstOrDefaultAsync(x => x.CouponID == request.CouponID, cancellationToken);
@@ -56,6 +46,17 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
 
             ShippingMethod shipMethod = Enum.Parse<ShippingMethod>(request.OrderShippingMethod.ToString());
             PaymentMethod payMethod = Enum.Parse<PaymentMethod>(request.OrderPaymentMethod.ToString());
+
+            var orderItems = new List<OrderItem>();
+            foreach (var item in request.items)
+            {
+                var product = products.Single(x => x.ProductID == item.ProductID);
+                Amount quantity = Amount.Create(item.Quantity);
+                product.RemoveFromStock(quantity);
+
+                orderItems.Add(OrderItem.CreateOrderItem(product.ProductID, product.FinalPrice, quantity));
+            }
+
             Order order = Order.CreateOrder(currentUserService.UserID, coupon.CouponID, shipMethod, payMethod, orderItems, discountAmount);
 
             await unitOfWork.BeginTransactionAsync(cancellationToken);

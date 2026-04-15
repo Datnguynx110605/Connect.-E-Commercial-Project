@@ -14,22 +14,22 @@ namespace Connect.Application.Features.Users.Commands.RegisterUser
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IPasswordService passwordService;
-        public RegisterUserHandler(IUnitOfWork _unitOfWork, IPasswordService _passwordService)
+        private readonly IEmailVerificationService verificationService;
+        public RegisterUserHandler(IUnitOfWork _unitOfWork, IPasswordService _passwordService, IEmailVerificationService _verificationService)
         {
             unitOfWork = _unitOfWork;
             passwordService = _passwordService;
+            verificationService = _verificationService;
         }
 
         public async Task<UserDto> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
-            bool emailExist = await unitOfWork.Users.AnyAsync(x => x.Email.Value == request.Email, cancellationToken);
-            if (emailExist)
-                throw new Exception("Email already exists");
+            string verifiedEmail = verificationService.UnprotectToken(request.RegistrationSessionToken,"registration-session");
 
             string hashedPassword = passwordService.Hash(request.Password);
 
             UserName name = UserName.Create(request.UserName);
-            Email email = Email.Create(request.Email);
+            Email email = Email.Create(verifiedEmail);
             PhoneNumber phone = PhoneNumber.Create(request.PhoneNumber);
             PasswordHash passwordHashed = PasswordHash.Create(hashedPassword);
             string address = request.Address;
