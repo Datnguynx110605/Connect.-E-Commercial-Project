@@ -32,13 +32,13 @@ namespace Connect.Application.Features.Users.Commands.CheckEmail
 
             Email email = Email.Create(request.Email);
 
-            var token = verificationService.GenerateVerificationToken(request.Email);
+            var token = verificationService.GenerateVerificationToken(email.Value);
 
             var frontendBaseUrl = configuration["Frontend:BaseUrl"];
             var encodedToken = Uri.EscapeDataString(token);
             var verificationUrl = $"{frontendBaseUrl}/verify-email?token={encodedToken}";
 
-            await emailService.SendEmailVerificationAsync(request.Email, verificationUrl, cancellationToken);
+            await emailService.SendEmailVerificationAsync(email.Value, verificationUrl, cancellationToken);
 
             return Result.Ok();
         }
