@@ -34,8 +34,15 @@ namespace Connect.Infrastructure.Services
                 return;
             }
 
+            var order = await unitOfWork.Orders.GetByIdAsync(orderID, cancellationToken);
+            if (order is null)
+            {
+                _logger.LogWarning("Cannot find Order #{OrderID} to send payment bill email for User {UserID}", orderID, userID);
+                return;
+            }
+
             var subject = $"Order Confirmation #{orderID} — Connect.";
-            var body = BuildOrderConfirmationHtml(user.UserName.Value, orderID, totalPrice);
+            var body = BuildOrderConfirmationHtml(user.UserName.Value, order.OrderID, order.OrderTotalPrice.Value, order.OrderShippingMethod.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 
@@ -102,6 +109,20 @@ namespace Connect.Infrastructure.Services
             await SendAsync(toEmail, subject, body, cancellationToken);
         }
 
+        public async Task SendWelcomeEmailAsync(int userID, string userName, CancellationToken cancellationToken = default)
+        {
+            var user = await unitOfWork.Users.GetByIdAsync(userID, cancellationToken);
+            if (user is null)
+            {
+                _logger.LogWarning("Cannot find User {UserID} to send welcome email for User #{UserID}", userID, userName);
+                return;
+            }
+
+            var subject = $"Welcome to Connect. - User #{userName} | Connect. ";
+            var body = BuildWelcomeHtml(user.UserName.Value);
+            await SendAsync(user.Email.Value, subject, body, cancellationToken);
+        }
+
         private async Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken)
         {
             try
@@ -131,7 +152,7 @@ namespace Connect.Infrastructure.Services
             }
         }
 
-        private static string BuildOrderConfirmationHtml(string userName, int orderID, decimal totalPrice) =>
+        private static string BuildOrderConfirmationHtml(string userName, int orderID, decimal totalPrice, string shipMethod) =>
             $"""
             <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
@@ -146,6 +167,10 @@ namespace Connect.Infrastructure.Services
                     <tr>
                         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Total Price</strong></td>
                         <td style="padding: 8px; border: 1px solid #ddd;">{totalPrice:N0} VND</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Shipping Method</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{shipMethod}</td>
                     </tr>
                 </table>
                 <p style="margin-top: 20px;">We'll notify you once your order is shipped.</p>
@@ -266,6 +291,19 @@ namespace Connect.Infrastructure.Services
                   </table>
                 </td></tr>
               </table>
+            </body>
+            </html>
+            """;
+
+        private static string BuildWelcomeHtml(string userName) =>
+           $"""
+            <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+                <h2 style="color: #4CAF50;">Welcome to Connect!</h2>
+                <p>Hi <strong>{userName}</strong>,</p>
+                <p>Thanks for choosing us</p>
+                <p style="margin-top: 20px;">Let's grab something, init?</p>
+                <p>— The Connect. Team</p>
             </body>
             </html>
             """;

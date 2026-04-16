@@ -1,5 +1,6 @@
 ﻿using Connect.Domain.Common;
 using Connect.Domain.Core.ValueObjects;
+using Connect.Domain.Events.UserEvents;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -28,6 +29,8 @@ namespace Connect.Domain.Core.Entities
             Address = address;
             Role = "Customer";
             CreatedAt = DateTime.UtcNow;
+
+            RaiseDomainEvent(new UserRegisterEvent(UserID, UserName, Email));
         }
 
         public static User CreateUserProfile(UserName name, Email email, PhoneNumber phone, PasswordHash pass, string address)
