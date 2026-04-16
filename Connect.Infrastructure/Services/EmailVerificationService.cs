@@ -15,10 +15,10 @@ namespace Connect.Infrastructure.Services
         private readonly ITimeLimitedDataProtector verificationProtector;
         private readonly ITimeLimitedDataProtector sessionProtector;
         private readonly ILogger<EmailVerificationService> logger;
-        public EmailVerificationService(ITimeLimitedDataProtector _verificationProtector, ITimeLimitedDataProtector _sessionProtector, ILogger<EmailVerificationService> _logger)
+        public EmailVerificationService(IDataProtectionProvider provider, ILogger<EmailVerificationService> _logger)
         {
-            verificationProtector = _verificationProtector.CreateProtector(VerificationPurpose).ToTimeLimitedDataProtector();
-            sessionProtector = _sessionProtector.CreateProtector(SessionPurpose).ToTimeLimitedDataProtector();
+            verificationProtector = provider.CreateProtector(VerificationPurpose).ToTimeLimitedDataProtector();
+            sessionProtector = provider.CreateProtector(SessionPurpose).ToTimeLimitedDataProtector();
             logger = _logger;
         }
 

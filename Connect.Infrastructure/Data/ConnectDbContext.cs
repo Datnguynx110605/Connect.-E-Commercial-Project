@@ -11,8 +11,8 @@ namespace Connect.Infrastructure.Data
 {
     public class ConnectDbContext : DbContext
     {
-        private readonly IPublisher publisher;
-        public ConnectDbContext(DbContextOptions<ConnectDbContext> options, IPublisher _publisher): base(options)
+        private readonly IPublisher? publisher;
+        public ConnectDbContext(DbContextOptions<ConnectDbContext> options, IPublisher? _publisher = null): base(options)
         {
             publisher = _publisher;
         }
@@ -54,6 +54,7 @@ namespace Connect.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Ignore<DomainEvent>();
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ConnectDbContext).Assembly);
             base.OnModelCreating(modelBuilder);
         }
