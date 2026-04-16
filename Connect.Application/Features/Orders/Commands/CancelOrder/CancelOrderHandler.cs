@@ -35,6 +35,7 @@ namespace Connect.Application.Features.Orders.Commands.CancelOrder
             var productIDs = order.OrderItems.Select(x => x.ProductID).Distinct().ToList();
             var products = await unitOfWork.Products.WhereAsync(x => productIDs.Contains(x.ProductID), cancellationToken);
 
+            await unitOfWork.BeginTransactionAsync(cancellationToken);
             foreach (var item in order.OrderItems)
             {
                 var product = products.FirstOrDefault(p => p.ProductID == item.ProductID);
@@ -47,7 +48,6 @@ namespace Connect.Application.Features.Orders.Commands.CancelOrder
 
             order.CancelOrder();
 
-            await unitOfWork.BeginTransactionAsync(cancellationToken);
             unitOfWork.Orders.Update(order);
             await unitOfWork.CommitTransactionAsync(cancellationToken);
 
