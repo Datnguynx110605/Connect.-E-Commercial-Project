@@ -23,6 +23,7 @@ namespace Connect.Application.Features.Products.Queries.GetAllProducts
 
             return product.Select(x => new ProductDto
             {
+                ProductID=x.ProductID,
                 ProductName = x.ProductName.Value,
                 Description = x.Description,
                 OriginalPrice = x.OriginalPrice.Value,
@@ -33,6 +34,7 @@ namespace Connect.Application.Features.Products.Queries.GetAllProducts
                 Color = x.Color,
                 ImageURL = x.ImageURL,
                 ProductStatus = x.ProductStatus.ToString(),
+                CreatedAt=x.CreatedAt
             });
         }
     }

@@ -17,7 +17,6 @@ namespace Connect.Application.Features.Products.Commands.CreateProduct
         public int Ram { get; init; }
         public int Rom { get; init; }
         public string Color { get; init; }
-        public string ProductStatus { get; init; }
         public List<string> ImageURL { get; init; }
     }
 }

@@ -15,14 +15,14 @@ namespace Connect.Application.Features.Products.Commands.CreateProduct
             RuleFor(x => x.ProductName)
                 .NotEmpty().WithMessage("Product name is required")
                 .MinimumLength(5).WithMessage("Product name is too short")
-                .MaximumLength(30).WithMessage("Product name is too long")
-                .Matches(@"\W").WithMessage("Product name must not have special character");
+                .MaximumLength(100).WithMessage("Product name is too long")
+                .Matches(@"[^\p{L}\p{N}\s\-\|]").WithMessage("Product name must not have special character");
 
             RuleFor(x => x.Description)
                 .NotEmpty().WithMessage("Description is required")
                 .MinimumLength(50).WithMessage("Description is too short")
-                .MaximumLength(300).WithMessage("Description is too long")
-                .Matches(@"\W").WithMessage("Description must not have special character");
+                .MaximumLength(500).WithMessage("Description is too long")
+                .Matches(@"[^\p{L}\p{N}\s\-\|]").WithMessage("Description must not have special character");
 
             RuleFor(x => x.OriginalPrice)
                 .NotEmpty().WithMessage("Original price is required")

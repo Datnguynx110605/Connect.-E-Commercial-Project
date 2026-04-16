@@ -23,6 +23,7 @@ namespace Connect.Application.Features.Categories.Queries.GetSpecificCategory
 
             return new CategoryDto
             {
+                CategoryID=category.CategoryID,
                 CategoryName = category.CategoryName.Value
             };
         }

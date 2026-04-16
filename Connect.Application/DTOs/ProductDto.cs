@@ -6,6 +6,7 @@ namespace Connect.Application.DTOs
 {
     public record ProductDto
     {
+        public int ProductID { get; init; }
         public string ProductName { get; init; }
         public string Description { get; init; }
         public decimal OriginalPrice { get; init; }

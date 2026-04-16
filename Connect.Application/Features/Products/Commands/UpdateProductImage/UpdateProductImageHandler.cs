@@ -28,7 +28,18 @@ namespace Connect.Application.Features.Products.Commands.UpdateProductImage
 
             return new ProductDto
             {
-                ImageURL = product.ImageURL
+                ProductID = product.ProductID,
+                ProductName = product.ProductName.Value,
+                Description = product.Description,
+                OriginalPrice = product.OriginalPrice.Value,
+                FinalPrice = product.FinalPrice.Value,
+                Stock = product.Stock.Value,
+                Ram = product.Ram.Value,
+                Rom = product.Rom.Value,
+                Color = product.Color,
+                ProductStatus = product.ProductStatus.ToString(),
+                ImageURL = product.ImageURL,
+                CreatedAt = product.CreatedAt
             };
         }
     }

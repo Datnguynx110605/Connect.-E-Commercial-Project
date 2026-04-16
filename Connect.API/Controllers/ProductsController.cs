@@ -40,10 +40,10 @@ namespace Connect.API.Controllers
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateProduct([FromForm] CreateProductCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
-            return CreatedAtAction(nameof(GetProductDetail), new { id = result.ProductName }, result);
+            return CreatedAtAction(nameof(GetProductDetail), new { id = result.ProductID }, result);
         }
 
         [HttpPatch("{id:int}/stock")]
@@ -60,7 +60,7 @@ namespace Connect.API.Controllers
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateImage(int id, [FromBody] UpdateProductImageCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateImage(int id, [FromForm] UpdateProductImageCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command with { ProductID = id }, cancellationToken);
             return Ok(result);

@@ -29,7 +29,18 @@ namespace Connect.Application.Features.Products.Commands.UpdateProductStock
 
             return new ProductDto
             {
-                Stock = product.Stock.Value
+                ProductID = product.ProductID,
+                ProductName = product.ProductName.Value,
+                Description = product.Description,
+                OriginalPrice = product.OriginalPrice.Value,
+                FinalPrice = product.FinalPrice.Value,
+                Stock = product.Stock.Value,
+                Ram = product.Ram.Value,
+                Rom = product.Rom.Value,
+                Color = product.Color,
+                ProductStatus = product.ProductStatus.ToString(),
+                ImageURL = product.ImageURL,
+                CreatedAt = product.CreatedAt
             };
         }
     }

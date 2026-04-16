@@ -42,7 +42,7 @@ namespace Connect.API.Controllers
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
-            return CreatedAtAction(nameof(GetCategory), result);
+            return CreatedAtAction(nameof(GetCategory), new { id = result.CategoryID }, result);
         }
 
         [HttpPut("{id:int}")]

@@ -29,16 +29,16 @@ namespace Connect.Application.Features.Products.Commands.CreateProduct
             Amount ram = Amount.Create(request.Ram);
             Amount rom = Amount.Create(request.Rom);
             string color = request.Color;
-            ProductStatus status = Enum.Parse<ProductStatus>(request.ProductStatus);
             List<string> imageURL = request.ImageURL;
 
-            Product product=Product.CreateProduct(categoryID, name, description, originalPrice, finalPrice, stock, ram, rom, color, imageURL, status);
+            Product product=Product.CreateProduct(categoryID, name, description, originalPrice, finalPrice, stock, ram, rom, color, imageURL);
 
             await unitOfWork.Products.AddAsync(product, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new ProductDto
             {
+                ProductID=product.ProductID,
                 ProductName = product.ProductName.Value,
                 Description = product.Description,
                 OriginalPrice = product.OriginalPrice.Value,
@@ -48,7 +48,8 @@ namespace Connect.Application.Features.Products.Commands.CreateProduct
                 Rom = product.Rom.Value,
                 Color = product.Color,
                 ProductStatus = product.ProductStatus.ToString(),
-                ImageURL = imageURL
+                ImageURL = imageURL,
+                CreatedAt=product.CreatedAt
             };
         }
     }

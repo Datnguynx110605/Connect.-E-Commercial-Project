@@ -28,6 +28,7 @@ namespace Connect.Application.Features.Categories.Commands.CreateCategory
 
             return new CategoryDto
             {
+                CategoryID=category.CategoryID,
                 CategoryName = category.CategoryName.Value
             };
         }

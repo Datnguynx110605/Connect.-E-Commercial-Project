@@ -26,7 +26,7 @@ namespace Connect.Domain.Core.ValueObjects
                         { "PRODUCTNAME", value }
                     });
 
-            if (value.Length < 5 || value.Length > 30)
+            if (value.Length < 5 || value.Length > 100)
                 throw new DomainExceptions(
                     message: "Product name is invalid",
                     code: "INVALID-PRODUCTNAME",
@@ -35,7 +35,7 @@ namespace Connect.Domain.Core.ValueObjects
                         { "PRODUCTNAME", value }
                     });
 
-            if (Regex.IsMatch(value, @"\W"))
+            if (Regex.IsMatch(value, @"[^\p{L}\p{N}\s\-\|]"))
                 throw new DomainExceptions(
                      message: "Product name must not have special character",
                      code: "INVALID-PRODUCTNAME",

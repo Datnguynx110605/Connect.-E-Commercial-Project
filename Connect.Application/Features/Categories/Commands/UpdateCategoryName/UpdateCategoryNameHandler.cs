@@ -29,6 +29,7 @@ namespace Connect.Application.Features.Categories.Commands.UpdateCategoryName
 
             return new CategoryDto
             {
+                CategoryID=category.CategoryID,
                 CategoryName = category.CategoryName.Value
             };
         }

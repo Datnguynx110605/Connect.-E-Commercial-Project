@@ -23,6 +23,7 @@ namespace Connect.Application.Features.Products.Queries.GetProductDetail
 
             return new ProductDto
             {
+                ProductID = product.ProductID,
                 ProductName = product.ProductName.Value,
                 Description = product.Description,
                 OriginalPrice = product.OriginalPrice.Value,
@@ -31,8 +32,9 @@ namespace Connect.Application.Features.Products.Queries.GetProductDetail
                 Ram = product.Ram.Value,
                 Rom = product.Rom.Value,
                 Color = product.Color,
+                ProductStatus = product.ProductStatus.ToString(),
                 ImageURL = product.ImageURL,
-                ProductStatus = product.ProductStatus.ToString()
+                CreatedAt = product.CreatedAt
             };
         }
     }

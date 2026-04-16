@@ -27,7 +27,7 @@
             public DateTime CreatedAt { get; private set; }
             private Product() { }
             private Product(int categoryID, ProductName name, string description,
-            Currency originalPrice, Currency finalPrice, Amount stock, Amount ram, Amount rom, string color, List<string> imageURL, ProductStatus status)
+            Currency originalPrice, Currency finalPrice, Amount stock, Amount ram, Amount rom, string color, List<string> imageURL)
             {
                 CategoryID = categoryID;
                 ProductName = name;
@@ -39,12 +39,12 @@
                 Rom = rom;
                 Color = color;
                 ImageURL = imageURL;
-                ProductStatus = status;
+                ProductStatus = ProductStatus.InStock;
                 CreatedAt = DateTime.UtcNow;
             }
 
             public static Product CreateProduct(int categoryID, ProductName name, string description,
-            Currency originalPrice, Currency finalPrice, Amount stock, Amount ram, Amount rom, string color, List<string> imageURL, ProductStatus status)
+            Currency originalPrice, Currency finalPrice, Amount stock, Amount ram, Amount rom, string color, List<string> imageURL)
             {
                 if (string.IsNullOrWhiteSpace(description))
                     throw new DomainExceptions(
@@ -55,7 +55,7 @@
                             { "DESCRIPTION", description }
                         });
 
-                if (description.Length > 200 || description.Length < 50)
+                if (description.Length > 500 || description.Length < 50)
                     throw new DomainExceptions(
                         message: "Description is invalid",
                         code: "INVALID-DESCRIPTION",
@@ -110,12 +110,7 @@
                             { "COLOR", color }
                         });
 
-                if(!Enum.IsDefined(typeof(ProductStatus), status))
-                    throw new DomainExceptions(
-                        message: "Product status is invalid",
-                        code: "INVALID-STATUS");
-
-                return new Product(categoryID, name, description.Trim(), originalPrice, finalPrice, stock, ram, rom, color, imageURL, status);
+                return new Product(categoryID, name, description.Trim(), originalPrice, finalPrice, stock, ram, rom, color, imageURL);
             }
 
             private void MarkProductStock()
