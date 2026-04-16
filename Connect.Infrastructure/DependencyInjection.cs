@@ -42,6 +42,8 @@ namespace Connect.Infrastructure
         {
             services.AddDataProtection();
 
+            services.Configure<JWTOptions>(configuration.GetSection("Jwt"));
+
             services.AddScoped<IJWTService, JWTService>();
 
             services.AddScoped<IPasswordService, PasswordService>();

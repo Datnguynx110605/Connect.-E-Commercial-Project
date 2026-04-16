@@ -87,7 +87,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpGet]
-        [Authorize ("Admin")]
+        [Authorize(Roles ="Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
         {

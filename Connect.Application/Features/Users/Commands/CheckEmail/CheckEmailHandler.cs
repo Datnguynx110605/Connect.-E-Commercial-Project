@@ -26,11 +26,11 @@ namespace Connect.Application.Features.Users.Commands.CheckEmail
 
         public async Task<Result> Handle(CheckEmailCommand request, CancellationToken cancellationToken)
         {
-            bool emailExist = await unitOfWork.Users.AnyAsync(x => x.Email.Value == request.Email, cancellationToken);
+            Email email = Email.Create(request.Email);
+
+            bool emailExist = await unitOfWork.Users.AnyAsync(x => x.Email == email, cancellationToken);
             if (emailExist)
                 throw new Exception("Email already exists");
-
-            Email email = Email.Create(request.Email);
 
             var token = verificationService.GenerateVerificationToken(email.Value);
 

@@ -6,11 +6,13 @@ using Hangfire;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
-    .AddPresentation()
+    .AddPresentation(builder.Configuration)
     .AddApplication()
     .AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseCustomMiddleware();
 
 if (app.Environment.IsDevelopment())
 {
@@ -23,9 +25,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCustomMiddleware();
-app.UseHangfireDashboard();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHangfireDashboard();
+
 app.MapControllers();
+
 app.Run();

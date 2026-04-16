@@ -2,6 +2,7 @@
 using Connect.Application.Interfaces.Persistences;
 using Connect.Application.Interfaces.Services;
 using Connect.Domain.Core.Entities;
+using Connect.Domain.Core.ValueObjects;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,8 @@ namespace Connect.Application.Features.Users.Commands.LoginUser
 
         public async Task<RefreshTokenDto> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await unitOfWork.Users.FirstOrDefaultNoTrackingAsync(x => x.Email.Value == request.Email, cancellationToken);
+            Email email = Email.Create(request.Email);
+            var user = await unitOfWork.Users.FirstOrDefaultNoTrackingAsync(x => x.Email == email, cancellationToken);
             if (user == null)
                 throw new Exception("Email or password is incorrect");
 
