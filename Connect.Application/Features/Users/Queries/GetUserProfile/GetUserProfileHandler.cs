@@ -26,10 +26,12 @@ namespace Connect.Application.Features.Users.Queries.GetUserProfile
 
             return new UserDto
             {
+                UserID = identity.UserID,
                 UserName = identity.UserName.Value,
                 Email = identity.Email.Value,
                 PhoneNumber = identity.PhoneNumber.Value,
-                Address = identity.Address
+                Address = identity.Address,
+                CreatedAt = identity.CreatedAt
             };
         }
     }

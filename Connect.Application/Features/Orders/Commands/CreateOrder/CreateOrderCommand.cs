@@ -14,7 +14,7 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
         public int ProductID { get; }
         public decimal UnitPrice { get; }
         public int Quantity { get; init; }
-        public int? CouponID { get; }
+        public int? CouponID { get; init; }
         public ShippingMethod OrderShippingMethod { get; init; }
         public PaymentMethod OrderPaymentMethod { get; init; }
         public List<OrderItemDto> items { get; init; } = new();

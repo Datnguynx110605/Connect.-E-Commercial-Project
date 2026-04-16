@@ -40,7 +40,7 @@ namespace Connect.API.Controllers
         public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
-            return CreatedAtAction(nameof(GetCoupon), result);
+            return CreatedAtAction(nameof(GetCoupon), new { id = result.CouponID }, result);
         }
 
         [HttpPatch("{id:int}/expiry-date")]

@@ -8,6 +8,7 @@ namespace Connect.Application.DTOs
 {
     public record OrderDto
     {
+        public int OrderID { get; init; }
         public int UserID { get; init; }
         public int? CouponID { get; init; }
         public decimal OrderTotalPrice { get; init; }
@@ -17,5 +18,6 @@ namespace Connect.Application.DTOs
         public string OrderPaymentStatus { get; init; }
         public string OrderStatus { get; init; }
         public List<OrderItemDto> OrderItems { get; init; } = new();
+        public DateTime CreatedAt { get; init; }
     }
 }

@@ -30,6 +30,7 @@ namespace Connect.Application.Features.Carts.Queries.GetUserCart
 
             return new CartDto
             {
+                CartID = cart.CartID,
                 UserID = cart.UserID,
                 ProductID = cart.ProductID,
                 CartQuantity = cart.CartQuantity.Value,

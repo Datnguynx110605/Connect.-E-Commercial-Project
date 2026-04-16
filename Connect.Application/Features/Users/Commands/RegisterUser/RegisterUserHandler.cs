@@ -41,6 +41,7 @@ namespace Connect.Application.Features.Users.Commands.RegisterUser
 
             return new UserDto
             {
+                UserID=user.UserID,
                 UserName = user.UserName.Value,
                 Email = user.Email.Value,
                 PhoneNumber = user.PhoneNumber.Value,

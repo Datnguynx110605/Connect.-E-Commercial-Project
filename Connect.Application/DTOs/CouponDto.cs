@@ -6,6 +6,7 @@ namespace Connect.Application.DTOs
 {
     public record CouponDto
     {
+        public int CouponID { get; init; }
         public string CouponCode { get; init; }
         public decimal DiscountAmount { get; init; }
         public int CouponQuantity { get; init; }

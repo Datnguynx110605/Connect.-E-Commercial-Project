@@ -24,6 +24,7 @@ namespace Connect.Application.Features.Orders.Queries.GetAllOrders
 
             return order.Select(x => new OrderDto
             {
+                OrderID=x.OrderID,
                 UserID=x.UserID,
                 CouponID=x.CouponID,
                 OrderTotalPrice=x.OrderTotalPrice.Value,
@@ -37,7 +38,8 @@ namespace Connect.Application.Features.Orders.Queries.GetAllOrders
                     ProductID = x.ProductID,
                     Quantity = x.Quantity.Value,
                     UnitPrice = x.UnitPrice.Value,
-                }).ToList()
+                }).ToList(),
+                CreatedAt=x.CreatedAt
             });
         }
     }

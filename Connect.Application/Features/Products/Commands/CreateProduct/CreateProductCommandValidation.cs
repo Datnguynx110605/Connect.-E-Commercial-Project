@@ -21,7 +21,7 @@ namespace Connect.Application.Features.Products.Commands.CreateProduct
             RuleFor(x => x.Description)
                 .NotEmpty().WithMessage("Description is required")
                 .MinimumLength(50).WithMessage("Description is too short")
-                .MaximumLength(500).WithMessage("Description is too long")
+                .MaximumLength(2000).WithMessage("Description is too long")
                 .Matches(@"[^\p{L}\p{N}\s\-\|]").WithMessage("Description must not have special character");
 
             RuleFor(x => x.OriginalPrice)

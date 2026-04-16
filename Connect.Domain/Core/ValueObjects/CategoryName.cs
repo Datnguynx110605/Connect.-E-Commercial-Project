@@ -26,7 +26,7 @@ namespace Connect.Domain.Core.ValueObjects
                         { "CATEGORYNAME", value }
                     });
 
-            if (value.Length < 2 || value.Length > 10)
+            if (value.Length < 2 || value.Length > 20)
                 throw new DomainExceptions(
                     message: "Category name is invalid",
                     code: "INVALID-CATEGORYNAME",

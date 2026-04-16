@@ -23,6 +23,7 @@ namespace Connect.Application.Features.Coupons.Queries.GetSpecificCoupon
 
             return new CouponDto
             {
+                CouponID = coupon.CouponID,
                 CouponCode = coupon.CouponCode.Value,
                 DiscountAmount = coupon.DiscountAmount.Value,
                 CouponQuantity = coupon.CouponQuantity.Value,

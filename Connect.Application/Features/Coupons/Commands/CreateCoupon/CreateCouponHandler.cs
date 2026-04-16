@@ -32,6 +32,7 @@ namespace Connect.Application.Features.Coupons.Commands.CreateCoupon
 
             return new CouponDto
             {
+                CouponID=coupon.CouponID,
                 CouponCode = coupon.CouponCode.Value,
                 DiscountAmount = coupon.DiscountAmount.Value,
                 CouponQuantity = coupon.CouponQuantity.Value,

@@ -15,7 +15,7 @@ namespace Connect.Application.Features.Reviews.Commands.CreateReview
 
             RuleFor(x => x.Body)
                 .NotEmpty().WithMessage("Body is required")
-                .MaximumLength(300).WithMessage("Body is too long")
+                .MaximumLength(2000).WithMessage("Body is too long")
                 .MinimumLength(5).WithMessage("Body is too short");
         }
     }

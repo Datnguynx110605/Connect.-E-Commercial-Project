@@ -30,6 +30,7 @@ namespace Connect.Application.Features.Orders.Queries.GetOrderHistory
 
             return new OrderDto
             {
+                OrderID = order.OrderID,
                 UserID = order.UserID,
                 CouponID = order.CouponID,
                 OrderTotalPrice = order.OrderTotalPrice.Value,
@@ -43,7 +44,8 @@ namespace Connect.Application.Features.Orders.Queries.GetOrderHistory
                     ProductID = x.ProductID,
                     Quantity = x.Quantity.Value,
                     UnitPrice = x.UnitPrice.Value,
-                }).ToList()
+                }).ToList(),
+                CreatedAt = order.CreatedAt
             };
         }
     }

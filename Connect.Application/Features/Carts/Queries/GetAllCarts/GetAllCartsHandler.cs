@@ -23,6 +23,7 @@ namespace Connect.Application.Features.Carts.Queries.GetAllCarts
 
             return cart.Select(x => new CartDto
             {
+                CartID=x.CartID,
                 UserID = x.UserID,
                 ProductID = x.ProductID,
                 CartQuantity = x.CartQuantity.Value,

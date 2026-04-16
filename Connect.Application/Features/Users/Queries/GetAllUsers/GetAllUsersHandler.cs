@@ -24,10 +24,12 @@ namespace Connect.Application.Features.Users.Queries.GetAllUsers
 
             return user.Select(x => new UserDto
             {
+                UserID=x.UserID,
                 UserName = x.UserName.Value,
                 Email = x.Email.Value,
                 PhoneNumber = x.PhoneNumber.Value,
-                Address = x.Address
+                Address = x.Address,
+                CreatedAt=x.CreatedAt
             });
         }
     }

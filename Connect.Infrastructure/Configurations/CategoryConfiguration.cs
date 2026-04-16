@@ -24,7 +24,7 @@ namespace Connect.Infrastructure.Configurations
                     v => v.Value,
                     v => CategoryName.Create(v))
                 .HasColumnName("CategoryName")
-                .HasMaxLength(10)
+                .HasMaxLength(30)
                 .IsRequired();
 
             builder.HasIndex(c => c.CategoryName)

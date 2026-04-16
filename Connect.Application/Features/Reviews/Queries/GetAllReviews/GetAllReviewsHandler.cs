@@ -23,10 +23,12 @@ namespace Connect.Application.Features.Reviews.Queries.GetAllReviews
 
             return review.Select(x => new ReviewDto
             {
+                ReviewID=x.ReviewID,
                 UserID=x.UserID,
                 ProductID=x.ProductID,
                 Rating=x.Rating.Value,
-                Body=x.Body
+                Body=x.Body,
+                CreatedAt=x.CreatedAt
             });
         }
     }

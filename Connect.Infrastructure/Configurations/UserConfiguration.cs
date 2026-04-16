@@ -24,7 +24,7 @@ namespace Connect.Infrastructure.Configurations
                     v => v.Value,
                     v => UserName.Create(v))
                 .HasColumnName("UserName")
-                .HasMaxLength(10)
+                .HasMaxLength(30)
                 .IsRequired();
 
             builder.Property(u => u.Email)

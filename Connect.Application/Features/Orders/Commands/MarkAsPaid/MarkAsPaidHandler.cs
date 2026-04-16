@@ -28,7 +28,22 @@ namespace Connect.Application.Features.Orders.Commands.MarkAsPaid
 
             return new OrderDto
             {
-                OrderPaymentStatus = order.OrderPaymentStatus.ToString()
+                OrderID = order.OrderID,
+                UserID = order.UserID,
+                CouponID = order.CouponID,
+                OrderTotalPrice = order.OrderTotalPrice.Value,
+                OrderTotalItems = order.OrderTotalItems.Value,
+                OrderShippingMethod = order.OrderShippingMethod.ToString(),
+                OrderPaymentMethod = order.OrderPaymentMethod.ToString(),
+                OrderStatus = order.OrderStatus.ToString(),
+                OrderPaymentStatus = order.OrderPaymentStatus.ToString(),
+                OrderItems = order.OrderItems.Select(x => new OrderItemDto
+                {
+                    ProductID = x.ProductID,
+                    Quantity = x.Quantity.Value,
+                    UnitPrice = x.UnitPrice.Value,
+                }).ToList(),
+                CreatedAt = order.CreatedAt
             };
         }
     }

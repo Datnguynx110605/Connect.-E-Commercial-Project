@@ -27,12 +27,12 @@ namespace Connect.Infrastructure.Configurations
                     v => v.Value,
                     v => ProductName.Create(v))
                 .HasColumnName("ProductName")
-                .HasMaxLength(30)
+                .HasMaxLength(100)
                 .IsRequired();
 
             builder.Property(p => p.Description)
                 .HasColumnName("Description")
-                .HasMaxLength(200)
+                .HasMaxLength(2000)
                 .IsRequired();
 
             builder.Property(p => p.OriginalPrice)

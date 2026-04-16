@@ -40,10 +40,12 @@ namespace Connect.Application.Features.Reviews.Commands.CreateReview
 
             return new ReviewDto
             {
+                ReviewID=review.ReviewID,
                 UserID = review.UserID,
                 ProductID = review.ProductID,
                 Rating = review.Rating.Value,
-                Body = review.Body
+                Body = review.Body,
+                CreatedAt=review.CreatedAt
             };
         }
     }

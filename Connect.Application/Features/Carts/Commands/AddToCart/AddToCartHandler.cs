@@ -39,6 +39,7 @@ namespace Connect.Application.Features.Carts.Commands.AddToCart
 
             return new CartDto
             {
+                CartID=cart.CartID,
                 UserID = cart.UserID,
                 ProductID = cart.ProductID,
                 CartQuantity = cart.CartQuantity.Value,

@@ -35,7 +35,7 @@ namespace Connect.Domain.Core.ValueObjects
                         { "Code", value }
                     });
 
-            if (Regex.IsMatch(value, @"\d"))
+            if (!Regex.IsMatch(value, @"\d"))
                 throw new DomainExceptions(
                    message: "Code must have number",
                    code: "INVALID-CODE",

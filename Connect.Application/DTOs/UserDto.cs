@@ -6,6 +6,7 @@ namespace Connect.Application.DTOs
 {
     public record UserDto
     {
+        public int UserID { get; init; }
         public string UserName { get; init; }
         public string Email { get; init; }
         public string PhoneNumber { get; init; }

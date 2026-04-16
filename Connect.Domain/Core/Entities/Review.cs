@@ -53,7 +53,7 @@ namespace Connect.Domain.Core.Entities
                         { "REVIEWBODY", body }
                     });
 
-            if(body.Length < 5 || body.Length > 300)
+            if(body.Length > 2000)
                 throw new DomainExceptions(
                     message: "Review body is invalid",
                     code: "INVALID-REVIEWBODY",

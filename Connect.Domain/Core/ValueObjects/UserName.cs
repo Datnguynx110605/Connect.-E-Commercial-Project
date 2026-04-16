@@ -26,7 +26,7 @@ namespace Connect.Domain.Core.ValueObjects
                         { "USERNAME", value }
                     });
 
-            if(value.Length < 5 || value.Length > 10)
+            if(value.Length < 3 || value.Length > 30)
                 throw new DomainExceptions(
                     message: "User name is invalid",
                     code: "INVALID-USERNAME",
@@ -40,15 +40,6 @@ namespace Connect.Domain.Core.ValueObjects
                     message: "User name must be required",
                     code: "REQUIRED-USERNAME",
                     metadata: new Dictionary<string, object> 
-                    {
-                        { "USERNAME", value }
-                    });
-
-            if(value.Length < 5 || value.Length > 10)
-                throw new DomainExceptions(
-                    message: "User name is invalid",
-                    code: "INVALID-USERNAME",
-                    metadata: new Dictionary<string, object>
                     {
                         { "USERNAME", value }
                     });

@@ -34,7 +34,7 @@ namespace Connect.Infrastructure.Configurations
 
             builder.Property(r => r.Body)
                 .HasColumnName("Body")
-                .HasMaxLength(300)
+                .HasMaxLength(2000)
                 .IsRequired();
 
             builder.Property(r => r.CreatedAt)

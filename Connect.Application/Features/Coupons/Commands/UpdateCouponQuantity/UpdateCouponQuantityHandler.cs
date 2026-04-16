@@ -29,7 +29,11 @@ namespace Connect.Application.Features.Coupons.Commands.UpdateCouponQuantity
 
             return new CouponDto
             {
-                CouponQuantity = coupon.CouponQuantity.Value
+                CouponID = coupon.CouponID,
+                CouponCode = coupon.CouponCode.Value,
+                DiscountAmount = coupon.DiscountAmount.Value,
+                CouponQuantity = coupon.CouponQuantity.Value,
+                ExpiryDate = coupon.ExpiryDate
             };
         }
     }
