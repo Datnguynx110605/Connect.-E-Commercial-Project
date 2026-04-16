@@ -17,7 +17,7 @@ namespace Connect.API.Controllers
         public CartsController(ISender sender) : base(sender) { }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllCarts(CancellationToken cancellationToken)
         {

@@ -34,7 +34,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPost]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponCommand command, CancellationToken cancellationToken)
@@ -44,7 +44,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPatch("{id:int}/expiry-date")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateExpiryDate(int id, [FromBody] UpdateCouponExpiryDateCommand command, CancellationToken cancellationToken)
@@ -54,7 +54,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPatch("{id:int}/quantity")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateQuantity(int id, [FromBody] UpdateCouponQuantityCommand command, CancellationToken cancellationToken)

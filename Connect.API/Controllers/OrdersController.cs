@@ -19,7 +19,7 @@ namespace Connect.API.Controllers
         public OrdersController(ISender sender) : base(sender) { }
 
         [HttpGet]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllOrders(CancellationToken cancellationToken)
         {
@@ -38,7 +38,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPost]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderCommand command, CancellationToken cancellationToken)
@@ -59,7 +59,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPatch("{id:int}/shipping")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateToShipping(int id, [FromBody] UpdateOrderStatusToShippingCommand command, CancellationToken cancellationToken)
@@ -69,7 +69,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPatch("{id:int}/completed")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateToCompleted(int id, [FromBody] UpdateOrderStatusToCompletedCommand command, CancellationToken cancellationToken)
@@ -79,7 +79,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPatch("{id:int}/paid")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> MarkAsPaid(int id, [FromBody] MarkAsPaidCommand command, CancellationToken cancellationToken)

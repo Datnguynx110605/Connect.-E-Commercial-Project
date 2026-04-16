@@ -17,7 +17,7 @@ namespace Connect.API.Controllers
         public ReviewsController(ISender sender) : base(sender) { }
 
         [HttpGet]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllReviews(CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPost]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateReview([FromBody] CreateReviewCommand command, CancellationToken cancellationToken)
@@ -47,7 +47,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPut("{id:int}")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -58,7 +58,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

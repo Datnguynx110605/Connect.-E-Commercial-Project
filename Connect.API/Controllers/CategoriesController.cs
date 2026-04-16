@@ -36,7 +36,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPost]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryCommand command, CancellationToken cancellationToken)
@@ -46,7 +46,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPut("{id:int}")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateCategoryName(int id, [FromBody] UpdateCategoryNameCommand command, CancellationToken cancellationToken)
@@ -56,7 +56,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteCategory(int id, CancellationToken cancellationToken)

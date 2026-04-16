@@ -37,7 +37,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPost]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command, CancellationToken cancellationToken)
@@ -47,7 +47,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPatch("{id:int}/stock")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateStock(int id, [FromBody] UpdateProductStockCommand command, CancellationToken cancellationToken)
@@ -57,7 +57,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpPatch("{id:int}/image")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateImage(int id, [FromBody] UpdateProductImageCommand command, CancellationToken cancellationToken)
@@ -67,7 +67,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize("Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
