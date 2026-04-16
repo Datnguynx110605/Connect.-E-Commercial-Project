@@ -12,6 +12,8 @@ builder.Services
 
 var app = builder.Build();
 
+app.UseCors("AllowFrontend");
+
 app.UseCustomMiddleware();
 
 if (app.Environment.IsDevelopment())
