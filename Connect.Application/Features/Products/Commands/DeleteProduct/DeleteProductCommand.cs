@@ -7,6 +7,6 @@ namespace Connect.Application.Features.Products.Commands.DeleteProduct
 {
     public sealed record DeleteProductCommand:IRequest<string>
     {
-        public int ProductID { get; }
+        public int ProductID { get; init; }
     }
 }

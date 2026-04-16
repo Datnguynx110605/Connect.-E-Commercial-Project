@@ -8,7 +8,7 @@ namespace Connect.Application.Features.Orders.Commands.MarkAsPaid
 {
     public sealed record MarkAsPaidCommand:IRequest<OrderDto>
     {
-        public int OrderID { get; }
+        public int OrderID { get; init; }
         public string OrderPaymentStatus { get; init; }
     }
 }

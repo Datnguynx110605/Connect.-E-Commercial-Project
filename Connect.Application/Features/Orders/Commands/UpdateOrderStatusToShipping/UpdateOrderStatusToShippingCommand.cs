@@ -8,7 +8,7 @@ namespace Connect.Application.Features.Orders.Commands.UpdateOrderStatusToShippi
 {
     public sealed record UpdateOrderStatusToShippingCommand:IRequest<OrderDto>
     {
-        public int OrderID { get; }
+        public int OrderID { get; init; }
         public string OrderStatus { get; init; }
     }
 }

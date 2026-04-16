@@ -8,6 +8,6 @@ namespace Connect.Application.Features.Carts.Commands.RemoveCart
 {
     public sealed record RemoveCartCommand:IRequest<string>
     {
-        public int CartID { get; }
+        public int CartID { get; init; }
     }
 }

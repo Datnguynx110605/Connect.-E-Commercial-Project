@@ -8,6 +8,6 @@ namespace Connect.Application.Features.Reviews.Queries.GetReviewByProduct
 {
     public sealed record GetReviewByProductQuery:IRequest<ReviewDto>
     {
-        public int ProductID { get; }
+        public int ProductID { get; init; }
     }
 }

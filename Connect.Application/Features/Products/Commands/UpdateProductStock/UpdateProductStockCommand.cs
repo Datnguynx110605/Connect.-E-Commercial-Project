@@ -8,7 +8,7 @@ namespace Connect.Application.Features.Products.Commands.UpdateProductStock
 {
     public sealed record UpdateProductStockCommand:IRequest<ProductDto>
     {
-        public int ProductID { get; }
+        public int ProductID { get; init; }
         public int Stock { get; init; }
     }
 }

@@ -8,7 +8,7 @@ namespace Connect.Application.Features.Carts.Commands.ReduceCartAmount
 {
     public sealed record ReduceCartAmountCommand:IRequest<CartDto>
     {
-        public int CartID { get; }
+        public int CartID { get; init; }
         public int Quantity { get; init; }
     }
 }

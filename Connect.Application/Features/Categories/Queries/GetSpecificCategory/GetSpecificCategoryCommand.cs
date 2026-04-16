@@ -8,6 +8,6 @@ namespace Connect.Application.Features.Categories.Queries.GetSpecificCategory
 {
     public sealed record GetSpecificCategoryCommand:IRequest<CategoryDto>
     {
-        public int CategoryID { get; }
+        public int CategoryID { get; init; }
     }
 }

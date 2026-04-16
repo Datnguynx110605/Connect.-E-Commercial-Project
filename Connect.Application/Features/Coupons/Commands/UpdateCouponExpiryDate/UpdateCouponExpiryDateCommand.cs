@@ -8,7 +8,7 @@ namespace Connect.Application.Features.Coupons.Commands.UpdateCouponExpiryDate
 {
     public sealed record UpdateCouponExpiryDateCommand:IRequest<CouponDto>
     {
-        public int CouponID { get; }
+        public int CouponID { get; init; }
         public DateTime ExpiryDate { get; init; }
     }
 }

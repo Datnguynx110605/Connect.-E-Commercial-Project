@@ -8,6 +8,6 @@ namespace Connect.Application.Features.Coupons.Queries.GetSpecificCoupon
 {
     public sealed record GetSpecificCouponQuery:IRequest<CouponDto>
     {
-        public int CouponID { get; }
+        public int CouponID { get; init; }
     }
 }

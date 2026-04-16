@@ -8,7 +8,7 @@ namespace Connect.Application.Features.Products.Commands.UpdateProductImage
 {
     public sealed record UpdateProductImageCommand:IRequest<ProductDto>
     {
-        public int ProductID { get; }
+        public int ProductID { get; init; }
         public List<string> ImageURL { get; init; }
     }
 }

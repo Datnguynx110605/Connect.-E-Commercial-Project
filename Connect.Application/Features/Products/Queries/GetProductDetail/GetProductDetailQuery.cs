@@ -8,6 +8,6 @@ namespace Connect.Application.Features.Products.Queries.GetProductDetail
 {
     public sealed record GetProductDetailQuery:IRequest<ProductDto>
     {
-        public int ProductID { get; }
+        public int ProductID { get; init; }
     }
 }

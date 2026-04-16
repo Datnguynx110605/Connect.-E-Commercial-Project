@@ -7,6 +7,6 @@ namespace Connect.Application.Features.Categories.Commands.DeleteCategory
 {
     public sealed record DeleteCategoryCommand:IRequest<string>
     {
-        public int CategoryID { get; }
+        public int CategoryID { get; init; }
     }
 }

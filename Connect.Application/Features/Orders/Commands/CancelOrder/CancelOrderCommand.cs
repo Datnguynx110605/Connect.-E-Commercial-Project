@@ -8,6 +8,6 @@ namespace Connect.Application.Features.Orders.Commands.CancelOrder
 {
     public sealed record CancelOrderCommand:IRequest<OrderDto>
     {
-        public int OrderID { get; }
+        public int OrderID { get; init; }
     }
 }
