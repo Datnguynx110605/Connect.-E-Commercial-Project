@@ -26,7 +26,7 @@ namespace Connect.Infrastructure.Services
         {
             var token = verificationProtector.Protect(email,lifetime: TimeSpan.FromMinutes(30));
 
-            logger.LogInformation("Email verification token generated for {Email}", email);
+            logger.LogInformation("Email registration session token generated for {Email}", email);
 
             return token;
         }
@@ -35,7 +35,7 @@ namespace Connect.Infrastructure.Services
         {
             var token = sessionProtector.Protect(email,lifetime: TimeSpan.FromMinutes(15));
 
-            logger.LogInformation("Registration session token generated for {Email}", email);
+            logger.LogInformation("Email verification token generated for {Email}", email);
 
             return token;
         }

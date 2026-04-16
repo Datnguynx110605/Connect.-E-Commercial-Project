@@ -9,7 +9,7 @@ namespace Connect.Application.Features.Users.Commands.VerifyEmail
     {
         public VerifyEmailCommandValidation()
         {
-            RuleFor(x => x.Token)
+            RuleFor(x => x.VerificationToken)
             .NotEmpty().WithMessage("Verification token is required.");
         }
     }

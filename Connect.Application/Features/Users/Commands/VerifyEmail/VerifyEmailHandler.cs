@@ -24,7 +24,7 @@ namespace Connect.Application.Features.Users.Commands.VerifyEmail
 
             try
             {
-                email = verificationService.UnprotectToken(request.Token,"email-verification");
+                email = verificationService.UnprotectToken(request.VerificationToken,"email-verification");
             }
             catch (Exception ex)
             {
