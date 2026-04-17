@@ -80,6 +80,9 @@ namespace Connect.Domain.Core.Entities
             }
 
             OrderTotalPrice -=discountAmount;
+
+            Currency shippingFee = Currency.Create(30000);
+            OrderTotalPrice += shippingFee;
         }
 
         public void CancelOrder()
