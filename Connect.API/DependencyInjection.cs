@@ -64,7 +64,7 @@ namespace Connect.API
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.WithOrigins("https://localhost:64085")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials();
