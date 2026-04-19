@@ -11,7 +11,7 @@ namespace Connect.Infrastructure.Configurations
     {
         public void Configure(EntityTypeBuilder<Payment> builder)
         {
-            builder.ToTable("PaymentTransactions");
+            builder.ToTable("Payments");
             builder.HasKey(t => t.PaymentID);
 
             builder.Property(t => t.OrderID).IsRequired();
