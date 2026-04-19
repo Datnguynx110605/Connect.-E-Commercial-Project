@@ -48,6 +48,8 @@ namespace Connect.Infrastructure
 
             services.AddScoped<IPasswordService, PasswordService>();
 
+            services.AddScoped<IPaymentGateway, PaymentGateway>();
+
             services.AddHttpContextAccessor();
 
             services.AddScoped<ICurrentUserService, CurrentUserService>();

@@ -21,6 +21,7 @@ namespace Connect.Infrastructure.Persistences
         public IRepository<Cart, int> Carts { get; }
         public IRepository<Coupon, int> Coupons { get; }
         public IRepository<Review, int> Reviews { get; }
+        public IRepository<Payment, int> Payments { get; }
 
         public UnitOfWork(ConnectDbContext context)
         {
@@ -35,6 +36,7 @@ namespace Connect.Infrastructure.Persistences
             Carts = new GenericRepository<Cart, int>(_context);
             Coupons = new GenericRepository<Coupon, int>(_context);
             Reviews = new GenericRepository<Review, int>(_context);
+            Payments = new GenericRepository<Payment, int>(_context);
         }
 
         public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)

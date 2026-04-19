@@ -17,6 +17,7 @@ namespace Connect.Application.Interfaces.Persistences
         IRepository<RefreshToken, int> RefreshTokens { get; }
         IRepository<Coupon, int> Coupons { get; }
         IRepository<Review, int> Reviews { get; }
+        IRepository<Payment, int> Payments { get; }
 
         Task BeginTransactionAsync(CancellationToken cancellationToken = default);
         Task CommitTransactionAsync(CancellationToken cancellationToken = default);
