@@ -1,12 +1,10 @@
-﻿using FluentResults;
-using MediatR;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Connect.Application.Features.Payments.Commands.ProcessPaymentCallback
+namespace Connect.Application.DTOs
 {
-    public sealed record ProcessPaymentCallbackCommand:IRequest<Result>
+    public sealed record PaymentDto
     {
         public int OrderID { get; init; }
         public string PaymentGatewayID { get; init; }

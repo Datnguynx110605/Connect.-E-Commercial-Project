@@ -25,12 +25,9 @@ namespace Connect.Application.Features.Payments.Commands.ProcessPaymentCallback
 
             var order = await unitOfWork.Orders.GetByIdAsync(request.OrderID, cancellationToken);
             if (order == null)
-                throw new Exception("Order not found");
+                return Result.Fail("Order not found");
 
-            Currency totalAmount = Currency.Create(request.TotalAmount);
-
-            if (order.OrderTotalPrice.Value != request.TotalAmount)
-                throw new Exception("Price does not match");
+            Currency totalAmount = Currency.Create(order.OrderTotalPrice.Value);
 
             Payment payment = Payment.CreatePayment(order.OrderID, request.PaymentGatewayID , totalAmount , request.IsPaidSuccess, request.ErrorCode);
 

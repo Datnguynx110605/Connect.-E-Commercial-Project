@@ -1,5 +1,6 @@
 ﻿using Connect.Application.Features.Payments.Commands.CreatePayment;
 using Connect.Application.Features.Payments.Commands.ProcessPaymentCallback;
+using Connect.Application.Interfaces.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -13,10 +14,10 @@ namespace Connect.API.Controllers
     [ApiController]
     public class PaymentsController : APIController
     {
-        private readonly IVnpayClient client;
-        public PaymentsController(ISender sender, IVnpayClient _client) : base(sender)
+        private readonly IPaymentGateway paymentGateway;
+        public PaymentsController(ISender sender, IPaymentGateway _paymentGateway) : base(sender)
         {
-            client = _client;
+            paymentGateway = _paymentGateway;
         }
 
         [HttpPost("create-url")]
@@ -36,37 +37,31 @@ namespace Connect.API.Controllers
 
             try
             {
-                var paymentResult = client.GetPaymentResult(Request);
-                var txnRef = Request.Query["vnp_TxnRef"].ToString();
-                var vnpResponseCode = Request.Query["vnp_ResponseCode"].ToString();
-
-                if (!int.TryParse(txnRef, out int orderId))
-                    return Redirect("/payment/failed?code=InvalidOrderId");
-
-                decimal.TryParse(Request.Query["vnp_Amount"], out decimal rawAmount);
-                decimal actualAmount = rawAmount / 100;
-
-                bool isSuccess = vnpResponseCode == "00";
-                string? transactionId = null;
-                transactionId = paymentResult.VnpayTransactionId.ToString();
+                var callbackResult = paymentGateway.ParseCallback(Request);
 
                 var command = new ProcessPaymentCallbackCommand
                 {
-                    OrderID = orderId,
-                    PaymentGatewayID = transactionId ?? "N/A",
-                    TotalAmount = actualAmount,
-                    IsPaidSuccess = isSuccess,
-                    ErrorCode = isSuccess ? null : vnpResponseCode
+                    OrderID = callbackResult.OrderID,
+                    PaymentGatewayID = callbackResult.PaymentGatewayID,
+                    IsPaidSuccess = callbackResult.IsPaidSuccess,
+                    ErrorCode = callbackResult.ErrorCode
                 };
+
                 await Sender.Send(command, ct);
 
-                return isSuccess
-                    ? Redirect($"/payment/success?orderId={orderId}")
-                    : Redirect($"/payment/failed?code={vnpResponseCode}");
+                return Redirect($"/payment/success?orderId={callbackResult.OrderID}");
             }
-            catch (VnpayException)
+            catch (VnpayException ex)
             {
-                return Redirect($"/payment/failed?code=SignatureInvalid");
+                bool isSignatureFailed = ex.Message.Contains("Chữ ký") || ex.Message.Contains("signature");
+
+                return isSignatureFailed
+                    ? Redirect("/payment/failed?code=SignatureInvalid")
+                    : Redirect($"/payment/failed?code={ex.PaymentResponseCode}");
+            }
+            catch (InvalidOperationException)
+            {
+                return Redirect("/payment/failed?code=InvalidOrderId");
             }
         }
     }

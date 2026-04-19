@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using VNPAY;
+using VNPAY.Extensions;
 
 namespace Connect.Infrastructure
 {
@@ -49,7 +50,16 @@ namespace Connect.Infrastructure
 
             services.AddScoped<IPasswordService, PasswordService>();
 
-            services.AddScoped<IVnpayClient, VnpayClient>();
+            var vnpaySection = configuration.GetSection("VNPAY");
+            services.AddVnpayClient(config =>
+            {
+                config.TmnCode = vnpaySection["TmnCode"]!;
+                config.HashSecret = vnpaySection["HashSecret"]!;
+                config.CallbackUrl = vnpaySection["CallbackUrl"]!;
+                config.BaseUrl   = vnpaySection["BaseUrl"]!;
+                config.Version   = vnpaySection["Version"]!;
+                config.OrderType = vnpaySection["OrderType"]!;
+            });
 
             services.AddScoped<IPaymentGateway, PaymentGateway>();
 

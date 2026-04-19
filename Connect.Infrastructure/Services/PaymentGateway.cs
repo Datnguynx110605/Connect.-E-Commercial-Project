@@ -1,4 +1,6 @@
-﻿using Connect.Application.Interfaces.Services;
+﻿using Connect.Application.DTOs;
+using Connect.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,8 @@ namespace Connect.Infrastructure.Services
 {
     public sealed class PaymentGateway:IPaymentGateway
     {
+        private const string OrderIdPrefix = "ORDER:";
+
         private readonly IVnpayClient vnPayClient;
         private readonly ILogger<PaymentGateway> logger;
         public PaymentGateway(IVnpayClient _vnPayClient, ILogger<PaymentGateway> _logger)
@@ -19,19 +23,39 @@ namespace Connect.Infrastructure.Services
             logger = _logger;
         }
 
-        public string CreatePaymentUrl(int orderId, decimal amount, string description)
+        public string CreatePaymentUrl(int orderId, decimal amount)
         {
             var request = new VnpayPaymentRequest
             {
                 Money = (double)amount,
-                Description = description,
-                BankCode= BankCode.ANY
+                Description = $"{OrderIdPrefix}{orderId}",
+                BankCode = BankCode.ANY
             };
 
             var detail = vnPayClient.CreatePaymentUrl(request);
-            logger.LogInformation("VNPay URL created. PaymentId={PaymentId}, OrderId={OrderId}", detail.PaymentId, orderId);
+            logger.LogDebug("VNPay URL created. OrderId={OrderId}", orderId);
 
             return detail.Url;
+        }
+
+        public PaymentDto ParseCallback(HttpRequest request)
+        {
+
+            var result = vnPayClient.GetPaymentResult(request);
+
+            var description = result.Description ?? string.Empty;
+            if (!description.StartsWith(OrderIdPrefix) || !int.TryParse(description[OrderIdPrefix.Length..], out int orderId))
+            {
+                throw new InvalidOperationException($"Cannot resolve OrderID from VNPay description: '{description}'");
+            }
+
+            return new PaymentDto
+            {
+                OrderID = orderId,
+                PaymentGatewayID = result.BankingInfor.BankTransactionId,
+                IsPaidSuccess = true,
+                ErrorCode = null
+            };
         }
     }
 }

@@ -12,19 +12,24 @@ namespace Connect.Application.Features.Payments.Commands.CreatePayment
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IPaymentGateway paymentGateway;
-        public CreatePaymentHandler(IUnitOfWork _unitOfWork, IPaymentGateway _paymentGateway)
+        private readonly ICurrentUserService currentUserService;
+        public CreatePaymentHandler(IUnitOfWork _unitOfWork, IPaymentGateway _paymentGateway, ICurrentUserService _currentUserService)
         {
             unitOfWork = _unitOfWork;
             paymentGateway = _paymentGateway;
+            currentUserService = _currentUserService;
         }
 
         public async Task<Result<string>> Handle(CreatePaymentCommand request, CancellationToken cancellationToken)
         {
             var order = await unitOfWork.Orders.GetByIdAsync(request.OrderID, cancellationToken);
             if (order == null)
-                throw new Exception("Order not found");
+                return Result.Fail("Order not found");
 
-            var paymentURL = paymentGateway.CreatePaymentUrl(order.OrderID, order.OrderTotalPrice.Value, $"Order payment: {order.OrderID}");
+            if (order.UserID != currentUserService.UserID)
+                throw new UnauthorizedAccessException("No permission to access");
+
+            var paymentURL = paymentGateway.CreatePaymentUrl(order.OrderID, order.OrderTotalPrice.Value);
 
             return Result.Ok(paymentURL);
         }
