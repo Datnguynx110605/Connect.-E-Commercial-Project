@@ -6,7 +6,7 @@ namespace Connect.Domain.Common
 {
     public abstract record DomainEvent
     {
-        public int EventID { get; } = new int();
+        public Guid EventID { get; } = Guid.NewGuid();
         public DateTime CreatedAt { get; } = DateTime.UtcNow;
     }
 }

@@ -10,7 +10,6 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
 {
     public sealed record CreateOrderCommand:IRequest<OrderDto>
     {
-        public int UserID { get; }
         public int ProductID { get; }
         public decimal UnitPrice { get; }
         public int Quantity { get; init; }

@@ -29,7 +29,7 @@ namespace Connect.Application.Features.Reviews.Commands.UpdateReview
             if (review == null)
                 throw new Exception("Review not found");
 
-            if (currentUserService.UserID != review.ReviewID)
+            if (currentUserService.UserID != review.UserID)
                 throw new UnauthorizedAccessException("No permission to access");
 
             review.UpdateReview(

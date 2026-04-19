@@ -17,6 +17,7 @@ namespace Connect.API.Controllers
         public CouponsController(ISender sender) : base(sender) { }
 
         [HttpGet]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllCoupons(CancellationToken cancellationToken)
         {
@@ -25,6 +26,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetCoupon(int id, CancellationToken cancellationToken)

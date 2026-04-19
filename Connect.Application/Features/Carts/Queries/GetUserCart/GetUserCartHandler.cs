@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Carts.Queries.GetUserCart
 {
-    public class GetUserCartHandler : IRequestHandler<GetUserCartQuery, CartDto>
+    internal sealed class GetUserCartHandler : IRequestHandler<GetUserCartQuery, CartDto>
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly ICurrentUserService currentUserService;

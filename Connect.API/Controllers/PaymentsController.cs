@@ -32,6 +32,7 @@ namespace Connect.API.Controllers
         }
 
         [HttpGet("vnpay-callback")]
+        [AllowAnonymous]
         public async Task<IActionResult> VnPayCallback(CancellationToken ct)
         {
 

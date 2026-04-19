@@ -57,7 +57,7 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
                 orderItems.Add(OrderItem.CreateOrderItem(product.ProductID, product.FinalPrice, quantity));
             }
 
-            Order order = Order.CreateOrder(currentUserService.UserID, coupon.CouponID, shipMethod, payMethod, orderItems, discountAmount);
+            Order order = Order.CreateOrder(currentUserService.UserID, coupon?.CouponID ?? 0, shipMethod, payMethod, orderItems, discountAmount);
 
             await unitOfWork.BeginTransactionAsync(cancellationToken);
             unitOfWork.Products.UpdateRange(products);

@@ -35,15 +35,6 @@ namespace Connect.Domain.Core.ValueObjects
                         { "USERNAME", value }
                     });
 
-            if (string.IsNullOrWhiteSpace(value))
-                throw new DomainExceptions(
-                    message: "User name must be required",
-                    code: "REQUIRED-USERNAME",
-                    metadata: new Dictionary<string, object> 
-                    {
-                        { "USERNAME", value }
-                    });
-
             if (!Regex.IsMatch(value, @"^[a-z]+$"))
                 throw new DomainExceptions(
                     message: "User name must only contain lowercase letters",
