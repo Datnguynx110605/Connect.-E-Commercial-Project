@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Connect.Infrastructure.Migrations
 {
     [DbContext(typeof(ConnectDbContext))]
-    [Migration("20260416182946_ConnectDBCreate")]
-    partial class ConnectDBCreate
+    [Migration("20260419162625_ConnectInitialCreate")]
+    partial class ConnectInitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -204,6 +204,43 @@ namespace Connect.Infrastructure.Migrations
                     b.HasIndex("ProductID");
 
                     b.ToTable("OrderItems", (string)null);
+                });
+
+            modelBuilder.Entity("Connect.Domain.Core.Entities.Payment", b =>
+                {
+                    b.Property<int>("PaymentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentID"));
+
+                    b.Property<string>("ErrorCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<bool>("IsPaidSuccess")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("OrderID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PaidAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentGatewayID")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("PaymentID");
+
+                    b.HasIndex("OrderID");
+
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("Connect.Domain.Core.Entities.Product", b =>

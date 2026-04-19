@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using VNPAY;
 
 namespace Connect.Infrastructure
 {
@@ -47,6 +48,8 @@ namespace Connect.Infrastructure
             services.AddScoped<IJWTService, JWTService>();
 
             services.AddScoped<IPasswordService, PasswordService>();
+
+            services.AddScoped<IVnpayClient, VnpayClient>();
 
             services.AddScoped<IPaymentGateway, PaymentGateway>();
 

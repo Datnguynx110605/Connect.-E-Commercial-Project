@@ -1,4 +1,5 @@
 ﻿using Connect.Domain.Core.Entities;
+using Connect.Domain.Core.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -16,7 +17,11 @@ namespace Connect.Infrastructure.Configurations
 
             builder.Property(t => t.OrderID).IsRequired();
             builder.Property(t => t.PaymentGatewayID).HasMaxLength(50);
-            builder.Property(t => t.TotalAmount).HasPrecision(18, 2);
+            builder.Property(t => t.TotalAmount)
+                    .HasConversion(
+                       v => v.Value,
+                       v => Currency.Create(v))
+                    .HasPrecision(18, 2);
             builder.Property(t => t.ErrorCode).HasMaxLength(10);
 
             builder.HasIndex(t => t.OrderID);

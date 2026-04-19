@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Connect.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class ConnectDBCreate : Migration
+    public partial class ConnectInitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,6 +39,24 @@ namespace Connect.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Coupons", x => x.CouponID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Payments",
+                columns: table => new
+                {
+                    PaymentID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OrderID = table.Column<int>(type: "int", nullable: false),
+                    PaymentGatewayID = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    IsPaidSuccess = table.Column<bool>(type: "bit", nullable: false),
+                    ErrorCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    PaidAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payments", x => x.PaymentID);
                 });
 
             migrationBuilder.CreateTable(
@@ -269,6 +287,11 @@ namespace Connect.Infrastructure.Migrations
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Payments_OrderID",
+                table: "Payments",
+                column: "OrderID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryID",
                 table: "Products",
                 column: "CategoryID");
@@ -310,6 +333,9 @@ namespace Connect.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "OrderItems");
+
+            migrationBuilder.DropTable(
+                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
