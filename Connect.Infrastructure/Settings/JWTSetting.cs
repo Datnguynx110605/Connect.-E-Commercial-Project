@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Connect.Infrastructure.Settings
 {
-    public sealed class JWTOptions
+    public sealed class JWTSetting
     {
         public const string SectionName = "Jwt";
         public string SecretKey { get; init; }

@@ -42,7 +42,7 @@ namespace Connect.Infrastructure
         {
             services.AddDataProtection();
 
-            services.Configure<JWTOptions>(configuration.GetSection("Jwt"));
+            services.Configure<JWTSetting>(configuration.GetSection("Jwt"));
 
             services.AddScoped<IJWTService, JWTService>();
 

@@ -13,8 +13,8 @@ namespace Connect.Infrastructure.Services
 {
     public class JWTService:IJWTService
     {
-        private readonly JWTOptions options;
-        public JWTService(IOptions<JWTOptions> _options)
+        private readonly JWTSetting options;
+        public JWTService(IOptions<JWTSetting> _options)
         {
             options = _options.Value;
         }

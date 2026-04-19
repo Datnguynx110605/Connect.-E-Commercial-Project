@@ -13,7 +13,7 @@ namespace Connect.API
             services.AddControllers();
             services.AddEndpointsApiExplorer();
 
-            var jwtOptions = configuration.GetSection("Jwt").Get<JWTOptions>();
+            var jwtOptions = configuration.GetSection("Jwt").Get<JWTSetting>();
 
             services.AddAuthentication(options =>
             {
