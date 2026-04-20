@@ -23,11 +23,12 @@ namespace Connect.Application.Features.Orders.Commands.CancelOrder
 
         public Task Handle(DomainEventNotification<OrderCancelledEvent> notification, CancellationToken cancellationToken)
         {
-            logger.LogInformation("Handling OrderCancelledEvent for User {UserID}", notification.Event.UserID);
+            logger.LogInformation("Handling OrderCancelledEvent for User {UserID}", notification.Event.Order);
 
             backgroundJobClient.Enqueue<IEmailService>(emailService => emailService.SendOrderCancelledAsync(
-                notification.Event.UserID,
-                notification.Event.OrderID,
+                notification.Event.Order.UserID,
+                notification.Event.Order.OrderID,
+                notification.Event.Order.OrderStatus.ToString(),
                 CancellationToken.None));
 
             return Task.CompletedTask;

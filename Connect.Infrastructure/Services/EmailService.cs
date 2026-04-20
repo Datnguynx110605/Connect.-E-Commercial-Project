@@ -25,7 +25,7 @@ namespace Connect.Infrastructure.Services
             unitOfWork = _unitOfWork;
         }
 
-        public async Task SendOrderConfirmationAsync(int userID,int orderID, decimal totalPrice, CancellationToken cancellationToken = default)
+        public async Task SendOrderConfirmationAsync(int userID,int orderID, decimal totalPrice, string shipMethpd, string payMethod, CancellationToken cancellationToken = default)
         {
             var user = await unitOfWork.Users.GetByIdAsync(userID, cancellationToken);
             if (user == null)
@@ -42,11 +42,11 @@ namespace Connect.Infrastructure.Services
             }
 
             var subject = $"Order Confirmation #{orderID} — Connect.";
-            var body = BuildOrderConfirmationHtml(user.UserName.Value, order.OrderID, order.OrderTotalPrice.Value, order.OrderShippingMethod.ToString());
+            var body = BuildOrderConfirmationHtml(user.UserName.Value, order.OrderID, order.OrderTotalPrice.Value, order.OrderShippingMethod.ToString(), order.OrderPaymentMethod.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 
-        public async Task SendOrderCancelledAsync(int userID, int orderID, CancellationToken cancellationToken = default)
+        public async Task SendOrderCancelledAsync(int userID, int orderID, string orderStatus, CancellationToken cancellationToken = default)
         {
             var user = await unitOfWork.Users.GetByIdAsync(userID, cancellationToken);
             if (user is null)
@@ -55,12 +55,19 @@ namespace Connect.Infrastructure.Services
                 return;
             }
 
+            var order = await unitOfWork.Orders.GetByIdAsync(orderID, cancellationToken);
+            if (order is null)
+            {
+                _logger.LogWarning("Cannot find Order #{OrderID} to send cancel confirmation email for User {UserID}", orderID, userID);
+                return;
+            }
+
             var subject = $"Order Cancelled #{orderID} | Connect.";
-            var body = BuildOrderCancelledHtml(user.UserName.Value, orderID);
+            var body = BuildOrderCancelledHtml(user.UserName.Value, order.OrderID, order.OrderStatus.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 
-        public async Task SendPaymentSuccessBillEmailAsync(int userID, int orderID, decimal totalPrice, CancellationToken cancellationToken = default)
+        public async Task SendPaymentSuccessBillEmailAsync(int userID, int orderID, decimal totalPrice, string payStatus, CancellationToken cancellationToken = default)
         {
             var user = await unitOfWork.Users.GetByIdAsync(userID, cancellationToken);
             if (user is null)
@@ -77,7 +84,7 @@ namespace Connect.Infrastructure.Services
             }
 
             var subject = $"Payment Successful — Order #{orderID} | Connect.";
-            var body = BuildPaymentSuccessBillHtml(user.UserName.Value, order.OrderID, order.OrderTotalPrice.Value);
+            var body = BuildPaymentSuccessBillHtml(user.UserName.Value, order.OrderID, order.OrderTotalPrice.Value, order.OrderPaymentStatus.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 
@@ -152,7 +159,7 @@ namespace Connect.Infrastructure.Services
             }
         }
 
-        private static string BuildOrderConfirmationHtml(string userName, int orderID, decimal totalPrice, string shipMethod) =>
+        private static string BuildOrderConfirmationHtml(string userName, int orderID, decimal totalPrice, string shipMethod, string payMethod) =>
             $"""
             <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
@@ -162,7 +169,7 @@ namespace Connect.Infrastructure.Services
                 <table style="border-collapse: collapse; width: 100%;">
                     <tr>
                         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Order ID</strong></td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">#{orderID}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{orderID}</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Total Price</strong></td>
@@ -172,6 +179,10 @@ namespace Connect.Infrastructure.Services
                         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Shipping Method</strong></td>
                         <td style="padding: 8px; border: 1px solid #ddd;">{shipMethod}</td>
                     </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;"><strong>Payment Method</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{payMethod}</td>
+                    </tr>
                 </table>
                 <p style="margin-top: 20px;">We'll notify you once your order is shipped.</p>
                 <p>— The Connect. Team</p>
@@ -179,21 +190,21 @@ namespace Connect.Infrastructure.Services
             </html>
             """;
 
-        private static string BuildOrderCancelledHtml(string userName, int orderID) =>
+        private static string BuildOrderCancelledHtml(string userName, int orderID, string orderStatus) =>
             $"""
             <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <h2 style="color: #E53935;">Order Cancelled</h2>
                 <p>Hi <strong>{userName}</strong>,</p>
-                <p>We're sorry to let you know that your order has been cancelled.</p>
+                <p>Your order has been cancelled.</p>
                 <table style="border-collapse: collapse; width: 100%;">
                     <tr>
                         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Order ID</strong></td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">#{orderID}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{orderID}</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Status</strong></td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">Cancelled</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{orderStatus}</td>
                     </tr>
                 </table>
                 <p style="margin-top: 20px;">If you believe this is a mistake or have any questions, please contact our support team.</p>
@@ -202,7 +213,7 @@ namespace Connect.Infrastructure.Services
             </html>
             """;
 
-        private static string BuildPaymentSuccessBillHtml(string userName, int orderID, decimal totalPrice) =>
+        private static string BuildPaymentSuccessBillHtml(string userName, int orderID, decimal totalPrice, string payStatus) =>
             $"""
             <html>
             <body style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto;">
@@ -212,11 +223,11 @@ namespace Connect.Infrastructure.Services
                 <table style="border-collapse: collapse; width: 100%; margin-top: 12px;">
                     <tr style="background-color: #f5f5f5;">
                         <td style="padding: 10px; border: 1px solid #ddd;"><strong>Order ID</strong></td>
-                        <td style="padding: 10px; border: 1px solid #ddd;">#{orderID}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{orderID}</td>
                     </tr>
                     <tr>
                         <td style="padding: 10px; border: 1px solid #ddd;"><strong>Payment Status</strong></td>
-                        <td style="padding: 10px; border: 1px solid #ddd; color: #2E7D32;"><strong>Paid</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd; color: #2E7D32;"><strong>{payStatus}</strong></td>
                     </tr>
                     <tr style="background-color: #f5f5f5;">
                         <td style="padding: 10px; border: 1px solid #ddd;"><strong>Total Amount</strong></td>
@@ -239,11 +250,11 @@ namespace Connect.Infrastructure.Services
                 <table style="border-collapse: collapse; width: 100%;">
                     <tr>
                         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Order ID</strong></td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">#{orderID}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{orderID}</td>
                     </tr>
                     <tr>
                         <td style="padding: 8px; border: 1px solid #ddd;"><strong>Total Price</strong></td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">#{orderStatus}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">{orderStatus}</td>
                     </tr>
                 </table>
                 <p style="margin-top: 20px;">It is our honour to give our customer the best experience</p>

@@ -22,12 +22,13 @@ namespace Connect.Application.Features.Orders.Commands.MarkAsPaid
 
         public Task Handle(DomainEventNotification<OrderPaidEvent> notification, CancellationToken cancellationToken)
         {
-            logger.LogInformation("Handling OrderPaidEvent for User {UserID}", notification.Event.UserID);
+            logger.LogInformation("Handling OrderPaidEvent for User {UserID}", notification.Event.Order);
 
             backgroundJobClient.Enqueue<IEmailService>(emailService => emailService.SendPaymentSuccessBillEmailAsync(
-                notification.Event.UserID,
-                notification.Event.OrderID,
-                notification.Event.TotalAmount.Value,
+                notification.Event.Order.UserID,
+                notification.Event.Order.OrderID,
+                notification.Event.Order.OrderTotalPrice.Value,
+                notification.Event.Order.OrderPaymentStatus.ToString(),
                 CancellationToken.None));
 
             return Task.CompletedTask;

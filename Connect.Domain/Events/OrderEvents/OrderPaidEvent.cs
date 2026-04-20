@@ -1,4 +1,5 @@
 ﻿using Connect.Domain.Common;
+using Connect.Domain.Core.Entities;
 using Connect.Domain.Core.Enums;
 using Connect.Domain.Core.ValueObjects;
 using System;
@@ -9,16 +10,10 @@ namespace Connect.Domain.Events.OrderEvents
 {
     public record OrderPaidEvent:DomainEvent
     {
-        public int OrderID { get; }
-        public int UserID { get; }
-        public PaymentMethod OrderPaymentMethod { get; }
-        public Currency TotalAmount { get; }
-        public OrderPaidEvent(int orderID, int userID, PaymentMethod method, Currency amount)
+        public Order Order { get; }
+        public OrderPaidEvent(Order order)
         {
-            OrderID = orderID;
-            UserID = userID;
-            OrderPaymentMethod = method;
-            TotalAmount = amount;
+            Order = order;
         }
     }
 }

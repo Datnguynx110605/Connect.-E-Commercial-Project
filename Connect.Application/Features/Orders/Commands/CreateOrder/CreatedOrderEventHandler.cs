@@ -22,12 +22,14 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
 
         public Task Handle(DomainEventNotification<OrderPlacedEvent> notification, CancellationToken cancellationToken)
         {
-            logger.LogInformation("Take event OrderPlaced for order #{OrderId}. Waiting to send email...", notification.Event.UserID);
+            logger.LogInformation("Take event OrderPlaced for order #{OrderId}. Waiting to send email...", notification.Event.Order);
 
             backgroundJobClient.Enqueue<IEmailService>(emailService => emailService.SendOrderConfirmationAsync(
-                notification.Event.UserID,
-                notification.Event.OrderID,
-                notification.Event.OrderTotalPrice.Value,
+                notification.Event.Order.UserID,
+                notification.Event.Order.OrderID,
+                notification.Event.Order.OrderTotalPrice.Value,
+                notification.Event.Order.OrderShippingMethod.ToString(),
+                notification.Event.Order.OrderPaymentMethod.ToString(),
                 CancellationToken.None));
 
             return Task.CompletedTask;

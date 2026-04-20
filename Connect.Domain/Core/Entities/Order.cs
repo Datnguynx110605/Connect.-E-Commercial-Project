@@ -67,17 +67,14 @@ namespace Connect.Domain.Core.Entities
 
             order.CalculateTotalPrice(discountAmount);
 
-            order.RaiseDomainEvent(new OrderPlacedEvent(order.UserID, order.OrderID, order.OrderTotalPrice, order.OrderTotalItems, order.OrderShippingMethod, order.OrderPaymentMethod));
+            order.RaiseDomainEvent(new OrderPlacedEvent(order));
 
             return order;
         }
 
         private void CalculateTotalPrice(Currency discountAmount)
         {
-            if(!CouponID.HasValue)
-            {
-                OrderTotalPrice = items.Select(x => x.OrderItemTotalPrice).Aggregate(Currency.Create(0), (sum, next) => sum + next);
-            }
+            OrderTotalPrice = items.Select(x => x.OrderItemTotalPrice).Aggregate(Currency.Create(0), (sum, next) => sum + next);
 
             OrderTotalPrice -=discountAmount;
 
@@ -98,7 +95,7 @@ namespace Connect.Domain.Core.Entities
 
             OrderStatus = OrderStatus.Cancelled;
 
-            RaiseDomainEvent(new OrderCancelledEvent(UserID, OrderID));
+            RaiseDomainEvent(new OrderCancelledEvent(this));
         }
 
         private void IntitalizePaymentStatus()
@@ -151,7 +148,7 @@ namespace Connect.Domain.Core.Entities
 
             OrderPaymentStatus = PaymentStatus.Paid;
 
-            RaiseDomainEvent(new OrderPaidEvent(OrderID, UserID, OrderPaymentMethod, OrderTotalPrice));
+            RaiseDomainEvent(new OrderPaidEvent(this));
         }
     }
 }
