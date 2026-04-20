@@ -146,6 +146,15 @@ namespace Connect.Domain.Core.Entities
                         { "ORDERPAYMENTSTATUS", OrderPaymentStatus}
                     });
 
+            if(OrderStatus == OrderStatus.Cancelled)
+                throw new DomainExceptions(
+                    message: "Order is already cancelled",
+                    code: "CANCELLED-ORDER",
+                    metadata: new Dictionary<string, object>
+                    {
+                        { "ORDERSTATUS", OrderStatus}
+                    });
+
             OrderPaymentStatus = PaymentStatus.Paid;
 
             RaiseDomainEvent(new OrderPaidEvent(this));
