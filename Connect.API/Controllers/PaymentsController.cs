@@ -1,5 +1,6 @@
 ﻿using Connect.Application.Features.Payments.Commands.CreatePayment;
 using Connect.Application.Features.Payments.Commands.ProcessPaymentCallback;
+using Connect.Application.Features.Payments.Queries.GetAllPayments;
 using Connect.Application.Interfaces.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -18,6 +19,14 @@ namespace Connect.API.Controllers
         public PaymentsController(ISender sender, IPaymentGateway _paymentGateway) : base(sender)
         {
             paymentGateway = _paymentGateway;
+        }
+
+        [HttpGet]
+        [Authorize(Roles ="Admin")]
+        public async Task<IActionResult> GetAllPayments(CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new GetAllPaymentsQuery(), cancellationToken);
+            return Ok(result);
         }
 
         [HttpPost("create-url")]
