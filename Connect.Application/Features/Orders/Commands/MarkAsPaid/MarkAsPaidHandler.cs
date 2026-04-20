@@ -21,10 +21,6 @@ namespace Connect.Application.Features.Orders.Commands.MarkAsPaid
             if (order == null)
                 throw new Exception("Order not found");
 
-            var paymentIsSuccess = await unitOfWork.Payments.GetByIdAsync(request.OrderID, cancellationToken);
-            if (paymentIsSuccess == null || !paymentIsSuccess.IsPaidSuccess)
-                throw new Exception("Order not found or has not been paid successfully");
-
             order.MarkAsPaid();
 
             unitOfWork.Orders.Update(order);
