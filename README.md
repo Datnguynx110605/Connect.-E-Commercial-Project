@@ -1,6 +1,6 @@
 # Connect. E-Commerce API
 
-> A production-grade ASP.NET Core 10 REST API for a full e-commerce platform — architected with Clean Architecture, Domain-Driven Design, CQRS, and a rich domain model that enforces business rules at the type level.
+> A production-grade RESTful API for a full e-commerce platform — architected with Clean Architecture, Domain-Driven Design, CQRS, and a rich domain model that enforces business rules at the type level.
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![EF Core](https://img.shields.io/badge/EF%20Core-10.0-7B3F9E?logo=microsoftsqlserver&logoColor=white)](https://learn.microsoft.com/ef/)
