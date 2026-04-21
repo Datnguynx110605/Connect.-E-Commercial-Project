@@ -41,7 +41,7 @@ namespace Connect.Infrastructure.Services
         public PaymentDto ParseCallback(HttpRequest request)
         {
 
-            var result = vnPayClient.GetPaymentResult(request);
+            var result = vnPayClient.GetPaymentResult(request.Query);
 
             var description = result.Description ?? string.Empty;
             if (!description.StartsWith(OrderIdPrefix) || !int.TryParse(description[OrderIdPrefix.Length..], out int orderId))
@@ -56,6 +56,7 @@ namespace Connect.Infrastructure.Services
                 PaymentType=result.CardType,
                 TransactionID=result.VnpayTransactionId,
                 BankingInfo=result.BankingInfor.BankCode,
+                TotalAmount = decimal.Parse(request.Query["vnp_Amount"]) / 100,
                 IsPaidSuccess=true,
                 PaidAt=result.Timestamp
             };

@@ -170,6 +170,38 @@ namespace Connect.Domain.Core.Entities
                     });
 
             OrderPaymentStatus = PaymentStatus.Paid;
+        }
+
+        public void MarkAsPaidForPaymentGateway(bool isSuccess)
+        {
+            if (!isSuccess)
+                throw new DomainExceptions(
+                    message: "Order has not been paid or paid failed",
+                    code: "FAILED-PAID",
+                    metadata: new Dictionary<string, object>
+                    {
+                        { "PAYMENTSTATUS", isSuccess }
+                    });
+
+            if (OrderPaymentStatus == PaymentStatus.Paid)
+                throw new DomainExceptions(
+                    message: "Order is already paid",
+                    code: "PAID-ORDER",
+                    metadata: new Dictionary<string, object>
+                    {
+                        { "ORDERPAYMENTSTATUS", OrderPaymentStatus}
+                    });
+
+            if (OrderStatus == OrderStatus.Cancelled)
+                throw new DomainExceptions(
+                    message: "Order is already cancelled",
+                    code: "CANCELLED-ORDER",
+                    metadata: new Dictionary<string, object>
+                    {
+                        { "ORDERSTATUS", OrderStatus}
+                    });
+
+            OrderPaymentStatus = PaymentStatus.Paid;
 
             RaiseDomainEvent(new OrderPaidEvent(this));
         }
