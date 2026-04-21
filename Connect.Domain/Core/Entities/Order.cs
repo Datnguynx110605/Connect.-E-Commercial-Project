@@ -4,6 +4,7 @@ using Connect.Domain.Core.ValueObjects;
 using Connect.Domain.Events.OrderEvents;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -23,6 +24,7 @@ namespace Connect.Domain.Core.Entities
         private readonly List<OrderItem> items = new();
         public IReadOnlyCollection<OrderItem> OrderItems => items.AsReadOnly();
         public DateTime CreatedAt { get; private set; }
+        public Payment Payments { get; private set; }
         private Order() { }
         private Order(int userID, int couponID, ShippingMethod shipMethod, PaymentMethod payMethod, IEnumerable<OrderItem> orderItems)
         {
@@ -76,10 +78,23 @@ namespace Connect.Domain.Core.Entities
         {
             OrderTotalPrice = items.Select(x => x.OrderItemTotalPrice).Aggregate(Currency.Create(0), (sum, next) => sum + next);
 
-            OrderTotalPrice -=discountAmount;
+            OrderTotalPrice -= discountAmount;
 
-            Currency shippingFee = Currency.Create(30000);
-            OrderTotalPrice += shippingFee;
+            if (OrderShippingMethod == ShippingMethod.Standard)
+            {
+                Currency shippingFee = Currency.Create(30000);
+                OrderTotalPrice += shippingFee;
+            }
+            if(OrderShippingMethod == ShippingMethod.Fast)
+            {
+                Currency shippingFee = Currency.Create(50000);
+                OrderTotalPrice += shippingFee;
+            }
+            else
+            {
+                Currency shippingFee = Currency.Create(80000);
+                OrderTotalPrice += shippingFee;
+            }
         }
 
         public void CancelOrder()
@@ -135,8 +150,35 @@ namespace Connect.Domain.Core.Entities
             OrderStatus = OrderStatus.Shipping;
         }
 
-        public void MarkAsPaid()
+        public void MarkAsPaidPaymentGateway()
         {
+            if(OrderPaymentMethod != PaymentMethod.VNPAY)
+                throw new DomainExceptions(
+                   message: "Payment is invalid",
+                   code: "IVNALID_PAYMENT");
+
+            if (Payments == null)
+                throw new DomainExceptions(
+                    message: "Payment not found",
+                    code: "UNDEFINED_PAYMENT");
+
+            if (!Payments.IsPaidSuccess)
+                throw new DomainExceptions(
+                    message: "Payment is unfinished or failed",
+                    code: "FAILED-PAYMENT");
+
+            OrderPaymentStatus = PaymentStatus.Paid;
+
+            RaiseDomainEvent(new OrderPaidEvent(this));
+        }
+
+        public void MarkAsPaidCash()
+        {
+            if (OrderPaymentMethod != PaymentMethod.Cash)
+                throw new DomainExceptions(
+                   message: "Payment is invalid",
+                   code: "IVNALID_PAYMENT");
+
             if (OrderPaymentStatus == PaymentStatus.Paid)
                 throw new DomainExceptions(
                     message: "Order is already paid",
@@ -146,7 +188,7 @@ namespace Connect.Domain.Core.Entities
                         { "ORDERPAYMENTSTATUS", OrderPaymentStatus}
                     });
 
-            if(OrderStatus == OrderStatus.Cancelled)
+            if (OrderStatus == OrderStatus.Cancelled)
                 throw new DomainExceptions(
                     message: "Order is already cancelled",
                     code: "CANCELLED-ORDER",
@@ -156,8 +198,6 @@ namespace Connect.Domain.Core.Entities
                     });
 
             OrderPaymentStatus = PaymentStatus.Paid;
-
-            RaiseDomainEvent(new OrderPaidEvent(this));
         }
     }
 }

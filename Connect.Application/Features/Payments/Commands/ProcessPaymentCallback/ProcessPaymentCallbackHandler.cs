@@ -31,8 +31,12 @@ namespace Connect.Application.Features.Payments.Commands.ProcessPaymentCallback
 
             Payment payment = Payment.CreatePayment(order.OrderID, request.PaymentGatewayID , totalAmount , request.IsPaidSuccess, request.ErrorCode);
 
+            order.MarkAsPaidPaymentGateway();
+
+            await unitOfWork.BeginTransactionAsync(cancellationToken);
             await unitOfWork.Payments.AddAsync(payment, cancellationToken);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            unitOfWork.Orders.Update(order);
+            await unitOfWork.CommitTransactionAsync(cancellationToken);
 
             return Result.Ok();
         }
