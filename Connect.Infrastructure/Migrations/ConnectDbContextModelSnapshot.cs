@@ -205,15 +205,16 @@ namespace Connect.Infrastructure.Migrations
 
             modelBuilder.Entity("Connect.Domain.Core.Entities.Payment", b =>
                 {
-                    b.Property<int>("PaymentID")
+                    b.Property<long>("PaymentID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("PaymentID"));
 
-                    b.Property<string>("ErrorCode")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                    b.Property<string>("BankingInfo")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
                     b.Property<bool>("IsPaidSuccess")
                         .HasColumnType("bit");
@@ -224,14 +225,17 @@ namespace Connect.Infrastructure.Migrations
                     b.Property<DateTime>("PaidAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PaymentGatewayID")
+                    b.Property<string>("PaymentType")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("TransactionID")
+                        .HasColumnType("bigint");
 
                     b.HasKey("PaymentID");
 

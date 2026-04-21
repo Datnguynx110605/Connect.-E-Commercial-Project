@@ -51,10 +51,13 @@ namespace Connect.API.Controllers
 
                 var command = new ProcessPaymentCallbackCommand
                 {
-                    OrderID = callbackResult.OrderID,
-                    PaymentGatewayID = callbackResult.PaymentGatewayID,
-                    IsPaidSuccess = callbackResult.IsPaidSuccess,
-                    ErrorCode = callbackResult.ErrorCode
+                    PaymentID=callbackResult.PaymentID,
+                    OrderID=callbackResult.OrderID,
+                    PaymentType=callbackResult.PaymentType,
+                    TransactionID=callbackResult.TransactionID,
+                    BankingInfo=callbackResult.BankingInfo,
+                    IsPaidSuccess=callbackResult.IsPaidSuccess,
+                    PaidAt=callbackResult.PaidAt
                 };
 
                 await Sender.Send(command, ct);

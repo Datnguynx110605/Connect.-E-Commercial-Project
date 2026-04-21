@@ -23,10 +23,13 @@ namespace Connect.Application.Features.Payments.Queries.GetAllPayments
 
             return payment.Select(x => new PaymentDto
             {
-                OrderID = x.OrderID,
-                PaymentGatewayID = x.PaymentGatewayID,
-                IsPaidSuccess = x.IsPaidSuccess,
-                ErrorCode = x.ErrorCode
+                PaymentID=x.PaymentID,
+                OrderID=x.OrderID,
+                PaymentType=x.PaymentType,
+                TransactionID=x.TransactionID,
+                BankingInfo=x.BankingInfo,
+                IsPaidSuccess=x.IsPaidSuccess,
+                PaidAt=x.PaidAt
             });
         }
     }

@@ -19,7 +19,7 @@ namespace Connect.Application.Features.Payments.Commands.ProcessPaymentCallback
 
         public async Task<Result> Handle(ProcessPaymentCallbackCommand request, CancellationToken cancellationToken)
         {
-            var transaction = await unitOfWork.Payments.AnyAsync(x => x.PaymentGatewayID == request.PaymentGatewayID, cancellationToken);
+            var transaction = await unitOfWork.Payments.AnyAsync(x => x.PaymentID == request.PaymentID, cancellationToken);
             if (transaction)
                 return Result.Ok();
 
@@ -29,14 +29,10 @@ namespace Connect.Application.Features.Payments.Commands.ProcessPaymentCallback
 
             Currency totalAmount = Currency.Create(order.OrderTotalPrice.Value);
 
-            Payment payment = Payment.CreatePayment(order.OrderID, request.PaymentGatewayID , totalAmount , request.IsPaidSuccess, request.ErrorCode);
+            Payment payment = Payment.CreatePayment(request.PaymentID, order.OrderID, request.PaymentType, request.TransactionID, request.BankingInfo, totalAmount, request.IsPaidSuccess, request.PaidAt);
 
-            order.MarkAsPaidPaymentGateway();
-
-            await unitOfWork.BeginTransactionAsync(cancellationToken);
             await unitOfWork.Payments.AddAsync(payment, cancellationToken);
-            unitOfWork.Orders.Update(order);
-            await unitOfWork.CommitTransactionAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Ok();
         }

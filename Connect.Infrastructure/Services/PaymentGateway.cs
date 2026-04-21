@@ -28,7 +28,7 @@ namespace Connect.Infrastructure.Services
             var request = new VnpayPaymentRequest
             {
                 Money = (double)amount,
-                Description = $"{OrderIdPrefix}{orderId}",
+                Description = $"{OrderIdPrefix}{orderId}".Trim(),
                 BankCode = BankCode.ANY
             };
 
@@ -51,10 +51,13 @@ namespace Connect.Infrastructure.Services
 
             return new PaymentDto
             {
-                OrderID = orderId,
-                PaymentGatewayID = result.BankingInfor.BankTransactionId,
-                IsPaidSuccess = true,
-                ErrorCode = null
+                PaymentID=result.PaymentId,
+                OrderID=orderId,
+                PaymentType=result.CardType,
+                TransactionID=result.VnpayTransactionId,
+                BankingInfo=result.BankingInfor.BankCode,
+                IsPaidSuccess=true,
+                PaidAt=result.Timestamp
             };
         }
     }

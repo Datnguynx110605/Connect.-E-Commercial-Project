@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Connect.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class ConnectInitialCreate : Migration
+    public partial class ConnectInitalCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -45,13 +45,14 @@ namespace Connect.Infrastructure.Migrations
                 name: "Payments",
                 columns: table => new
                 {
-                    PaymentID = table.Column<int>(type: "int", nullable: false)
+                    PaymentID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderID = table.Column<int>(type: "int", nullable: false),
-                    PaymentGatewayID = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    PaymentType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    TransactionID = table.Column<long>(type: "bigint", nullable: false),
+                    BankingInfo = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     IsPaidSuccess = table.Column<bool>(type: "bit", nullable: false),
-                    ErrorCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
                     PaidAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>

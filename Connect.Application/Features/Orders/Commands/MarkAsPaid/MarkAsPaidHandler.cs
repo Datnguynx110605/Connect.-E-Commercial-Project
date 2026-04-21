@@ -21,7 +21,7 @@ namespace Connect.Application.Features.Orders.Commands.MarkAsPaid
             if (order == null)
                 throw new Exception("Order not found");
 
-            order.MarkAsPaidCash();
+            order.MarkAsPaid();
 
             unitOfWork.Orders.Update(order);
             await unitOfWork.SaveChangesAsync(cancellationToken);

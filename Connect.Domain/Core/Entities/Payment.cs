@@ -8,25 +8,28 @@ namespace Connect.Domain.Core.Entities
 {
     public sealed class Payment
     {
-        public int PaymentID { get; private set; }
+        public long PaymentID { get; private set; }
         public int OrderID { get; private set; }
-        public string PaymentGatewayID { get; private set; }
+        public string PaymentType { get; private set; }
+        public long TransactionID { get; private set; }
+        public string BankingInfo { get; private set; }
         public Currency TotalAmount { get; private set; }
         public bool IsPaidSuccess { get; private set; }
-        public string? ErrorCode { get; private set; }
         public DateTime PaidAt { get; private set; }
         private Payment() { }
-        private Payment(int orderID, string paymentGatewayID, Currency totalAmount, bool isSuccess, string? errorCode)
+        private Payment(long paymentID, int orderID, string paymentType, long transactionID,string bankingInfo, Currency totalAmount, bool isSuccess, DateTime paidAt)
         {
+            PaymentID = paymentID;
             OrderID = orderID;
-            PaymentGatewayID = paymentGatewayID;
+            PaymentType = paymentType;
+            TransactionID = transactionID;
+            BankingInfo = bankingInfo;
             TotalAmount = totalAmount;
             IsPaidSuccess = isSuccess;
-            ErrorCode = errorCode;
-            PaidAt = DateTime.UtcNow;
+            PaidAt = paidAt;
         }
 
-        public static Payment CreatePayment(int orderID, string paymentGatewayID, Currency totalAmount, bool isSuccess, string? errorCode)
+        public static Payment CreatePayment(long paymentID, int orderID, string paymentType, long transactionID, string bankingInfo, Currency totalAmount, bool isSuccess, DateTime paidAt)
         {
             if (orderID <= 0)
                 throw new DomainExceptions(
@@ -37,7 +40,16 @@ namespace Connect.Domain.Core.Entities
                         { "ORDERID", orderID }
                     });
 
-            return new Payment(orderID, paymentGatewayID, totalAmount, isSuccess, errorCode);
+            if(paymentID.ToString().Length <= 0)
+                throw new DomainExceptions(
+                    message: "PaymentID is required",
+                    code: "REQUIRED-PAYMENTID",
+                    metadata: new Dictionary<string, object>
+                    {
+                        { "PAYMENTID", paymentID }
+                    });
+
+            return new Payment(paymentID, orderID, paymentType, transactionID, bankingInfo, totalAmount, isSuccess, paidAt);
         }
 
     }

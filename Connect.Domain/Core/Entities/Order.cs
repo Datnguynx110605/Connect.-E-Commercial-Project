@@ -24,7 +24,6 @@ namespace Connect.Domain.Core.Entities
         private readonly List<OrderItem> items = new();
         public IReadOnlyCollection<OrderItem> OrderItems => items.AsReadOnly();
         public DateTime CreatedAt { get; private set; }
-        public Payment Payments { get; private set; }
         private Order() { }
         private Order(int userID, int couponID, ShippingMethod shipMethod, PaymentMethod payMethod, IEnumerable<OrderItem> orderItems)
         {
@@ -150,35 +149,8 @@ namespace Connect.Domain.Core.Entities
             OrderStatus = OrderStatus.Shipping;
         }
 
-        public void MarkAsPaidPaymentGateway()
+        public void MarkAsPaid()
         {
-            if(OrderPaymentMethod != PaymentMethod.VNPAY)
-                throw new DomainExceptions(
-                   message: "Payment is invalid",
-                   code: "IVNALID_PAYMENT");
-
-            if (Payments == null)
-                throw new DomainExceptions(
-                    message: "Payment not found",
-                    code: "UNDEFINED_PAYMENT");
-
-            if (!Payments.IsPaidSuccess)
-                throw new DomainExceptions(
-                    message: "Payment is unfinished or failed",
-                    code: "FAILED-PAYMENT");
-
-            OrderPaymentStatus = PaymentStatus.Paid;
-
-            RaiseDomainEvent(new OrderPaidEvent(this));
-        }
-
-        public void MarkAsPaidCash()
-        {
-            if (OrderPaymentMethod != PaymentMethod.Cash)
-                throw new DomainExceptions(
-                   message: "Payment is invalid",
-                   code: "IVNALID_PAYMENT");
-
             if (OrderPaymentStatus == PaymentStatus.Paid)
                 throw new DomainExceptions(
                     message: "Order is already paid",
@@ -198,6 +170,8 @@ namespace Connect.Domain.Core.Entities
                     });
 
             OrderPaymentStatus = PaymentStatus.Paid;
+
+            RaiseDomainEvent(new OrderPaidEvent(this));
         }
     }
 }
