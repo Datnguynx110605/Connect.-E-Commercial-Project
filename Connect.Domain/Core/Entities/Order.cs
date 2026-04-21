@@ -89,7 +89,7 @@ namespace Connect.Domain.Core.Entities
                 Currency shippingFee = Currency.Create(50000);
                 OrderTotalPrice += shippingFee;
             }
-            else
+            else if (OrderShippingMethod == ShippingMethod.SuperFast)
             {
                 Currency shippingFee = Currency.Create(80000);
                 OrderTotalPrice += shippingFee;
