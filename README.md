@@ -1,4 +1,4 @@
-# Connect. E-Commerce API
+# Connect. E-Commerce 
 
 > A production-grade RESTful API for a full e-commerce platform — architected with Clean Architecture, Domain-Driven Design, CQRS, and a rich domain model that enforces business rules at the type level.
 
