@@ -28,6 +28,7 @@ namespace Connect.Application.Features.Payments.Queries.GetAllPayments
                 PaymentType=x.PaymentType,
                 TransactionID=x.TransactionID,
                 BankingInfo=x.BankingInfo,
+                TotalAmount=x.TotalAmount.Value,
                 IsPaidSuccess=x.IsPaidSuccess,
                 PaidAt=x.PaidAt
             });
