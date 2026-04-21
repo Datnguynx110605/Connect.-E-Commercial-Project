@@ -14,7 +14,7 @@ namespace Connect.Infrastructure.Configurations
         {
             builder.ToTable("Payments");
 
-            builder.Property(t => t.PaymentID).IsRequired();
+            builder.Property(t => t.PaymentID).IsRequired().ValueGeneratedNever(); ;
             builder.Property(t => t.OrderID).IsRequired();
             builder.Property(t => t.PaymentType).HasMaxLength(20);
             builder.Property(t => t.TransactionID).IsRequired();
