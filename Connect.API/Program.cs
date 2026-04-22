@@ -2,6 +2,7 @@ using Connect.API;
 using Connect.Application;
 using Connect.Infrastructure;
 using Hangfire;
+using Microsoft.AspNetCore.Identity.Data;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +25,9 @@ var app = builder.Build();
 app.UseCors("AllowFrontend");
 
 app.UseCustomMiddleware();
+
+app.MapPost("/Users/login", (LoginRequest req) => {})
+   .RequireRateLimiting("LoginPolicy");
 
 if (app.Environment.IsDevelopment())
 {

@@ -1,8 +1,13 @@
-﻿using Connect.Infrastructure.Settings;
+﻿using Connect.Domain.Core.Entities;
+using Connect.Infrastructure.Data;
+using Connect.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using System.Data;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace Connect.API
 {
@@ -59,6 +64,48 @@ namespace Connect.API
                      [new OpenApiSecuritySchemeReference("Bearer", doc)]=[]
                 });
             });
+
+            services.AddRateLimiter(options =>
+            {
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.User.Identity?.Name ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
+                        factory: partition => new FixedWindowRateLimiterOptions
+                        {
+                            AutoReplenishment = true,
+                            PermitLimit = 100,
+                            Window = TimeSpan.FromMinutes(1)
+                        }));
+
+                options.AddPolicy("LoginPolicy", httpContext =>
+                    RateLimitPartition.GetSlidingWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
+                        factory: partition => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromMinutes(2),
+                            SegmentsPerWindow = 4,
+                            QueueLimit = 0
+                        }));
+
+                options.OnRejected = async (context, token) =>
+                {
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+                    {
+                        await context.HttpContext.Response.WriteAsync(
+                            $"Too many requests. Please try again after {retryAfter.TotalSeconds} second(s).", token);
+                    }
+                };
+            });
+
+            services.AddIdentity<User, IdentityRole>(options =>
+            {
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
+            })
+            .AddDefaultTokenProviders();
 
             services.AddCors(options =>
             {
