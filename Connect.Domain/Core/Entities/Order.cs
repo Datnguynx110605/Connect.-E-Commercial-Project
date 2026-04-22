@@ -133,6 +133,8 @@ namespace Connect.Domain.Core.Entities
                     });
 
             OrderStatus = OrderStatus.Completed;
+
+            RaiseDomainEvent(new OrderCompletedEvent(OrderID, UserID, OrderStatus));
         }
 
         public void MarkOrderStatusToShipping()
