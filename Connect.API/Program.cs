@@ -54,6 +54,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseRateLimiter();
+
 app.UseHangfireDashboard();
 
 app.MapControllers();
