@@ -1,8 +1,5 @@
-﻿using Connect.Domain.Core.Entities;
-using Connect.Infrastructure.Data;
-using Connect.Infrastructure.Settings;
+﻿using Connect.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Data;
@@ -98,14 +95,6 @@ namespace Connect.API
                     }
                 };
             });
-
-            services.AddIdentity<User, IdentityRole>(options =>
-            {
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-                options.Lockout.MaxFailedAccessAttempts = 5;
-                options.Lockout.AllowedForNewUsers = true;
-            })
-            .AddDefaultTokenProviders();
 
             services.AddCors(options =>
             {
