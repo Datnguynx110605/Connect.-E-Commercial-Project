@@ -26,9 +26,6 @@ app.UseCors("AllowFrontend");
 
 app.UseCustomMiddleware();
 
-app.MapPost("/Users/login", (LoginRequest req) => {})
-   .RequireRateLimiting("LoginPolicy");
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
