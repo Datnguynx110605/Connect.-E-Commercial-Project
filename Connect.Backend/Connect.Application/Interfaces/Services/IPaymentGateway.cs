@@ -1,4 +1,4 @@
-﻿using Connect.Application.DTOs;
+﻿using Connect.Application.Commons.DTOs;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;

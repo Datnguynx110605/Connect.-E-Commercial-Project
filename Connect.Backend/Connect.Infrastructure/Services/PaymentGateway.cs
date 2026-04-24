@@ -1,4 +1,4 @@
-﻿using Connect.Application.DTOs;
+﻿using Connect.Application.Commons.DTOs;
 using Connect.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

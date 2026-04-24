@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Connect.Application.Features.Categories.Queries.GetSpecificCategory
+namespace Connect.Application.Features.Products.Queries.GetProductByCategory
 {
-    public sealed record GetSpecificCategoryCommand:IRequest<CategoryDto>
+    public sealed record GetProductByCategoryQuery:IRequest<ProductDto>
     {
         public int CategoryID { get; init; }
     }

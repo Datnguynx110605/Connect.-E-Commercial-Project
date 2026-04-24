@@ -1,4 +1,4 @@
-﻿using Connect.Application.DTOs;
+﻿using Connect.Application.Commons.DTOs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;

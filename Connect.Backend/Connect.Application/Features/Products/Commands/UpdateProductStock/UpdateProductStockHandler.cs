@@ -1,4 +1,4 @@
-﻿using Connect.Application.DTOs;
+﻿using Connect.Application.Commons.DTOs;
 using Connect.Application.Interfaces.Persistences;
 using Connect.Domain.Core.ValueObjects;
 using MediatR;
@@ -30,6 +30,7 @@ namespace Connect.Application.Features.Products.Commands.UpdateProductStock
             return new ProductDto
             {
                 ProductID = product.ProductID,
+                CategoryID = product.CategoryID,
                 ProductName = product.ProductName.Value,
                 Description = product.Description,
                 OriginalPrice = product.OriginalPrice.Value,

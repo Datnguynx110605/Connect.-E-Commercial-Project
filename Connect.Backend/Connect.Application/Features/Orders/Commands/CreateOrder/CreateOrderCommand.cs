@@ -1,4 +1,4 @@
-﻿using Connect.Application.DTOs;
+﻿using Connect.Application.Commons.DTOs;
 using Connect.Domain.Core.Entities;
 using Connect.Domain.Core.Enums;
 using MediatR;

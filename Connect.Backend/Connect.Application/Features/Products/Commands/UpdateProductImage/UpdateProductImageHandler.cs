@@ -1,4 +1,4 @@
-﻿using Connect.Application.DTOs;
+﻿using Connect.Application.Commons.DTOs;
 using Connect.Application.Interfaces.Persistences;
 using MediatR;
 using System;
@@ -29,6 +29,7 @@ namespace Connect.Application.Features.Products.Commands.UpdateProductImage
             return new ProductDto
             {
                 ProductID = product.ProductID,
+                CategoryID = product.CategoryID,
                 ProductName = product.ProductName.Value,
                 Description = product.Description,
                 OriginalPrice = product.OriginalPrice.Value,

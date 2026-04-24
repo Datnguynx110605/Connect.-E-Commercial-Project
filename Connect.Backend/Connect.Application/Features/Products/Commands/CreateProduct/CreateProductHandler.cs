@@ -1,4 +1,4 @@
-﻿using Connect.Application.DTOs;
+﻿using Connect.Application.Commons.DTOs;
 using Connect.Application.Interfaces.Persistences;
 using Connect.Domain.Core.Entities;
 using Connect.Domain.Core.Enums;
@@ -38,7 +38,8 @@ namespace Connect.Application.Features.Products.Commands.CreateProduct
 
             return new ProductDto
             {
-                ProductID=product.ProductID,
+                ProductID = product.ProductID,
+                CategoryID = product.CategoryID,
                 ProductName = product.ProductName.Value,
                 Description = product.Description,
                 OriginalPrice = product.OriginalPrice.Value,
@@ -48,8 +49,8 @@ namespace Connect.Application.Features.Products.Commands.CreateProduct
                 Rom = product.Rom.Value,
                 Color = product.Color,
                 ProductStatus = product.ProductStatus.ToString(),
-                ImageURL = imageURL,
-                CreatedAt=product.CreatedAt
+                ImageURL = product.ImageURL,
+                CreatedAt = product.CreatedAt
             };
         }
     }

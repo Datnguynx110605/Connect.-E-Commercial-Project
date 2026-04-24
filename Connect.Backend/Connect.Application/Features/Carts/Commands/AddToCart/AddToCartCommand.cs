@@ -1,4 +1,4 @@
-﻿using Connect.Application.DTOs;
+﻿using Connect.Application.Commons.DTOs;
 using Connect.Application.Features.Coupons.Commands.UpdateCouponQuantity;
 using MediatR;
 using System;

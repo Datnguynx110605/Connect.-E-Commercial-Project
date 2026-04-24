@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Connect.Application.DTOs
+namespace Connect.Application.Commons.DTOs
 {
     public record UserDto
     {

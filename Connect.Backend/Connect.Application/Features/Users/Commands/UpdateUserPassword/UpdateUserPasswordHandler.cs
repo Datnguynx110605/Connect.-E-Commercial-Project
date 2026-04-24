@@ -1,5 +1,4 @@
-﻿using Connect.Application.DTOs;
-using Connect.Application.Interfaces.Persistences;
+﻿using Connect.Application.Interfaces.Persistences;
 using Connect.Application.Interfaces.Services;
 using Connect.Domain.Core.Entities;
 using Connect.Domain.Core.ValueObjects;

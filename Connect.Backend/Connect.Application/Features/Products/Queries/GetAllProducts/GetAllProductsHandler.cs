@@ -1,4 +1,4 @@
-﻿using Connect.Application.DTOs;
+﻿using Connect.Application.Commons.DTOs;
 using Connect.Application.Interfaces.Persistences;
 using MediatR;
 using System;
@@ -24,6 +24,7 @@ namespace Connect.Application.Features.Products.Queries.GetAllProducts
             return product.Select(x => new ProductDto
             {
                 ProductID=x.ProductID,
+                CategoryID=x.CategoryID,
                 ProductName = x.ProductName.Value,
                 Description = x.Description,
                 OriginalPrice = x.OriginalPrice.Value,

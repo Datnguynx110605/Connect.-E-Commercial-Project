@@ -1,6 +1,5 @@
-﻿using Connect.Application.DTOs;
+﻿using Connect.Application.Commons.DTOs;
 using Connect.Application.Interfaces.Services;
-using Connect.Domain.Core.Entities;
 using Connect.Infrastructure.Hub;
 using Microsoft.AspNetCore.SignalR;
 using System;

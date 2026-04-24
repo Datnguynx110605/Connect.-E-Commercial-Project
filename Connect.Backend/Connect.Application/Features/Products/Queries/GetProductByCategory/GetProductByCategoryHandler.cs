@@ -5,26 +5,26 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Connect.Application.Features.Products.Queries.GetProductDetail
+namespace Connect.Application.Features.Products.Queries.GetProductByCategory
 {
-    internal sealed class GetProductDetailHandler : IRequestHandler<GetProductDetailQuery, ProductDto>
+    internal sealed class GetProductByCategoryHandler : IRequestHandler<GetProductByCategoryQuery, ProductDto>
     {
         private readonly IUnitOfWork unitOfWork;
-        public GetProductDetailHandler(IUnitOfWork _unitOfWork)
+        public GetProductByCategoryHandler(IUnitOfWork _unitOfWork)
         {
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<ProductDto> Handle(GetProductDetailQuery request, CancellationToken cancellationToken)
+        public async Task<ProductDto> Handle(GetProductByCategoryQuery request, CancellationToken cancellationToken)
         {
-            var product = await unitOfWork.Products.GetByIdAsync(request.ProductID, cancellationToken);
+            var product = await unitOfWork.Products.GetByIdAsync(request.CategoryID, cancellationToken);
             if (product == null)
                 throw new Exception("Product not found");
 
             return new ProductDto
             {
                 ProductID = product.ProductID,
-                CategoryID = product.CategoryID,
+                CategoryID=product.CategoryID,
                 ProductName = product.ProductName.Value,
                 Description = product.Description,
                 OriginalPrice = product.OriginalPrice.Value,
