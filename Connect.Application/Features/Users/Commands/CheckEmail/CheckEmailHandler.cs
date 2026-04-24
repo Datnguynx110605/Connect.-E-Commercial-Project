@@ -15,13 +15,11 @@ namespace Connect.Application.Features.Users.Commands.CheckEmail
         private readonly IUnitOfWork unitOfWork;
         private readonly IEmailVerificationService verificationService;
         private readonly IEmailService emailService;
-        private readonly IConfiguration configuration;
-        public CheckEmailHandler(IUnitOfWork _unitOfWork, IEmailVerificationService _verificationService, IEmailService _emailService, IConfiguration _configuration)
+        public CheckEmailHandler(IUnitOfWork _unitOfWork, IEmailVerificationService _verificationService, IEmailService _emailService)
         {
             unitOfWork = _unitOfWork;
             verificationService = _verificationService;
             emailService = _emailService;
-            configuration = _configuration;
         }
 
         public async Task<Result> Handle(CheckEmailCommand request, CancellationToken cancellationToken)
