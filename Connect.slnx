@@ -1,8 +1,8 @@
 <Solution>
   <Folder Name="/Connect.Backend/">
-    <Project Path="Connect.API/Connect.API.csproj" Id="8b6a3c29-76c1-4b47-87b6-deb276c2491b" />
-    <Project Path="Connect.Application/Connect.Application.csproj" />
-    <Project Path="Connect.Domain/Connect.Domain.csproj" />
-    <Project Path="Connect.Infrastructure/Connect.Infrastructure.csproj" />
+    <Project Path="Connect.Backend/Connect.API/Connect.API.csproj" />
+    <Project Path="Connect.Backend/Connect.Application/Connect.Application.csproj" />
+    <Project Path="Connect.Backend/Connect.Domain/Connect.Domain.csproj" />
+    <Project Path="Connect.Backend/Connect.Infrastructure/Connect.Infrastructure.csproj" />
   </Folder>
 </Solution>
