@@ -16,10 +16,11 @@ namespace Connect.Domain.Core.Entities
         public Currency CartTotalPrice { get; private set; }
         public DateTime CreatedAt { get; private set; }
         private Cart() { }
-        private Cart(int userID, int productID, Currency unitPrice)
+        private Cart(int userID, int productID, Amount cartQuantity, Currency unitPrice)
         {
             UserID = userID;
             ProductID = productID;
+            CartQuantity = cartQuantity;
             CartUnitPrice = unitPrice;
             CreatedAt = DateTime.UtcNow;
         }
@@ -44,7 +45,7 @@ namespace Connect.Domain.Core.Entities
                         { "PRODUCTID", productID }
                    });
 
-            var cart = new Cart(userID, productID, unitPrice);
+            var cart = new Cart(userID, productID,quantity, unitPrice);
             cart.AddToCart(quantity, unitPrice);
 
             return cart;
