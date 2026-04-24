@@ -4,6 +4,7 @@ import { tokenStorage } from '../api/client';
 import { getProfile, logout as apiLogout } from '../api/users';
 import { getMyCart, addToCart as apiAddToCart, removeCartItem, reduceCartItem } from '../api/carts';
 import { getAllProducts } from '../api/products';
+import { useNotification } from '../components/Notification/NotificationContext';
 
 // ─── Cart (mirrors backend CartDto joined with Product info) ──────
 
@@ -43,6 +44,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [user, setUserState] = useState<UserDto | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [cart, setCart] = useState<LocalCartItem[]>([]);
+  const { success, error, warning } = useNotification();
 
   const refreshCart = async () => {
     if (!tokenStorage.getAccess()) {
@@ -124,17 +126,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const userId = user?.userID || tokenStorage.getUserId();
     
     if (!userId) {
-      console.warn('[Cart] Add to cart failed: No userID found. User may not be logged in.');
-      alert('Vui lòng đăng nhập để thêm vào giỏ hàng');
+      warning('Vui lòng đăng nhập để thêm vào giỏ hàng', 'Yêu cầu đăng nhập');
       return;
     }
 
     try {
-      await apiAddToCart({ userID: userId, productID, quantity });
+      await apiAddToCart({ productID, quantity });
       await refreshCart();
+      success('Đã thêm sản phẩm vào giỏ hàng');
     } catch (err) {
       console.error('[Cart] Add failed:', err);
-      alert('Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại sau.');
+      error('Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại sau.');
     }
   };
 
@@ -145,8 +147,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       await removeCartItem(cartID);
       await refreshCart();
+      success('Đã xóa sản phẩm khỏi giỏ hàng');
     } catch (err) {
       console.error('[Cart] Remove failed:', err);
+      error('Không thể xóa sản phẩm. Vui lòng thử lại.');
       await refreshCart(); // Re-sync on failure
     }
   };
@@ -183,16 +187,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           quantity: Math.abs(delta) 
         });
       } else {
-        const userId = user?.userID || tokenStorage.getUserId() || 0;
         await apiAddToCart({ 
-          userID: userId, 
           productID: item.productID, 
           quantity: delta 
         });
       }
       await refreshCart();
+      // Only show success for deliberate quantity changes, not rapid clicks
+      // But for now, simple is better.
     } catch (err) {
       console.error('[Cart] Update failed:', err);
+      error('Không thể cập nhật số lượng. Vui lòng thử lại.');
       await refreshCart(); // Force sync on failure
     }
   };

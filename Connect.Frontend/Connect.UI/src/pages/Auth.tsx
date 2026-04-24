@@ -4,6 +4,7 @@ import { Layout } from '../components/Layout';
 import { useAppContext } from '../context/AppContext';
 import { login as apiLogin, checkEmail, verifyEmail, register as apiRegister } from '../api/users';
 import { ApiError } from '../api/client';
+import { useNotification } from '../components/Notification/NotificationContext';
 
 export const Auth = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -13,6 +14,7 @@ export const Auth = () => {
   const [isLogin, setIsLogin] = useState(!verifyToken);
   const navigate = useNavigate();
   const { setUser } = useAppContext();
+  const { success } = useNotification();
 
   // Registration states: 'email' -> 'waiting' -> 'verifying' -> 'details'
   const [registerStep, setRegisterStep] = useState<'email' | 'waiting' | 'verifying' | 'details'>('email');
@@ -130,7 +132,7 @@ export const Auth = () => {
       // but here we can just switch to login view and prefill email if we had it
       setIsLogin(true);
       setError('');
-      alert('Đăng ký thành công! Vui lòng đăng nhập.');
+      success('Đăng ký thành công! Vui lòng đăng nhập.', 'Chào mừng bạn');
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);

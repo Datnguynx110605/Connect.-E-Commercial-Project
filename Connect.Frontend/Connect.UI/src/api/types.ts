@@ -122,7 +122,6 @@ export interface CartDto {
 }
 
 export interface AddToCartRequest {
-  userID: number;
   productID: number;
   quantity: number;
 }

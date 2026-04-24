@@ -8,9 +8,11 @@ import { CouponDto } from '../api/types';
 import { createOrder } from '../api/orders';
 import { redirectToVNPAY } from '../api/payments';
 import { getMyCart } from '../api/carts';
+import { useNotification } from '../components/Notification/NotificationContext';
 
 export const Checkout = () => {
   const { cart, user, clearCart, refreshCart } = useAppContext();
+  const { success, error, warning } = useNotification();
   const navigate = useNavigate();
 
   const [shippingMethod, setShippingMethod] = useState(30000);
@@ -40,16 +42,17 @@ export const Checkout = () => {
     const coupon = coupons.find(c => c.couponCode.toUpperCase() === selectedCouponCode.toUpperCase());
     if (coupon) {
       if (coupon.couponQuantity <= 0) {
-        alert('Mã giảm giá đã hết lượt sử dụng.');
+        warning('Mã giảm giá đã hết lượt sử dụng.', 'Coupon không khả dụng');
         return;
       }
       if (new Date(coupon.expiryDate) < new Date()) {
-        alert('Mã giảm giá đã hết hạn.');
+        warning('Mã giảm giá đã hết hạn.', 'Coupon hết hạn');
         return;
       }
       setAppliedCoupon(coupon);
+      success('Đã áp dụng mã giảm giá thành công');
     } else {
-      alert('Mã giảm giá không hợp lệ hoặc không tồn tại.');
+      error('Mã giảm giá không hợp lệ hoặc không tồn tại.');
     }
   };
 
@@ -80,7 +83,7 @@ export const Checkout = () => {
       }
 
       if (items.length === 0) {
-        alert('Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi đặt hàng.');
+        warning('Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi đặt hàng.');
         setIsProcessing(false);
         return;
       }
@@ -108,7 +111,7 @@ export const Checkout = () => {
     } catch (err: any) {
       console.error('Failed to create order', err);
       const msg = err?.message || 'Đã xảy ra lỗi khi đặt hàng.';
-      alert(msg);
+      error(msg, 'Lỗi đặt hàng');
       setIsProcessing(false);
     }
   };

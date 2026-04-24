@@ -6,6 +6,8 @@ import { formatVND } from '../data/mock';
 import { useAppContext } from '../context/AppContext';
 import { getOrderHistory, cancelOrder } from '../api/orders';
 import { OrderDto } from '../api/types';
+import { useNotification } from '../components/Notification/NotificationContext';
+import { ConfirmationModal } from '../components/Modal/ConfirmationModal';
 
 const STATUS_LABEL: Record<string, string> = {
   Pending: 'Chờ xác nhận',
@@ -25,10 +27,12 @@ const STATUS_CLASS: Record<string, string> = {
 
 export const MyOrders = () => {
   const { user } = useAppContext();
+  const { success, error } = useNotification();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [orderToCancel, setOrderToCancel] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -41,16 +45,19 @@ export const MyOrders = () => {
       .finally(() => setLoading(false));
   }, [user, navigate]);
 
-  const handleCancel = async (orderId: number) => {
-    if (!confirm('Bạn có chắc muốn hủy đơn hàng này?')) return;
+  const handleCancel = async () => {
+    if (!orderToCancel) return;
+    const orderId = orderToCancel;
     setCancellingId(orderId);
+    setOrderToCancel(null);
     try {
       const updated = await cancelOrder(orderId);
       setOrders((prev) =>
         prev.map((o) => (o.orderID === orderId ? updated : o))
       );
+      success('Đã hủy đơn hàng thành công');
     } catch {
-      alert('Không thể hủy đơn hàng. Vui lòng thử lại.');
+      error('Không thể hủy đơn hàng. Vui lòng thử lại.');
     } finally {
       setCancellingId(null);
     }
@@ -60,6 +67,18 @@ export const MyOrders = () => {
     <Layout>
       <div className="max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold mb-8">Đơn hàng của tôi</h1>
+
+        <ConfirmationModal
+          isOpen={!!orderToCancel}
+          onClose={() => setOrderToCancel(null)}
+          onConfirm={handleCancel}
+          title="Hủy đơn hàng"
+          message="Bạn có chắc muốn hủy đơn hàng này? Hành động này không thể hoàn tác."
+          confirmLabel="Hủy đơn"
+          cancelLabel="Quay lại"
+          variant="danger"
+          isLoading={cancellingId === orderToCancel}
+        />
 
         {loading ? (
           <div className="flex justify-center py-20">
@@ -131,7 +150,7 @@ export const MyOrders = () => {
                     <div className="flex gap-3 w-full sm:w-auto">
                       {order.orderStatus === 'Pending' && (
                         <button
-                          onClick={() => handleCancel(order.orderID)}
+                          onClick={() => setOrderToCancel(order.orderID)}
                           disabled={cancellingId === order.orderID}
                           className="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2.5 rounded-xl font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
                         >

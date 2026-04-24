@@ -5,6 +5,8 @@ import { Layout } from '../components/Layout';
 import { useAppContext } from '../context/AppContext';
 import { getProfile, updateProfile, changePassword, deleteProfile } from '../api/users';
 import { ApiError } from '../api/client';
+import { useNotification } from '../components/Notification/NotificationContext';
+import { ConfirmationModal } from '../components/Modal/ConfirmationModal';
 
 export const Profile = () => {
   const { user, setUser, logout, isLoadingUser } = useAppContext();
@@ -12,7 +14,9 @@ export const Profile = () => {
 
   const [activeTab, setActiveTab] = useState('info');
   const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { success, error } = useNotification();
 
   // Info form state
   const [infoForm, setInfoForm] = useState({
@@ -48,48 +52,48 @@ export const Profile = () => {
 
   const handleSaveInfo = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-    setFeedback(null);
     try {
       const updated = await updateProfile(infoForm);
       setUser(updated);
-      setFeedback({ type: 'success', msg: 'Cập nhật thông tin thành công!' });
+      success('Cập nhật thông tin thành công!');
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Cập nhật thất bại.';
-      setFeedback({ type: 'error', msg });
+      error(msg);
     } finally {
       setSaving(false);
     }
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
     if (pwForm.password !== pwForm.confirm) {
-      setFeedback({ type: 'error', msg: 'Mật khẩu xác nhận không khớp.' });
+      error('Mật khẩu xác nhận không khớp.');
       return;
     }
     setSaving(true);
-    setFeedback(null);
     try {
       await changePassword({ oldPassword: pwForm.oldPassword, password: pwForm.password });
-      setFeedback({ type: 'success', msg: 'Đổi mật khẩu thành công!' });
+      success('Đổi mật khẩu thành công!');
       setPwForm({ oldPassword: '', password: '', confirm: '' });
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Đổi mật khẩu thất bại.';
-      setFeedback({ type: 'error', msg });
+      error(msg);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteAccount = async () => {
-    if (!confirm('Bạn có chắc muốn xóa tài khoản? Hành động này không thể hoàn tác.')) return;
+    setIsDeleting(true);
     try {
       await deleteProfile();
+      success('Đã xóa tài khoản thành công.');
       logout();
       navigate('/');
     } catch {
-      alert('Không thể xóa tài khoản lúc này.');
+      error('Không thể xóa tài khoản lúc này.');
+      setShowDeleteModal(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -113,6 +117,17 @@ export const Profile = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-12 flex flex-col md:flex-row gap-8">
+        <ConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteAccount}
+          title="Xóa tài khoản"
+          message="Bạn có chắc muốn xóa tài khoản? Hành động này không thể hoàn tác và tất cả dữ liệu của bạn sẽ bị mất."
+          confirmLabel="Xóa vĩnh viễn"
+          cancelLabel="Quay lại"
+          variant="danger"
+          isLoading={isDeleting}
+        />
 
         {/* Sidebar */}
         <div className="w-full md:w-80 flex-shrink-0">
@@ -134,7 +149,7 @@ export const Profile = () => {
 
             <div className="w-full space-y-2">
               <button
-                onClick={() => { setActiveTab('info'); setFeedback(null); }}
+                onClick={() => setActiveTab('info')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'info' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
               >
                 <UserIcon size={20} /> Thông tin cá nhân
@@ -146,7 +161,7 @@ export const Profile = () => {
                 <Package size={20} /> Đơn hàng của tôi
               </button>
               <button
-                onClick={() => { setActiveTab('password'); setFeedback(null); }}
+                onClick={() => setActiveTab('password')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'password' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
               >
                 <KeyRound size={20} /> Đổi mật khẩu
@@ -165,12 +180,7 @@ export const Profile = () => {
         <div className="flex-1">
           <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
 
-            {/* Feedback banner */}
-            {feedback && (
-              <div className={`mb-6 px-4 py-3 rounded-xl text-sm font-medium ${feedback.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                {feedback.msg}
-              </div>
-            )}
+            {/* Content Header */}
 
             {activeTab === 'info' && (
               <>
@@ -217,7 +227,7 @@ export const Profile = () => {
                   <div className="pt-4 flex justify-between items-center">
                     <button
                       type="button"
-                      onClick={handleDeleteAccount}
+                      onClick={() => setShowDeleteModal(true)}
                       className="text-red-500 font-medium hover:underline text-sm flex items-center gap-1"
                     >
                       <Trash2 size={16} /> Xóa tài khoản
