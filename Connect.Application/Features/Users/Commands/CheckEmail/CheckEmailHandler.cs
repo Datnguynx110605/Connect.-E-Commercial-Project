@@ -36,7 +36,7 @@ namespace Connect.Application.Features.Users.Commands.CheckEmail
 
             var frontendBaseUrl = configuration["Frontend:BaseUrl"];
             var encodedToken = Uri.EscapeDataString(token);
-            var verificationUrl = $"{frontendBaseUrl}/verify-email?token={encodedToken}";
+            var verificationUrl = $"http://localhost:3000/verify-email?token={encodedToken}";
 
             await emailService.SendEmailVerificationAsync(email.Value, verificationUrl, cancellationToken);
 
