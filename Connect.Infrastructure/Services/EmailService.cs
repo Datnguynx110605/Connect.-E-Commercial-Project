@@ -1,5 +1,6 @@
 ﻿using Connect.Application.Interfaces.Persistences;
 using Connect.Application.Interfaces.Services;
+using Connect.Domain.Core.ValueObjects;
 using Connect.Infrastructure.Persistences;
 using Connect.Infrastructure.Settings;
 using MailKit.Net.Smtp;
@@ -116,16 +117,17 @@ namespace Connect.Infrastructure.Services
             await SendAsync(toEmail, subject, body, cancellationToken);
         }
 
-        public async Task SendWelcomeEmailAsync(int userID, string userName, CancellationToken cancellationToken = default)
+        public async Task SendWelcomeEmailAsync(string email, string userName, CancellationToken cancellationToken = default)
         {
-            var user = await unitOfWork.Users.GetByIdAsync(userID, cancellationToken);
+            Email userEmail = Email.Create(email);
+            var user = await unitOfWork.Users.FirstOrDefaultNoTrackingAsync(x=> x.Email == userEmail, cancellationToken);
             if (user is null)
             {
-                _logger.LogWarning("Cannot find User {UserID} to send welcome email for User #{UserID}", userID, userName);
+                _logger.LogWarning("Cannot find Email {UserID} to send welcome email for User #{UserID}", userEmail, userName);
                 return;
             }
 
-            var subject = $"Welcome to Connect. - User #{userName} | Connect. ";
+            var subject = $"Welcome to Connect. - {userName} | Connect. ";
             var body = BuildWelcomeHtml(user.UserName.Value);
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }

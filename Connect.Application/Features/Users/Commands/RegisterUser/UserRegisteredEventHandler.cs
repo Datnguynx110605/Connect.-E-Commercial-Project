@@ -25,7 +25,7 @@ namespace Connect.Application.Features.Users.Commands.RegisterUser
             logger.LogInformation("Take event UserRegisteredEvent for User #{userID}. Waiting to send email... ", notification.Event.UserName);
 
             backgroundJobClient.Enqueue<IEmailService>(emailServcie => emailServcie.SendWelcomeEmailAsync(
-                notification.Event.UserID,
+                notification.Event.UserEmail.Value,
                 notification.Event.UserName.Value,
                 CancellationToken.None
                 ));
