@@ -40,6 +40,36 @@ export const Auth = () => {
       handleVerifyEmail(verifyToken);
     }
   }, [verifyToken]);
+  const { error: notifyError } = useNotification();
+
+  const getErrorMessage = (err: any, context: 'login' | 'register' | 'verify') => {
+    if (!(err instanceof ApiError)) {
+      return 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
+    }
+
+    if (err.status === 429) {
+      notifyError('Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.', 'Thao tác quá nhanh');
+    }
+
+    switch (err.status) {
+      case 400:
+        return err.message || 'Yêu cầu không hợp lệ.';
+      case 401:
+        if (context === 'login') return 'Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.';
+        return 'Phiên làm việc đã hết hạn hoặc không có quyền truy cập.';
+      case 404:
+        return 'Không tìm thấy tài nguyên yêu cầu.';
+      case 409:
+        if (context === 'register') return 'Email này đã tồn tại trong hệ thống. Vui lòng sử dụng email khác.';
+        return 'Dữ liệu đã tồn tại hoặc xảy ra xung đột.';
+      case 429:
+        return 'Bạn đã gửi quá nhiều yêu cầu. Vui lòng đợi một lát và thử lại sau.';
+      case 500:
+        return 'Máy chủ đang gặp sự cố (Lỗi 500). Chúng tôi sẽ khắc phục sớm nhất có thể.';
+      default:
+        return err.message || 'Đã xảy ra lỗi khi kết nối với máy chủ.';
+    }
+  };
 
   const handleVerifyEmail = async (token: string) => {
     try {
@@ -61,11 +91,7 @@ export const Auth = () => {
         setSearchParams(searchParams);
       }
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError('Xác thực email thất bại. Mã/liên kết có thể đã hết hạn hoặc không đúng.');
-      }
+      setError(getErrorMessage(err, 'verify'));
       setRegisterStep('email');
     } finally {
       setLoading(false);
@@ -85,11 +111,7 @@ export const Auth = () => {
       setUser(user);
       navigate('/home');
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError('Đăng nhập thất bại. Vui lòng thử lại.');
-      }
+      setError(getErrorMessage(err, 'login'));
     } finally {
       setLoading(false);
     }
@@ -104,11 +126,7 @@ export const Auth = () => {
       await checkEmail({ email: formData.email });
       setRegisterStep('waiting');
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError('Có lỗi xảy ra khi kiểm tra email.');
-      }
+      setError(getErrorMessage(err, 'register'));
     } finally {
       setLoading(false);
     }
@@ -134,11 +152,7 @@ export const Auth = () => {
       setError('');
       success('Đăng ký thành công! Vui lòng đăng nhập.', 'Chào mừng bạn');
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError('Đăng ký thất bại. Vui lòng thử lại.');
-      }
+      setError(getErrorMessage(err, 'register'));
     } finally {
       setLoading(false);
     }
