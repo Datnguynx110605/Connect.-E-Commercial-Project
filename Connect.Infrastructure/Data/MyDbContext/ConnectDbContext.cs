@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Connect.Infrastructure.Data
+namespace Connect.Infrastructure.Data.MyDbContext
 {
     public class ConnectDbContext : DbContext
     {

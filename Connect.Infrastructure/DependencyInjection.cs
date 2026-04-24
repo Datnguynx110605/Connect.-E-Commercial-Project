@@ -1,6 +1,6 @@
 ﻿using Connect.Application.Interfaces.Persistences;
 using Connect.Application.Interfaces.Services;
-using Connect.Infrastructure.Data;
+using Connect.Infrastructure.Data.MyDbContext;
 using Connect.Infrastructure.Persistences;
 using Connect.Infrastructure.Services;
 using Connect.Infrastructure.Settings;

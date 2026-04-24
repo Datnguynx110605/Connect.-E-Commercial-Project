@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Connect.Infrastructure.Configurations
+namespace Connect.Infrastructure.Data.Configurations
 {
     internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
     {

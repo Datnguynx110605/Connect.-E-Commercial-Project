@@ -1,5 +1,5 @@
 ﻿using Connect.Application.Interfaces.Persistences;
-using Connect.Infrastructure.Data;
+using Connect.Infrastructure.Data.MyDbContext;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
