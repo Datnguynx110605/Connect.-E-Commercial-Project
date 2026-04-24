@@ -8,7 +8,7 @@ namespace Connect.Application.Features.Users.Commands.VerifyEmail
 {
     public sealed record VerifyEmailCommand:IRequest<Result<VerifyEmailResponse>>
     {
-        public string VerificationToken { get; }
+        public string VerificationToken { get; init; }
     }
     public sealed record VerifyEmailResponse(string RegistrationSessionToken);
 }

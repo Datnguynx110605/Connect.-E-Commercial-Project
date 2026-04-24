@@ -1,4 +1,4 @@
-﻿using Connect.Application.DTOs;
+using Connect.Application.DTOs;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,8 +8,8 @@ namespace Connect.Application.Features.Users.Commands.RegisterUser
 {
     public sealed record RegisterUserCommand:IRequest<UserDto>
     {
-        public int UserID { get;}
-        public string RegistrationSessionToken { get; }
+        public int UserID { get; init; }
+        public string RegistrationSessionToken { get; init; }
         public string UserName { get; init; }
         public string PhoneNumber { get; init; }
         public string Password { get; init; }
