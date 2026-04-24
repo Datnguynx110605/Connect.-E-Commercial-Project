@@ -24,7 +24,7 @@ namespace Connect.Application.Features.Carts.Queries.GetUserCart
             if (!identity)
                 throw new UnauthorizedAccessException("User is not in the system");
 
-            var cart = await unitOfWork.Carts.GetByIdAsync(currentUserService.UserID, cancellationToken);
+            var cart = await unitOfWork.Carts.FirstOrDefaultNoTrackingAsync(x => x.UserID ==currentUserService.UserID, cancellationToken);
             if (cart == null)
                 throw new Exception("Cart not found");
 

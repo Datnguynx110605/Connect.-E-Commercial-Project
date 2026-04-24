@@ -3,6 +3,7 @@ using Connect.Application.Features.Products.Commands.DeleteProduct;
 using Connect.Application.Features.Products.Commands.UpdateProductImage;
 using Connect.Application.Features.Products.Commands.UpdateProductStock;
 using Connect.Application.Features.Products.Queries.GetAllProducts;
+using Connect.Application.Features.Products.Queries.GetProductByCategory;
 using Connect.Application.Features.Products.Queries.GetProductDetail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -33,6 +34,16 @@ namespace Connect.API.Controllers
         public async Task<IActionResult> GetProductDetail(int id, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetProductDetailQuery { ProductID = id }, cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("category")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetProductByCategory(int id,CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new GetProductByCategoryQuery { CategoryID =id}, cancellationToken);
             return Ok(result);
         }
 

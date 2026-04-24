@@ -1,14 +1,29 @@
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ArrowRight, ShoppingCart } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, ShoppingCart, Loader2 } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { useAppContext } from '../context/AppContext';
 import { formatVND } from '../data/mock';
 
 export const Cart = () => {
-  const { cart, removeFromCart, updateQuantity, clearCart } = useAppContext();
+  const { cart, isLoadingUser, removeFromCart, updateQuantity, refreshCart } = useAppContext();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    refreshCart();
+  }, []);
+
   const totalAmount = cart.reduce((sum, item) => sum + (item.finalPrice * item.quantity), 0);
+
+  if (isLoadingUser) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center py-40">
+          <Loader2 size={40} className="animate-spin text-blue-600" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (cart.length === 0) {
     return (
@@ -37,38 +52,37 @@ export const Cart = () => {
           <div className="flex-1">
             <div className="flex justify-between items-center mb-4">
               <span className="font-medium text-gray-700">Sản phẩm</span>
-              <button onClick={clearCart} className="text-red-500 hover:text-red-600 font-medium text-sm">Xóa tất cả</button>
             </div>
             
             <div className="space-y-4">
               {cart.map(item => (
-                <div key={item.productID} className="flex gap-4 bg-white p-4 rounded-2xl border border-gray-100 items-center">
+                <div key={item.cartID} className="flex gap-4 bg-white p-4 rounded-2xl border border-gray-100 items-center">
                   <div className="w-24 h-24 bg-gray-50 rounded-xl p-2 flex-shrink-0">
                     <img src={item.imageURL} alt={item.productName} className="w-full h-full object-contain mix-blend-multiply" />
                   </div>
                   <div className="flex-1">
                     <Link to={`/product/${item.productID}`} className="font-semibold text-gray-900 hover:text-blue-600 line-clamp-2 mb-1">{item.productName}</Link>
                     <div className="text-xs text-gray-500 mb-2">
-                      {item.color} · {item.ram}GB RAM · {item.rom}GB ROM
+                      {item.color} {item.ram > 0 && `· ${item.ram}GB RAM`} {item.rom > 0 && `· ${item.rom}GB ROM`}
                     </div>
                     <div className="font-bold text-red-600">{formatVND(item.finalPrice)}</div>
                   </div>
                   
                   <div className="flex flex-col items-end gap-4 ml-4">
-                    <button onClick={() => removeFromCart(item.productID)} className="text-gray-400 hover:text-red-500 p-1">
+                    <button onClick={() => removeFromCart(item.cartID)} className="text-gray-400 hover:text-red-500 p-1">
                       <Trash2 size={18} />
                     </button>
                     
                     <div className="flex items-center gap-3 bg-gray-50 rounded-full border border-gray-200 px-2 py-1">
                       <button 
-                        onClick={() => updateQuantity(item.productID, item.quantity - 1)}
+                        onClick={() => updateQuantity(item, item.quantity - 1)}
                         className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-black hover:bg-white rounded-full"
                       >
                         <Minus size={14} />
                       </button>
                       <span className="w-6 text-center font-medium text-sm">{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item.productID, item.quantity + 1)}
+                        onClick={() => updateQuantity(item, item.quantity + 1)}
                         className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-black hover:bg-white rounded-full"
                       >
                         <Plus size={14} />

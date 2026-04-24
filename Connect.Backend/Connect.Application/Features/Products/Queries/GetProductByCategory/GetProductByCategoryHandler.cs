@@ -17,7 +17,7 @@ namespace Connect.Application.Features.Products.Queries.GetProductByCategory
 
         public async Task<ProductDto> Handle(GetProductByCategoryQuery request, CancellationToken cancellationToken)
         {
-            var product = await unitOfWork.Products.GetByIdAsync(request.CategoryID, cancellationToken);
+            var product = await unitOfWork.Products.FirstOrDefaultNoTrackingAsync(x => x.CategoryID == request.CategoryID, cancellationToken);
             if (product == null)
                 throw new Exception("Product not found");
 

@@ -66,15 +66,9 @@ export const ProductDetail = () => {
     : '—';
 
   const handleAddToCart = () => {
-    addToCart({
-      productID: product.productID,
-      productName: product.productName,
-      finalPrice: product.finalPrice,
-      imageURL: product.imageURL[0] ?? '',
-      color: product.color,
-      ram: product.ram,
-      rom: product.rom,
-    });
+    if (product) {
+      addToCart(product.productID);
+    }
   };
 
   const handleBuyNow = () => {

@@ -2,11 +2,13 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserDto } from '../api/types';
 import { tokenStorage } from '../api/client';
 import { getProfile, logout as apiLogout } from '../api/users';
-import { addToCart as apiAddToCart } from '../api/carts';
+import { getMyCart, addToCart as apiAddToCart, removeCartItem, reduceCartItem } from '../api/carts';
+import { getAllProducts } from '../api/products';
 
-// ─── Cart (local state — mirrors backend CartDto shape) ───────
+// ─── Cart (mirrors backend CartDto joined with Product info) ──────
 
 export type LocalCartItem = {
+  cartID: number; // Added to help with API calls
   productID: number;
   productName: string;
   finalPrice: number;
@@ -26,11 +28,12 @@ type AppContextType = {
   setUser: (user: UserDto | null) => void;
   logout: () => void;
 
-  // Local cart (used before checkout; actual cart API called per page)
+  // Cart (API-driven)
   cart: LocalCartItem[];
-  addToCart: (item: Omit<LocalCartItem, 'quantity'>, quantity?: number) => void;
-  removeFromCart: (productID: number) => void;
-  updateQuantity: (productID: number, quantity: number) => void;
+  refreshCart: () => Promise<void>;
+  addToCart: (productID: number, quantity?: number) => Promise<void>;
+  removeFromCart: (cartID: number) => Promise<void>;
+  updateQuantity: (item: LocalCartItem, newQuantity: number) => Promise<void>;
   clearCart: () => void;
 };
 
@@ -41,20 +44,72 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [cart, setCart] = useState<LocalCartItem[]>([]);
 
-  // ── Rehydrate user from stored token on first load ───────────
-  useEffect(() => {
-    const token = tokenStorage.getAccess();
-    if (!token) {
-      setIsLoadingUser(false);
+  const refreshCart = async () => {
+    if (!tokenStorage.getAccess()) {
+      setCart([]);
       return;
     }
-    getProfile()
-      .then((profile) => setUserState(profile))
-      .catch(() => tokenStorage.clear())
-      .finally(() => setIsLoadingUser(false));
+    try {
+      const [cartData, productsData] = await Promise.all([
+        getMyCart().catch(err => {
+          // Handle common error codes that imply an empty/missing cart
+          if (err.status === 500 || err.status === 404) return [];
+          throw err;
+        }),
+        getAllProducts()
+      ]);
+
+      // Ensure data is always an array (backend might return single object or null)
+      const data = Array.isArray(cartData) ? cartData : (cartData ? [cartData] : []);
+      const joined: LocalCartItem[] = data.map(bc => {
+        const prod = productsData.find(p => p.productID === bc.productID);
+        return {
+          cartID: bc.cartID,
+          productID: bc.productID,
+          productName: prod?.productName || `Sản phẩm #${bc.productID}`,
+          finalPrice: bc.cartUnitPrice,
+          imageURL: prod?.imageURL && prod.imageURL[0] ? prod.imageURL[0] : '',
+          color: prod?.color || '',
+          ram: prod?.ram || 0,
+          rom: prod?.rom || 0,
+          quantity: bc.cartQuantity
+        };
+      });
+      setCart(joined);
+    } catch (err: any) {
+      if (err.status === 404 || err.status === 500) {
+        setCart([]);
+      } else {
+        console.warn('[Cart] Failed to refresh:', err);
+      }
+    }
+  };
+
+  // ── Rehydrate user and cart on first load ───────────
+  useEffect(() => {
+    const init = async () => {
+      const token = tokenStorage.getAccess();
+      if (!token) {
+        setIsLoadingUser(false);
+        return;
+      }
+      try {
+        const profile = await getProfile();
+        setUserState(profile);
+        await refreshCart();
+      } catch {
+        tokenStorage.clear();
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+    init();
   }, []);
 
-  const setUser = (u: UserDto | null) => setUserState(u);
+  const setUser = (u: UserDto | null) => {
+    setUserState(u);
+    if (u) refreshCart();
+  };
 
   const logout = () => {
     apiLogout();
@@ -62,42 +117,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCart([]);
   };
 
-  // ── Cart helpers ─────────────────────────────────────────────
+  // ── Cart Actions (Direct API calls then refresh) ──────────────
 
-  const addToCart = (item: Omit<LocalCartItem, 'quantity'>, quantity = 1) => {
-    setCart((prev) => {
-      const existing = prev.find((c) => c.productID === item.productID);
-      if (existing) {
-        return prev.map((c) =>
-          c.productID === item.productID
-            ? { ...c, quantity: Math.min(c.quantity + quantity, 10) }
-            : c
-        );
-      }
-      return [...prev, { ...item, quantity }];
-    });
-    // Silently sync to backend cart if user is authenticated
-    if (tokenStorage.getAccess()) {
-      const userId = tokenStorage.getUserId();
-      if (userId) {
-        apiAddToCart({ userID: userId, productID: item.productID, quantity })
-          .catch((err) => console.warn('[Cart sync] Failed to sync to backend:', err));
-      }
+  const addToCart = async (productID: number, quantity = 1) => {
+    // Try to get userID from context first, then tokenStorage
+    const userId = user?.userID || tokenStorage.getUserId();
+    
+    if (!userId) {
+      console.warn('[Cart] Add to cart failed: No userID found. User may not be logged in.');
+      alert('Vui lòng đăng nhập để thêm vào giỏ hàng');
+      return;
+    }
+
+    try {
+      await apiAddToCart({ userID: userId, productID, quantity });
+      await refreshCart();
+    } catch (err) {
+      console.error('[Cart] Add failed:', err);
+      alert('Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại sau.');
     }
   };
 
-  const removeFromCart = (productID: number) => {
-    setCart((prev) => prev.filter((c) => c.productID !== productID));
+  const removeFromCart = async (cartID: number) => {
+    // Optimistic removal
+    setCart(prev => prev.filter(c => c.cartID !== cartID));
+    
+    try {
+      await removeCartItem(cartID);
+      await refreshCart();
+    } catch (err) {
+      console.error('[Cart] Remove failed:', err);
+      await refreshCart(); // Re-sync on failure
+    }
   };
 
-  const updateQuantity = (productID: number, quantity: number) => {
-    if (quantity <= 0) return;
-    setCart((prev) =>
-      prev.map((c) => (c.productID === productID ? { ...c, quantity: Math.min(quantity, 10) } : c))
-    );
+  const cartRef = React.useRef(cart);
+  React.useEffect(() => {
+    cartRef.current = cart;
+  }, [cart]);
+
+  const updateQuantity = async (item: LocalCartItem, newQuantity: number) => {
+    // Get the most up-to-date quantity from the ref to handle rapid clicks
+    const latestItem = cartRef.current.find(c => c.cartID === item.cartID);
+    if (!latestItem) return;
+
+    const currentQty = latestItem.quantity;
+    const delta = newQuantity - currentQty;
+    
+    if (delta === 0) return;
+
+    if (newQuantity <= 0) {
+      await removeFromCart(item.cartID);
+      return;
+    }
+
+    // Optimistically update the UI and the ref immediately
+    const nextCart = cartRef.current.map(c => c.cartID === item.cartID ? { ...c, quantity: newQuantity } : c);
+    cartRef.current = nextCart;
+    setCart(nextCart);
+
+    try {
+      if (delta < 0) {
+        await reduceCartItem(item.cartID, { 
+          productID: item.productID, 
+          quantity: Math.abs(delta) 
+        });
+      } else {
+        const userId = user?.userID || tokenStorage.getUserId() || 0;
+        await apiAddToCart({ 
+          userID: userId, 
+          productID: item.productID, 
+          quantity: delta 
+        });
+      }
+      await refreshCart();
+    } catch (err) {
+      console.error('[Cart] Update failed:', err);
+      await refreshCart(); // Force sync on failure
+    }
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = () => {
+    // API doesn't have clearAll, so we just clear local state for now or delete one by one
+    // But per user request "delete all local cart", we focus on API syncing.
+    setCart([]);
+  };
 
   return (
     <AppContext.Provider
@@ -107,6 +211,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUser,
         logout,
         cart,
+        refreshCart,
         addToCart,
         removeFromCart,
         updateQuantity,

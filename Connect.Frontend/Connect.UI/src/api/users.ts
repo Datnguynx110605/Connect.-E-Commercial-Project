@@ -73,23 +73,20 @@ export async function login(data: LoginRequest): Promise<{ tokens: AuthTokens; u
     { method: 'POST', body: data, anonymous: true },
   );
   
-  // Parse JWT payload to get userID (sub claim)
-  let userID = 0;
-  try {
-    const payload = JSON.parse(atob(result.accessToken.split('.')[1]));
-    userID = Number(payload.sub);
-  } catch (e) {
-    console.error("Failed to parse JWT", e);
-  }
-
-  // Save tokens so subsequent requests are authenticated
+  // Save tokens temporarily with ID 0 to allow profile fetch
   tokenStorage.save(
     { accessToken: result.accessToken, refreshToken: result.refreshToken },
-    userID,
+    0,
   );
 
-  // Fetch the user profile using the newly saved token
+  // Fetch the user profile to get the authoritative userID
   const user = await getProfile();
+
+  // Re-save with the correct userID from the DTO
+  tokenStorage.save(
+    { accessToken: result.accessToken, refreshToken: result.refreshToken },
+    user.userID,
+  );
 
   return {
     tokens: { accessToken: result.accessToken, refreshToken: result.refreshToken },

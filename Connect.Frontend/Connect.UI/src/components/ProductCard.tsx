@@ -14,15 +14,7 @@ export const ProductCard: React.FC<{ product: ProductDto }> = ({ product }) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     if (isOutOfStock) return;
-    addToCart({
-      productID: product.productID,
-      productName: product.productName,
-      finalPrice: product.finalPrice,
-      imageURL: mainImage,
-      color: product.color,
-      ram: product.ram,
-      rom: product.rom,
-    });
+    addToCart(product.productID);
   };
 
   return (

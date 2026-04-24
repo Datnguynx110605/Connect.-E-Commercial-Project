@@ -10,7 +10,7 @@ import { redirectToVNPAY } from '../api/payments';
 import { getMyCart } from '../api/carts';
 
 export const Checkout = () => {
-  const { cart, user, clearCart } = useAppContext();
+  const { cart, user, clearCart, refreshCart } = useAppContext();
   const navigate = useNavigate();
 
   const [shippingMethod, setShippingMethod] = useState(30000);
@@ -22,6 +22,7 @@ export const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
+    refreshCart();
     getAllCoupons()
       .then(data => setCoupons(Array.isArray(data) ? data : []))
       .catch(() => setCoupons([]));
@@ -212,7 +213,7 @@ export const Checkout = () => {
               
               <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                 {cart.map(item => (
-                  <div key={item.productID} className="flex gap-3 items-center">
+                  <div key={item.cartID} className="flex gap-3 items-center">
                     <div className="w-16 h-16 bg-white rounded-lg p-1 border border-gray-100 flex-shrink-0 relative">
                       <img src={item.imageURL} alt={item.productName} className="w-full h-full object-contain" />
                       <span className="absolute -top-2 -right-2 bg-gray-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold">{item.quantity}</span>

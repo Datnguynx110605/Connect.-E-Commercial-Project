@@ -30,23 +30,10 @@ export const Home = () => {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="relative rounded-3xl overflow-hidden bg-gray-900 aspect-[21/9] md:aspect-[3/1] flex items-center">
             <img
-              src="https://images.unsplash.com/photo-1550009158-9ffcbcdbfc11?auto=format&fit=crop&q=80&w=1600"
+              src="https://images.unsplash.com/photo-1532795986-dbef1643a596?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
               alt="Banner"
-              className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
+              className="absolute inset-0 w-full h-full object"
             />
-            <div className="relative z-10 px-8 md:px-16 w-full md:w-2/3">
-              <span className="text-blue-400 font-bold tracking-wider uppercase text-sm mb-2 block">Ưu đãi độc quyền</span>
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
-                {hero ? hero.productName : 'Điện thoại cao cấp'}<br />Sẵn sàng trao tay.
-              </h2>
-              <p className="text-gray-300 text-lg mb-8 max-w-md">Mua ngay để nhận bộ quà tặng trị giá 2.000.000đ.</p>
-              <Link
-                to={hero ? `/product/${hero.productID}` : '/products'}
-                className="bg-blue-600 text-white px-8 py-3.5 rounded-full font-medium hover:bg-blue-700 transition-colors inline-block"
-              >
-                Mua ngay
-              </Link>
-            </div>
           </div>
         </div>
 
