@@ -17,7 +17,7 @@ namespace Connect.Application.Features.Reviews.Queries.GetReviewByProduct
 
         public async Task<ReviewDto> Handle(GetReviewByProductQuery request, CancellationToken cancellationToken)
         {
-            var review = await unitOfWork.Reviews.GetByIdAsync(request.ProductID, cancellationToken);
+            var review = await unitOfWork.Reviews.FirstOrDefaultNoTrackingAsync(x => x.ProductID == request.ProductID, cancellationToken);
             if (review == null)
                 throw new Exception("Review not found");
 
