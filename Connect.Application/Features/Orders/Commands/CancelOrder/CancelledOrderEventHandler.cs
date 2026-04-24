@@ -31,6 +31,12 @@ namespace Connect.Application.Features.Orders.Commands.CancelOrder
                 notification.Event.Order.OrderStatus.ToString(),
                 CancellationToken.None));
 
+            backgroundJobClient.Enqueue<INotificationService>(notifcationServcie => notifcationServcie.NotifyOrderCancelledAsync(
+                notification.Event.Order.OrderID,
+                notification.Event.Order.UserID,
+                notification.Event.Order.OrderStatus.ToString(),
+                CancellationToken.None));
+
             return Task.CompletedTask;
         }
     }

@@ -4,6 +4,7 @@ using Connect.Application.Interfaces.Services;
 using Connect.Domain.Core.Entities;
 using Connect.Domain.Core.Enums;
 using Connect.Domain.Core.ValueObjects;
+using Hangfire;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -15,10 +16,12 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly ICurrentUserService currentUserService;
-        public CreateOrderHandler(IUnitOfWork _unitOfWork, ICurrentUserService _currentUserService)
+        private readonly IBackgroundJobClient backgroundJobClient;
+        public CreateOrderHandler(IUnitOfWork _unitOfWork, ICurrentUserService _currentUserService, IBackgroundJobClient _backgroundJobClient)
         {
             unitOfWork = _unitOfWork;
             currentUserService = _currentUserService;
+            backgroundJobClient = _backgroundJobClient;
         }
 
         public async Task<OrderDto> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -53,6 +56,12 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
                 var product = products.Single(x => x.ProductID == item.ProductID);
                 Amount quantity = Amount.Create(item.Quantity);
                 product.RemoveFromStock(quantity);
+
+                if (product.Stock.Value <= 5)
+                    backgroundJobClient.Enqueue<INotificationService>(notificationService => notificationService.NotifyLowStockAsync(
+                        product.ProductID,
+                        product.ProductName,
+                        CancellationToken.None));
 
                 orderItems.Add(OrderItem.CreateOrderItem(product.ProductID, product.FinalPrice, quantity));
             }

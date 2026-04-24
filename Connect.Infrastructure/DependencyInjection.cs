@@ -75,6 +75,9 @@ namespace Connect.Infrastructure
             services.AddHangfire(config => config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage(configuration.GetConnectionString("Default")));
             services.AddHangfireServer();
 
+            services.AddSignalR().AddStackExchangeRedis("localhost:6379");
+            services.AddScoped<INotificationService, NotificationService>();
+
             return services;
         }
     }

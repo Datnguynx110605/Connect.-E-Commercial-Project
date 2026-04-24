@@ -32,6 +32,14 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
                 notification.Event.Order.OrderPaymentMethod.ToString(),
                 CancellationToken.None));
 
+            backgroundJobClient.Enqueue<INotificationService>(notficationService => notficationService.NotifyOrderPlacedAsync(
+                notification.Event.Order.OrderID,
+                notification.Event.Order.UserID,
+                notification.Event.Order.OrderShippingMethod.ToString(),
+                notification.Event.Order.OrderPaymentMethod.ToString(),
+                notification.Event.Order.OrderTotalPrice.Value,
+                CancellationToken.None));
+
             return Task.CompletedTask;
         }
     }

@@ -31,6 +31,13 @@ namespace Connect.Application.Features.Orders.Commands.MarkAsPaid
                 notification.Event.Order.OrderPaymentStatus.ToString(),
                 CancellationToken.None));
 
+            backgroundJobClient.Enqueue<INotificationService>(notificationService => notificationService.NotifyPaymentCompletedAsync(
+                notification.Event.Order.UserID,
+                notification.Event.Order.OrderID,
+                notification.Event.Order.OrderPaymentMethod.ToString(),
+                notification.Event.Order.OrderTotalPrice.Value,
+                CancellationToken.None));
+
             return Task.CompletedTask;
         }
     }
