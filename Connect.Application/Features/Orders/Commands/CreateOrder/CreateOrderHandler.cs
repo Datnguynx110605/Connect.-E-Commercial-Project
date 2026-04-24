@@ -60,7 +60,8 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
                 if (product.Stock.Value <= 5)
                     backgroundJobClient.Enqueue<INotificationService>(notificationService => notificationService.NotifyLowStockAsync(
                         product.ProductID,
-                        product.ProductName,
+                        product.ProductName.Value,
+                        product.Stock.Value,
                         CancellationToken.None));
 
                 orderItems.Add(OrderItem.CreateOrderItem(product.ProductID, product.FinalPrice, quantity));
