@@ -123,13 +123,8 @@ export interface CartDto {
 
 export interface AddToCartRequest {
   productID: number;
-  quantity: number;
 }
 
-export interface ReduceCartRequest {
-  productID: number;
-  quantity: number;
-}
 
 // ─── Order ────────────────────────────────────────────────────
 

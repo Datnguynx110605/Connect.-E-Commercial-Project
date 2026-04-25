@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserDto } from '../api/types';
 import { tokenStorage } from '../api/client';
 import { getProfile, logout as apiLogout } from '../api/users';
-import { getMyCart, addToCart as apiAddToCart, removeCartItem, reduceCartItem } from '../api/carts';
+import { getMyCart, addToCart as apiAddToCart, removeCartItem, increaseCartAmount, reduceCartAmount } from '../api/carts';
 import { getAllProducts } from '../api/products';
 import { useNotification } from '../components/Notification/NotificationContext';
 
@@ -32,7 +32,7 @@ type AppContextType = {
   // Cart (API-driven)
   cart: LocalCartItem[];
   refreshCart: () => Promise<void>;
-  addToCart: (productID: number, quantity?: number) => Promise<void>;
+  addToCart: (productID: number) => Promise<void>;
   removeFromCart: (cartID: number) => Promise<void>;
   updateQuantity: (item: LocalCartItem, newQuantity: number) => Promise<void>;
   clearCart: () => void;
@@ -121,7 +121,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // ── Cart Actions (Direct API calls then refresh) ──────────────
 
-  const addToCart = async (productID: number, quantity = 1) => {
+  const addToCart = async (productID: number) => {
     // Try to get userID from context first, then tokenStorage
     const userId = user?.userID || tokenStorage.getUserId();
     
@@ -131,7 +131,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     try {
-      await apiAddToCart({ productID, quantity });
+      await apiAddToCart(productID);
       await refreshCart();
       success('Đã thêm sản phẩm vào giỏ hàng');
     } catch (err) {
@@ -181,20 +181,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCart(nextCart);
 
     try {
-      if (delta < 0) {
-        await reduceCartItem(item.cartID, { 
-          productID: item.productID, 
-          quantity: Math.abs(delta) 
-        });
+      if (delta > 0) {
+        // If they want to increase by more than 1, we'd need to call it multiple times 
+        // but usually UI only does +/- 1 at a time.
+        for (let i = 0; i < delta; i++) {
+          await increaseCartAmount(item.cartID);
+        }
       } else {
-        await apiAddToCart({ 
-          productID: item.productID, 
-          quantity: delta 
-        });
+        // Reduce
+        for (let i = 0; i < Math.abs(delta); i++) {
+          await reduceCartAmount(item.cartID);
+        }
       }
       await refreshCart();
-      // Only show success for deliberate quantity changes, not rapid clicks
-      // But for now, simple is better.
     } catch (err) {
       console.error('[Cart] Update failed:', err);
       error('Không thể cập nhật số lượng. Vui lòng thử lại.');
