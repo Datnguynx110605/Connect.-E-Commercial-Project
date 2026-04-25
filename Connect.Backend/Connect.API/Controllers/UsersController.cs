@@ -23,6 +23,12 @@ namespace Connect.API.Controllers
     {
         public UsersController(ISender sender) : base(sender) { }
 
+        [HttpPost("check-email")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> CheckEmail([FromBody] CheckEmailCommand command, CancellationToken cancellationToken)
         {
             await Sender.Send(command, cancellationToken);
