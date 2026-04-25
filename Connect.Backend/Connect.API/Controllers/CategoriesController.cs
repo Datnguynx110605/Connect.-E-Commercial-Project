@@ -16,7 +16,7 @@ namespace Connect.API.Controllers
     {
         public CategoriesController(ISender sender) : base(sender) { }
 
-        [HttpGet]
+        [HttpGet("getall-category")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllCategories(CancellationToken cancellationToken)
@@ -25,44 +25,54 @@ namespace Connect.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}/get-categotybyid")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetCategory(int id, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetSpecificCategoryCommand { CategoryID = id }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpPost]
+        [HttpPost("create-category")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
             return CreatedAtAction(nameof(GetCategory), new { id = result.CategoryID }, result);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}/update-category")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> UpdateCategoryName(int id, [FromBody] UpdateCategoryNameCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command with { CategoryID = id }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}/delete-category")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> DeleteCategory(int id, CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(new DeleteCategoryCommand { CategoryID = id }, cancellationToken);
-            return Ok(result);
+            await Sender.Send(new DeleteCategoryCommand { CategoryID = id }, cancellationToken);
+            return NoContent();
         }
     }
 }

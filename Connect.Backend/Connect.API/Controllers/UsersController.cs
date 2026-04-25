@@ -23,26 +23,28 @@ namespace Connect.API.Controllers
     {
         public UsersController(ISender sender) : base(sender) { }
 
-        [HttpPost("check-email")]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CheckEmail([FromBody] CheckEmailCommand command, CancellationToken cancellationToken)
         {
             await Sender.Send(command, cancellationToken);
-            return Ok("Verification email sent. Please check your inbox.");
+            return Ok(new { Message = "Verification email sent. Please check your inbox." });
         }
 
         [HttpPost("verify-email")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
 
             if (result.IsFailed)
-                return BadRequest(result.Errors.Select(e => e.Message));
+                return BadRequest(new ValidationProblemDetails
+                {
+                    Title = "Email Verification Failed",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = string.Join("; ", result.Errors.Select(e => e.Message)),
+                    Instance = HttpContext.Request.Path
+                });
 
             return Ok(result.Value);
         }
@@ -50,7 +52,8 @@ namespace Connect.API.Controllers
         [HttpPost("register")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Register([FromBody] RegisterUserCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
@@ -61,7 +64,9 @@ namespace Connect.API.Controllers
         [EnableRateLimiting("LoginPolicy")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> Login([FromBody] LoginUserCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
@@ -69,47 +74,55 @@ namespace Connect.API.Controllers
         }
 
         [HttpPost("refresh-token")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
             return Ok(result);
         }
 
-        [HttpPost("forget-password")]
+        [HttpPost("forget-passwod")] 
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
             return Ok(result);
         }
 
-        [HttpGet]
+        [HttpGet("getall-user")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetAllUsersQuery(), cancellationToken);
             return Ok(result);
         }
 
-        [HttpGet("profile")]
+        [HttpGet("get-profile")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetProfile(CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetUserProfileQuery(), cancellationToken);
             return Ok(result);
         }
 
-        [HttpPut("profile")]
+        [HttpPut("update-profile")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserProfileCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
@@ -119,21 +132,23 @@ namespace Connect.API.Controllers
         [HttpPut("change-password")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> ChangePassword([FromBody] UpdateUserPasswordCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
             return Ok(result);
         }
 
-        [HttpDelete("profile")]
+        [HttpDelete("delete-profile")]
         [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> DeleteProfile(CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(new DeleteUserProfileCommand(), cancellationToken);
-            return Ok(result);
+            await Sender.Send(new DeleteUserProfileCommand(), cancellationToken);
+            return NoContent();
         }
     }
 }

@@ -21,16 +21,25 @@ namespace Connect.API.Controllers
             paymentGateway = _paymentGateway;
         }
 
-        [HttpGet]
-        [Authorize(Roles ="Admin")]
+        [HttpGet("getall-payment")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetAllPayments(CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetAllPaymentsQuery(), cancellationToken);
             return Ok(result);
         }
 
-        [HttpPost("create-url")]
+        [HttpPost("create-paymenturl")]
         [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
@@ -42,6 +51,9 @@ namespace Connect.API.Controllers
 
         [HttpGet("vnpay-callback")]
         [AllowAnonymous]
+        [ApiExplorerSettings(IgnoreApi = false)] 
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> VnPayCallback(CancellationToken ct)
         {
 

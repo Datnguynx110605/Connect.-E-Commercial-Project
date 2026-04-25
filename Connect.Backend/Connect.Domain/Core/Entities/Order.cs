@@ -25,7 +25,7 @@ namespace Connect.Domain.Core.Entities
         public IReadOnlyCollection<OrderItem> OrderItems => items.AsReadOnly();
         public DateTime CreatedAt { get; private set; }
         private Order() { }
-        private Order(int userID, int couponID, ShippingMethod shipMethod, PaymentMethod payMethod, IEnumerable<OrderItem> orderItems)
+        private Order(int userID, int? couponID, ShippingMethod shipMethod, PaymentMethod payMethod, IEnumerable<OrderItem> orderItems)
         {
             UserID = userID;
             CouponID = couponID;
@@ -38,7 +38,7 @@ namespace Connect.Domain.Core.Entities
             CreatedAt = DateTime.UtcNow;
         }
 
-        public static Order CreateOrder(int userID,int couponID, ShippingMethod shipMethod, PaymentMethod payMethod, IEnumerable<OrderItem> orderItems, Currency discountAmount)
+        public static Order CreateOrder(int userID, int? couponID, ShippingMethod shipMethod, PaymentMethod payMethod, IEnumerable<OrderItem> orderItems, Currency discountAmount)
         {
             if (userID <= 0)
                 throw new DomainExceptions(

@@ -16,7 +16,7 @@ namespace Connect.API.Controllers
     {
         public ReviewsController(ISender sender) : base(sender) { }
 
-        [HttpGet]
+        [HttpGet("getall-review")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllReviews(CancellationToken cancellationToken)
@@ -25,46 +25,52 @@ namespace Connect.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("product/{productId:int}")]
+        [HttpGet("{productId:int}/get-reviewbyproduct")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetReviewByProduct(int productId, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetReviewByProductQuery { ProductID = productId }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpPost]
+        [HttpPost("create-review")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> CreateReview([FromBody] CreateReviewCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
-            return CreatedAtAction(nameof(GetAllReviews), result);
+            return CreatedAtAction(nameof(GetReviewByProduct), new { productId = command.ProductID }, result);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}/update-review")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateReview(int id, [FromBody] UpdateReviewCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command with { ReviewID = id }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}/delete-review")]
         [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteReview(int id, CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(new DeleteReviewCommand { ReviewID = id }, cancellationToken);
-            return Ok(result);
+            await Sender.Send(new DeleteReviewCommand { ReviewID = id }, cancellationToken);
+            return NoContent();
         }
     }
 }

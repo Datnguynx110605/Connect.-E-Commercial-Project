@@ -18,7 +18,7 @@ namespace Connect.API.Controllers
     {
         public ProductsController(ISender sender) : base(sender) { }
 
-        [HttpGet]
+        [HttpGet("getall-product")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllProducts(CancellationToken cancellationToken)
@@ -27,64 +27,80 @@ namespace Connect.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}/get-productdetail")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetProductDetail(int id, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetProductDetailQuery { ProductID = id }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpGet("category")]
+        [HttpGet("get-product-bycategory")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetProductByCategory(int id,CancellationToken cancellationToken)
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetProductByCategory(int id, CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(new GetProductByCategoryQuery { CategoryID =id}, cancellationToken);
+            var result = await Sender.Send(new GetProductByCategoryQuery { CategoryID = id }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpPost]
+        [HttpPost("create-product")]
         [Authorize(Roles = "Admin")]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> CreateProduct([FromForm] CreateProductCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
             return CreatedAtAction(nameof(GetProductDetail), new { id = result.ProductID }, result);
         }
 
-        [HttpPatch("{id:int}/stock")]
+        [HttpPatch("{id:int}/update-stock")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> UpdateStock(int id, [FromBody] UpdateProductStockCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command with { ProductID = id }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpPatch("{id:int}/image")]
+        [HttpPatch("{id:int}/update-image")]
         [Authorize(Roles = "Admin")]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateImage(int id, [FromForm] UpdateProductImageCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command with { ProductID = id }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}/delete-product")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> DeleteProduct(int id, CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(new DeleteProductCommand { ProductID = id }, cancellationToken);
-            return Ok(result);
+            await Sender.Send(new DeleteProductCommand { ProductID = id }, cancellationToken);
+            return NoContent();
         }
     }
 }

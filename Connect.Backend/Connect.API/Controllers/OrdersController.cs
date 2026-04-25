@@ -18,70 +18,87 @@ namespace Connect.API.Controllers
     {
         public OrdersController(ISender sender) : base(sender) { }
 
-        [HttpGet]
+        [HttpGet("getall-order")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetAllOrders(CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetAllOrdersQuery(), cancellationToken);
             return Ok(result);
         }
 
-        [HttpGet("history")]
+        [HttpGet("get-orderhistory")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetOrderHistory(CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetOrderHistoryQuery(), cancellationToken);
             return Ok(result);
         }
 
-        [HttpPost]
+        [HttpPost("create-order")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command, cancellationToken);
             return CreatedAtAction(nameof(GetOrderHistory), result);
         }
 
-        [HttpPatch("{id:int}/cancel")]
+        [HttpPatch("{id:int}/cancel-order")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> CancelOrder(int id, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new CancelOrderCommand { OrderID = id }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpPatch("{id:int}/shipping")]
+        [HttpPatch("{id:int}/update-statustoshipping")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> UpdateToShipping(int id, [FromBody] UpdateOrderStatusToShippingCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command with { OrderID = id }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpPatch("{id:int}/completed")]
+        [HttpPatch("{id:int}/update-statustocompleted")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> UpdateToCompleted(int id, [FromBody] UpdateOrderStatusToCompletedCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command with { OrderID = id }, cancellationToken);
             return Ok(result);
         }
 
-        [HttpPatch("{id:int}/paid")]
+        [HttpPatch("{id:int}/markas-paid")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> MarkAsPaid(int id, [FromBody] MarkAsPaidCommand command, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(command with { OrderID = id }, cancellationToken);
