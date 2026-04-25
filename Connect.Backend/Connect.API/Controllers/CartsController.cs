@@ -51,7 +51,7 @@ namespace Connect.API.Controllers
             return CreatedAtAction(nameof(GetUserCart), result);
         }
 
-        [HttpPost("{id:int}/increase-cartamount")]
+        [HttpPatch("{id:int}/increase-cartamount")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
