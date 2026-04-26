@@ -41,7 +41,7 @@ namespace Connect.Infrastructure.Services
         public PaymentDto ParseCallback(HttpRequest request)
         {
 
-            var result = vnPayClient.GetPaymentResult(request.Query);
+            var result = vnPayClient.GetPaymentResult(request);
 
             var description = result.Description ?? string.Empty;
             if (!description.StartsWith(OrderIdPrefix) || !int.TryParse(description[OrderIdPrefix.Length..], out int orderId))
