@@ -32,6 +32,7 @@ namespace Connect.Application.Features.Coupons.Commands.UpdateCouponQuantity
                 CouponID = coupon.CouponID,
                 CouponCode = coupon.CouponCode.Value,
                 DiscountAmount = coupon.DiscountAmount.Value,
+                MinimumPriceRequired = coupon.MinimumPriceRequired.Value,
                 CouponQuantity = coupon.CouponQuantity.Value,
                 ExpiryDate = coupon.ExpiryDate
             };

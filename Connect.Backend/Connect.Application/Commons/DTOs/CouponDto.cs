@@ -10,6 +10,7 @@ namespace Connect.Application.Commons.DTOs
         public string CouponCode { get; init; }
         public decimal DiscountAmount { get; init; }
         public int CouponQuantity { get; init; }
+        public decimal MinimumPriceRequired { get; init; }
         public DateTime ExpiryDate { get; init; }
     }
 }

@@ -26,6 +26,7 @@ namespace Connect.Application.Features.Coupons.Queries.GetSpecificCoupon
                 CouponID = coupon.CouponID,
                 CouponCode = coupon.CouponCode.Value,
                 DiscountAmount = coupon.DiscountAmount.Value,
+                MinimumPriceRequired = coupon.MinimumPriceRequired.Value,
                 CouponQuantity = coupon.CouponQuantity.Value,
                 ExpiryDate = coupon.ExpiryDate
             };
