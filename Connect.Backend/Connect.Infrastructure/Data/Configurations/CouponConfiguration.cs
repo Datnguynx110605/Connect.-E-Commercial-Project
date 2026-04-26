@@ -45,6 +45,13 @@ namespace Connect.Infrastructure.Data.Configurations
                 .HasColumnName("CouponQuantity")
                 .IsRequired();
 
+            builder.Property(c => c.MinimumPriceRequired)
+                .HasConversion(
+                    v => v.Value,
+                    v => Currency.Create(v))
+                .HasColumnName("MinimumPriceRequired")
+                .IsRequired();
+
             builder.Property(c => c.ExpiryDate)
                 .HasColumnName("ExpiryDate")
                 .IsRequired();

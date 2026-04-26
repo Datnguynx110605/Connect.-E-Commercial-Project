@@ -12,21 +12,23 @@ namespace Connect.Domain.Core.Entities
         public Code CouponCode { get; private set; }
         public Currency DiscountAmount { get; private set; }
         public Amount CouponQuantity { get; private set; }
+        public Currency MinimumPriceRequired { get; private set; }
         public DateTime ExpiryDate { get; private set; }
         public DateTime CreatedAt { get; private set; }
         private Coupon() { }
-        private Coupon(Code code, Currency amount, Amount quantity, DateTime date)
+        private Coupon(Code code, Currency amount, Amount quantity, Currency minimumRequired, DateTime date)
         {
             CouponCode = code;
             DiscountAmount = amount;
             CouponQuantity = quantity;
+            MinimumPriceRequired = minimumRequired;
             ExpiryDate = date;
             CreatedAt = DateTime.UtcNow;
         }
 
-        public static Coupon CreateCoupon(Code code, Currency amount, Amount quantity, DateTime date)
+        public static Coupon CreateCoupon(Code code, Currency amount, Amount quantity, Currency minimumRequired, DateTime date)
         {
-            return new Coupon(code, amount, quantity, date);
+            return new Coupon(code, amount, quantity, minimumRequired, date);
         }
 
         public void UpdateCouponQuantity(Amount quantity)
@@ -73,9 +75,19 @@ namespace Connect.Domain.Core.Entities
                    });
         }
 
-        public void UseCoupon()
+        public void UseCoupon(Currency totalPrice)
         {
             VerifyCoupon();
+
+            if(MinimumPriceRequired.Value > totalPrice.Value)
+                throw new DomainExceptions(
+                   message: "Coupon is support for this Order",
+                   code: "UNUSABLE-COUPON",
+                   metadata: new Dictionary<string, object>
+                   {
+                        { "MINIMUNPRICE", MinimumPriceRequired }
+                   });
+
             Amount quantity = Amount.Create(1);
             RemoveCouponStock(quantity);
         }

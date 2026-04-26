@@ -35,18 +35,6 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
             if (!products.Any() || products.Count() != request.items.Count)
                 throw new Exception("Products not found");
 
-            Coupon? coupon = null;
-            Currency discountAmount = Currency.Create(0);
-            if (request.CouponID.HasValue)
-            {
-                coupon = await unitOfWork.Coupons.FirstOrDefaultAsync(x => x.CouponID == request.CouponID, cancellationToken);
-                if (coupon == null)
-                    throw new Exception("Coupon not found");
-
-                discountAmount = coupon.DiscountAmount;
-                coupon.UseCoupon();
-            }
-
             ShippingMethod shipMethod = Enum.Parse<ShippingMethod>(request.OrderShippingMethod.ToString());
             PaymentMethod payMethod = Enum.Parse<PaymentMethod>(request.OrderPaymentMethod.ToString());
 
@@ -67,7 +55,20 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
                 orderItems.Add(OrderItem.CreateOrderItem(product.ProductID, product.FinalPrice, quantity));
             }
 
+            Coupon? coupon = null;
+            Currency discountAmount = Currency.Create(0);
+            if (request.CouponID.HasValue)
+            {
+                coupon = await unitOfWork.Coupons.FirstOrDefaultAsync(x => x.CouponID == request.CouponID, cancellationToken);
+                if (coupon == null)
+                    throw new Exception("Coupon not found");
+
+                discountAmount = coupon.DiscountAmount;
+            }
+
             Order order = Order.CreateOrder(currentUserService.UserID, coupon?.CouponID ?? 0, shipMethod, payMethod, orderItems, discountAmount);
+
+            coupon?.UseCoupon(order.OrderTotalPrice);
 
             await unitOfWork.BeginTransactionAsync(cancellationToken);
             unitOfWork.Products.UpdateRange(products);
