@@ -75,34 +75,33 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const { method = 'GET', body, anonymous = false, skipRefresh = false } = options;
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const isFormData = body instanceof FormData;
+
+  const headers: Record<string, string> = isFormData
+    ? {}
+    : { 'Content-Type': 'application/json' };
 
   if (!anonymous) {
     const token = tokenStorage.getAccess();
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const init: RequestInit = {
+  const buildInit = (authHeaders: Record<string, string>): RequestInit => ({
     method,
-    headers,
-    ...(body !== undefined ? { body: body instanceof FormData ? body : JSON.stringify(body) } : {}),
-  };
-  
-  // If body is FormData, let the browser set the content type (including boundary)
-  if (body instanceof FormData) {
-    delete headers['Content-Type'];
-  }
+    headers: authHeaders,
+    ...(body !== undefined
+      ? { body: isFormData ? (body as FormData) : JSON.stringify(body) }
+      : {}),
+  });
 
-  let response = await fetch(`${API_BASE_URL}${path}`, init);
+  let response = await fetch(`${API_BASE_URL}${path}`, buildInit(headers));
 
   if (response.status === 401 && !skipRefresh && !anonymous) {
     const refreshed = await attemptRefresh();
     if (refreshed) {
       const newToken = tokenStorage.getAccess();
       if (newToken) headers['Authorization'] = `Bearer ${newToken}`;
-      response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+      response = await fetch(`${API_BASE_URL}${path}`, buildInit(headers));
     }
   }
 
@@ -113,7 +112,8 @@ export async function apiRequest<T>(
       const err = await response.json();
       traceId = err.traceId;
       message = err.title ?? err.message ?? message;
-    } catch { /* non-JSON error body */ }
+    } catch {
+    }
     throw new ApiError(response.status, traceId, message);
   }
 

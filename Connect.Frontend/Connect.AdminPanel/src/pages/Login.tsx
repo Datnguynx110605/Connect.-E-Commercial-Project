@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { login, tokenStorage, getProfile } from '../api';
+import { login, getProfile, tokenStorage } from '../api';
 
 export function Login() {
   const navigate = useNavigate();
@@ -16,19 +16,35 @@ export function Login() {
     setLoading(true);
     setError(null);
     try {
+      // Step 1: Get tokens
       const result = await login({ email, password });
-      tokenStorage.save(result, 0); // Temporary save to get profile
-      const user = await getProfile();
-      
+
+      // Step 2: Temporarily set access token in storage so getProfile() can auth.
+      // We write a throw-away save first; if role check fails we clear everything.
+      tokenStorage.save(result, 0);
+
+      // Step 3: Verify the user is an Admin before committing
+      let user;
+      try {
+        user = await getProfile();
+      } catch (profileErr) {
+        // Profile fetch failed — clear dirty tokens and surface the error
+        tokenStorage.clear();
+        setError('Failed to verify account. Please try again.');
+        return;
+      }
+
       if (user.role !== 'Admin') {
         tokenStorage.clear();
         setError('Access denied. Admin role required.');
         return;
       }
-      
+
+      // Step 4: Commit with the real userID now that we know they are Admin
       tokenStorage.save(result, user.userID);
       navigate('/');
     } catch (err: any) {
+      tokenStorage.clear();
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
@@ -49,18 +65,18 @@ export function Login() {
               {error}
             </div>
           )}
-          <Input 
-            label="Email Address" 
-            type="email" 
+          <Input
+            label="Email Address"
+            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="admin@example.com"
             disabled={loading}
           />
-          <Input 
-            label="Password" 
-            type="password" 
+          <Input
+            label="Password"
+            type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required

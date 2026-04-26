@@ -1,23 +1,35 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, Tags, Ticket, ShoppingCart, Star, Users, CreditCard, LogOut, MessageSquare, Bell } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Package,
+  Tags,
+  Ticket,
+  ShoppingCart,
+  Star,
+  Users,
+  CreditCard,
+  LogOut,
+  Bell,
+} from 'lucide-react';
+import { tokenStorage } from '../api/client';
 
 const MENU_ITEMS = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-  { icon: Package, label: 'Products', path: '/products' },
-  { icon: Tags, label: 'Categories', path: '/categories' },
-  { icon: Ticket, label: 'Coupons', path: '/coupons' },
-  { icon: ShoppingCart, label: 'Orders', path: '/orders' },
-  { icon: Star, label: 'Reviews', path: '/reviews' },
-  { icon: Users, label: 'Users', path: '/users' },
-  { icon: CreditCard, label: 'Payments', path: '/payments' },
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/', exact: true },
+  { icon: Package, label: 'Products', path: '/products', exact: false },
+  { icon: Tags, label: 'Categories', path: '/categories', exact: false },
+  { icon: Ticket, label: 'Coupons', path: '/coupons', exact: false },
+  { icon: ShoppingCart, label: 'Orders', path: '/orders', exact: false },
+  { icon: Star, label: 'Reviews', path: '/reviews', exact: false },
+  { icon: Users, label: 'Users', path: '/users', exact: false },
+  { icon: CreditCard, label: 'Payments', path: '/payments', exact: false },
 ];
 
 export function AdminLayout() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // perform logout logic
+    tokenStorage.clear();
     navigate('/login');
   };
 
@@ -33,9 +45,12 @@ export function AdminLayout() {
             <NavLink
               key={item.path}
               to={item.path}
+              end={item.exact}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  isActive
+                    ? 'bg-white/10 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`
               }
             >
@@ -45,7 +60,7 @@ export function AdminLayout() {
           ))}
         </nav>
         <div className="p-4 border-t border-white/10">
-          <button 
+          <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
           >
@@ -66,7 +81,11 @@ export function AdminLayout() {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
             <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300">
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" alt="Admin" className="w-full h-full object-cover" />
+              <img
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin"
+                alt="Admin"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </header>
@@ -74,7 +93,7 @@ export function AdminLayout() {
         {/* Scrollable Area */}
         <div className="flex-1 overflow-auto p-8">
           <div className="max-w-7xl mx-auto">
-             <Outlet />
+            <Outlet />
           </div>
         </div>
       </main>
