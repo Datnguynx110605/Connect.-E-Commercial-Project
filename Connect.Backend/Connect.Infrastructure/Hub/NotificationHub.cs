@@ -17,11 +17,7 @@ namespace Connect.Infrastructure.Hub
     {
         public override async Task OnConnectedAsync()
         {
-            var userId = Context.User?.FindFirst("sub")?.Value;
             var role = Context.User?.FindFirst("role")?.Value;
-
-            if (userId != null)
-                await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{userId}");
 
             if (role == "Admin")
                 await Groups.AddToGroupAsync(Context.ConnectionId, "admins");
