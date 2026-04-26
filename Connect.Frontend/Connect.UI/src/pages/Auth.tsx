@@ -10,13 +10,11 @@ export const Auth = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const verifyToken = searchParams.get('token');
 
-  // If verifyToken exists, we default to Register mode.
   const [isLogin, setIsLogin] = useState(!verifyToken);
   const navigate = useNavigate();
   const { setUser } = useAppContext();
   const { success } = useNotification();
 
-  // Registration states: 'email' -> 'waiting' -> 'verifying' -> 'details'
   const [registerStep, setRegisterStep] = useState<'email' | 'waiting' | 'verifying' | 'details'>('email');
   const [registrationSessionToken, setRegistrationSessionToken] = useState('');
 

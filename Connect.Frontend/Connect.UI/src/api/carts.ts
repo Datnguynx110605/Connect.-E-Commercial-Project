@@ -6,21 +6,23 @@ export async function getMyCart(): Promise<CartDto[]> {
 }
 
 export async function addToCart(productID: number, quantity: number = 1): Promise<CartDto> {
-  return apiRequest('/api/Carts', { 
+  return apiRequest('/api/Carts/addto-cart', { 
     method: 'POST', 
     body: { productID, quantity } 
   });
 }
 
-export async function increaseCartAmount(cartId: number): Promise<CartDto> {
+export async function increaseCartAmount(cartId: number, quantity: number = 1): Promise<CartDto> {
   return apiRequest(`/api/Carts/${cartId}/increase-cartamount`, {
     method: 'PATCH',
+    body: { quantity }
   });
 }
 
-export async function reduceCartAmount(cartId: number): Promise<CartDto> {
+export async function reduceCartAmount(cartId: number, quantity: number = 1): Promise<CartDto> {
   return apiRequest(`/api/Carts/${cartId}/reduce-cartamount`, {
     method: 'PATCH',
+    body: { quantity }
   });
 }
 

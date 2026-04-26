@@ -8,5 +8,3 @@ export async function getAllCoupons(): Promise<CouponDto[]> {
 export async function getCouponById(id: number): Promise<CouponDto> {
   return apiRequest(`/api/Coupons/${id}/get-couponbyid`);
 }
-
-

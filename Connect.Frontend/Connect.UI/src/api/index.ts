@@ -55,9 +55,6 @@ export {
 export {
   getAllCategories,
   getCategoryById,
-  createCategory,
-  updateCategory,
-  deleteCategory,
 } from './categories';
 
 export {

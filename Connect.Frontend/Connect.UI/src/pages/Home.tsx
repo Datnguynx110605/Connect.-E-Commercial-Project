@@ -20,13 +20,11 @@ export const Home = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Show the first featured product for the hero banner
   const hero = products[0];
 
   return (
     <Layout>
       <div className="bg-gray-50 pb-16">
-        {/* Banner */}
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="relative rounded-3xl overflow-hidden bg-gray-900 aspect-[21/9] md:aspect-[3/1] flex items-center">
             <img
@@ -37,7 +35,6 @@ export const Home = () => {
           </div>
         </div>
 
-        {/* Categories Menu */}
         <div className="max-w-7xl mx-auto px-4 mb-12">
           <h3 className="text-xl font-bold mb-6 text-gray-900">Danh mục sản phẩm</h3>
           <div className="flex gap-4 overflow-x-auto pb-4 snap-x">
@@ -53,7 +50,6 @@ export const Home = () => {
           </div>
         </div>
 
-        {/* Product Grid */}
         <div className="max-w-7xl mx-auto px-4 mb-12">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-2xl font-bold text-gray-900">Sản phẩm nổi bật</h3>

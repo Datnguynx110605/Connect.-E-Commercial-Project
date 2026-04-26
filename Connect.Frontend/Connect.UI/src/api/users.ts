@@ -72,7 +72,7 @@ export async function refreshToken(data: RefreshTokenRequest): Promise<AuthToken
 }
 
 export async function forgetPassword(data: ForgetPasswordRequest): Promise<string> {
-  return apiRequest('/api/Users/forget-passwod', {
+  return apiRequest('/api/Users/forget-password', {
     method: 'POST',
     body: data,
     anonymous: true,

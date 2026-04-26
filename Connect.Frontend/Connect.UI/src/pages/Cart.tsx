@@ -165,7 +165,6 @@ export const Cart = () => {
               </AnimatePresence>
             </div>
             
-            {/* Additional Info */}
             <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100 flex gap-4 items-start">
                 <div className="bg-blue-100 p-3 rounded-2xl text-blue-600">
@@ -188,7 +187,6 @@ export const Cart = () => {
             </div>
           </div>
 
-          {/* Order Summary */}
           <div className="w-full lg:w-[420px]">
             <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-2xl shadow-gray-200/50 sticky top-24">
               <h2 className="text-2xl font-bold mb-8">Tóm tắt đơn hàng</h2>
@@ -227,7 +225,6 @@ export const Cart = () => {
                   Hệ thống bảo mật thanh toán chuẩn quốc tế
                 </div>
                 <div className="flex justify-center gap-6 opacity-30 grayscale hover:grayscale-0 transition-all">
-                  {/* Mock Payment Icons */}
                   <div className="h-6 w-10 bg-gray-200 rounded" />
                   <div className="h-6 w-10 bg-gray-200 rounded" />
                   <div className="h-6 w-10 bg-gray-200 rounded" />

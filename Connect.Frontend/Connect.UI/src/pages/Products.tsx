@@ -25,7 +25,6 @@ export const Products = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Match selected category name to categoryID for filtering
   const selectedCategoryId = useMemo(() => {
     if (selectedCategory === 'All') return null;
     return categories.find((c) => c.categoryName === selectedCategory)?.categoryID ?? null;
@@ -45,7 +44,6 @@ export const Products = () => {
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
 
-        {/* Sidebar Filter */}
         <div className="w-full md:w-64 flex-shrink-0">
           <div className="bg-white border border-gray-100 rounded-2xl p-6 sticky top-24">
             <h2 className="text-lg font-bold mb-6">Bộ lọc tìm kiếm</h2>
@@ -110,7 +108,6 @@ export const Products = () => {
           </div>
         </div>
 
-        {/* Product List */}
         <div className="flex-1">
           <div className="mb-6 flex justify-between items-center bg-gray-50 p-4 rounded-xl">
             <p className="text-gray-600 font-medium">

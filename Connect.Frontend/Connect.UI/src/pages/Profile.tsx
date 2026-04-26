@@ -18,7 +18,6 @@ export const Profile = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { success, error } = useNotification();
 
-  // Info form state
   const [infoForm, setInfoForm] = useState({
     userName: '',
     email: '',
@@ -26,7 +25,6 @@ export const Profile = () => {
     address: '',
   });
 
-  // Password form state
   const [pwForm, setPwForm] = useState({
     oldPassword: '',
     password: '',
@@ -129,7 +127,6 @@ export const Profile = () => {
           isLoading={isDeleting}
         />
 
-        {/* Sidebar */}
         <div className="w-full md:w-80 flex-shrink-0">
           <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col items-center">
             <div className="relative mb-4 group cursor-pointer">
@@ -176,11 +173,9 @@ export const Profile = () => {
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1">
           <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
 
-            {/* Content Header */}
 
             {activeTab === 'info' && (
               <>

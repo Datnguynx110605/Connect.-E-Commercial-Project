@@ -99,7 +99,6 @@ export const MyOrders = () => {
           <div className="space-y-6">
             {orders.map((order) => (
               <div key={order.orderID} className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
-                {/* Order Header */}
                 <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                   <div>
                     <span className="font-bold text-gray-900 mr-4">#{order.orderID}</span>
@@ -113,7 +112,6 @@ export const MyOrders = () => {
                 </div>
 
                 <div className="p-6">
-                  {/* Order Items */}
                   <div className="space-y-4 mb-6">
                     {order.orderItems.map((item) => (
                       <div key={item.productID} className="flex gap-4 items-center">
@@ -133,7 +131,6 @@ export const MyOrders = () => {
                     ))}
                   </div>
 
-                  {/* Order Footer */}
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-gray-100 pt-6 gap-4">
                     <div>
                       <p className="text-xs text-gray-500 mb-0.5">

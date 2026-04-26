@@ -62,7 +62,6 @@ export const Checkout = () => {
     setIsProcessing(true);
 
     try {
-      // Fetch authoritative backend cart; fall back to local cart if backend cart is empty/errors
       let items: Array<{ productID: number; unitPrice: number; quantity: number }>;
       try {
         const backendCart = await getMyCart();
@@ -74,11 +73,9 @@ export const Checkout = () => {
             quantity: item.cartQuantity,
           }));
         } else {
-          // Backend cart is empty — use local cart items (user may not be logged in)
           items = cart.map(item => ({ productID: item.productID, unitPrice: item.finalPrice, quantity: item.quantity }));
         }
       } catch {
-        // Backend returned 500 "Cart not found" — fall back to local cart
         items = cart.map(item => ({ productID: item.productID, unitPrice: item.finalPrice, quantity: item.quantity }));
       }
 
@@ -129,7 +126,6 @@ export const Checkout = () => {
         <form onSubmit={handleCheckout} className="flex flex-col lg:flex-row gap-8">
           
           <div className="flex-1 space-y-8">
-            {/* User Info */}
             <section className="bg-white p-6 rounded-3xl border border-gray-100">
               <h2 className="text-xl font-bold mb-4">1. Thông tin giao hàng</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -152,7 +148,6 @@ export const Checkout = () => {
               </div>
             </section>
 
-            {/* Shipping Method */}
             <section className="bg-white p-6 rounded-3xl border border-gray-100">
               <h2 className="text-xl font-bold mb-4">2. Phương thức giao hàng</h2>
               <div className="space-y-3">
@@ -189,7 +184,6 @@ export const Checkout = () => {
               </div>
             </section>
 
-            {/* Payment Method */}
             <section className="bg-white p-6 rounded-3xl border border-gray-100">
               <h2 className="text-xl font-bold mb-4">3. Phương thức thanh toán</h2>
               <div className="space-y-3">
@@ -209,7 +203,6 @@ export const Checkout = () => {
             </section>
           </div>
 
-          {/* Sticky Summary */}
           <div className="w-full lg:w-[400px]">
             <div className="bg-gray-50 p-6 rounded-3xl sticky top-24">
               <h2 className="text-xl font-bold mb-6">Tóm tắt đơn hàng</h2>

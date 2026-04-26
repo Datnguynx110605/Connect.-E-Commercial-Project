@@ -10,5 +10,5 @@ export async function getProductById(id: number): Promise<ProductDto> {
 }
 
 export async function getProductByCategory(categoryID: number): Promise<ProductDto[]> {
-  return apiRequest(`/api/Products/get-productbycategory`, { anonymous: true });
+  return apiRequest(`/api/Products/get-product-bycategory?id=${categoryID}`, { anonymous: true });
 }

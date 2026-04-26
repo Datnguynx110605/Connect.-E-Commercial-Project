@@ -80,14 +80,12 @@ export const ProductDetail = () => {
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-8">
 
-        {/* Breadcrumb */}
         <div className="text-sm text-gray-500 mb-8">
           <span>Trang chủ</span> / <span>Sản phẩm</span> /{' '}
           <span className="text-gray-900 font-medium">{product.productName}</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
-          {/* Images */}
           <div className="flex flex-col gap-4">
             <div className="bg-gray-50 rounded-3xl aspect-square p-8 flex items-center justify-center border border-gray-100 relative">
               {product.productStatus === 'OutOfStock' && (
@@ -117,7 +115,6 @@ export const ProductDetail = () => {
             )}
           </div>
 
-          {/* Info */}
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">{product.productName}</h1>
 
@@ -202,7 +199,6 @@ export const ProductDetail = () => {
               </button>
             </div>
 
-            {/* Perks */}
             <div className="grid grid-cols-3 gap-4 border-t border-gray-100 pt-8">
               <div className="text-center">
                 <ShieldCheck size={28} className="mx-auto mb-2 text-green-500" />
@@ -220,7 +216,6 @@ export const ProductDetail = () => {
           </div>
         </div>
 
-        {/* Description & Reviews */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div className="md:col-span-2">
             <h2 className="text-2xl font-bold mb-6">Đặc điểm nổi bật</h2>
