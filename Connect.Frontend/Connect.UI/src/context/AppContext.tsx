@@ -6,7 +6,6 @@ import { getMyCart, addToCart as apiAddToCart, removeCartItem, increaseCartAmoun
 import { getAllProducts } from '../api/products';
 import { useNotification } from '../components/Notification/NotificationContext';
 
-// ─── Cart (mirrors backend CartDto joined with Product info) ──────
 
 export type LocalCartItem = {
   cartID: number; // Added to help with API calls
@@ -20,16 +19,13 @@ export type LocalCartItem = {
   quantity: number;
 };
 
-// ─── Context shape ────────────────────────────────────────────
 
 type AppContextType = {
-  // Auth
   user: UserDto | null;
   isLoadingUser: boolean;
   setUser: (user: UserDto | null) => void;
   logout: () => void;
 
-  // Cart (API-driven)
   cart: LocalCartItem[];
   refreshCart: () => Promise<void>;
   addToCart: (productID: number) => Promise<void>;
@@ -54,14 +50,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const [cartData, productsData] = await Promise.all([
         getMyCart().catch(err => {
-          // Handle common error codes that imply an empty/missing cart
           if (err.status === 500 || err.status === 404) return [];
           throw err;
         }),
         getAllProducts()
       ]);
 
-      // Ensure data is always an array (backend might return single object or null)
       const data = Array.isArray(cartData) ? cartData : (cartData ? [cartData] : []);
       const joined: LocalCartItem[] = data.map(bc => {
         const prod = productsData.find(p => p.productID === bc.productID);
@@ -87,7 +81,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // ── Rehydrate user and cart on first load ───────────
   useEffect(() => {
     const init = async () => {
       const token = tokenStorage.getAccess();
@@ -119,10 +112,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCart([]);
   };
 
-  // ── Cart Actions (Direct API calls then refresh) ──────────────
 
   const addToCart = async (productID: number) => {
-    // Try to get userID from context first, then tokenStorage
     const userId = user?.userID || tokenStorage.getUserId();
     
     if (!userId) {
@@ -141,7 +132,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const removeFromCart = async (cartID: number) => {
-    // Optimistic removal
     setCart(prev => prev.filter(c => c.cartID !== cartID));
     
     try {
@@ -151,7 +141,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (err) {
       console.error('[Cart] Remove failed:', err);
       error('Không thể xóa sản phẩm. Vui lòng thử lại.');
-      await refreshCart(); // Re-sync on failure
+      await refreshCart(); 
     }
   };
 
@@ -161,7 +151,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [cart]);
 
   const updateQuantity = async (item: LocalCartItem, newQuantity: number) => {
-    // Get the most up-to-date quantity from the ref to handle rapid clicks
     const latestItem = cartRef.current.find(c => c.cartID === item.cartID);
     if (!latestItem) return;
 
@@ -175,20 +164,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    // Optimistically update the UI and the ref immediately
     const nextCart = cartRef.current.map(c => c.cartID === item.cartID ? { ...c, quantity: newQuantity } : c);
     cartRef.current = nextCart;
     setCart(nextCart);
 
     try {
       if (delta > 0) {
-        // If they want to increase by more than 1, we'd need to call it multiple times 
-        // but usually UI only does +/- 1 at a time.
         for (let i = 0; i < delta; i++) {
           await increaseCartAmount(item.cartID);
         }
       } else {
-        // Reduce
         for (let i = 0; i < Math.abs(delta); i++) {
           await reduceCartAmount(item.cartID);
         }
@@ -202,8 +187,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const clearCart = () => {
-    // API doesn't have clearAll, so we just clear local state for now or delete one by one
-    // But per user request "delete all local cart", we focus on API syncing.
     setCart([]);
   };
 

@@ -12,17 +12,17 @@ import { CategoryDto } from './types';
 
 /** Returns all categories (anonymous). */
 export async function getAllCategories(): Promise<CategoryDto[]> {
-  return apiRequest('/api/Categories', { anonymous: true });
+  return apiRequest('/api/Categories/getall-categories', { anonymous: true });
 }
 
 /** Returns a single category by ID (anonymous). */
 export async function getCategoryById(id: number): Promise<CategoryDto> {
-  return apiRequest(`/api/Categories/${id}`, { anonymous: true });
+  return apiRequest(`/api/Categories/${id}/get-categorybyid`, { anonymous: true });
 }
 
 /** [Admin] Creates a new category. */
 export async function createCategory(categoryName: string): Promise<CategoryDto> {
-  return apiRequest('/api/Categories', {
+  return apiRequest('/api/Categories/create-category', {
     method: 'POST',
     body: { categoryName },
   });
@@ -33,7 +33,7 @@ export async function updateCategory(
   id: number,
   categoryName: string,
 ): Promise<CategoryDto> {
-  return apiRequest(`/api/Categories/${id}`, {
+  return apiRequest(`/api/Categories/${id}/update-category`, {
     method: 'PUT',
     body: { categoryName },
   });
@@ -41,5 +41,5 @@ export async function updateCategory(
 
 /** [Admin] Deletes a category. */
 export async function deleteCategory(id: number): Promise<string> {
-  return apiRequest(`/api/Categories/${id}`, { method: 'DELETE' });
+  return apiRequest(`/api/Categories/${id}/delete-category`, { method: 'DELETE' });
 }

@@ -1,18 +1,3 @@
-// ============================================================
-//  Connect. API — Users Service
-//  POST /api/Users/check-email
-//  POST /api/Users/verify-email
-//  POST /api/Users/register
-//  POST /api/Users/login
-//  POST /api/Users/refresh-token
-//  POST /api/Users/forget-passwod   (note: typo in backend route)
-//  GET  /api/Users/profile           [Authorize]
-//  PUT  /api/Users/profile           [Authorize]
-//  DELETE /api/Users/profile         [Authorize]
-//  PUT  /api/Users/change-password   [Authorize]
-//  GET  /api/Users                   [Admin]
-// ============================================================
-
 import { apiRequest, tokenStorage } from './client';
 import {
   AuthTokens,
@@ -27,10 +12,6 @@ import {
   ChangePasswordRequest,
 } from './types';
 
-/**
- * Step 1 of registration.
- * Validates email uniqueness and sends a verification link via email.
- */
 export async function checkEmail(data: CheckEmailRequest): Promise<void> {
   await apiRequest<void>('/api/Users/check-email', {
     method: 'POST',
@@ -39,10 +20,6 @@ export async function checkEmail(data: CheckEmailRequest): Promise<void> {
   });
 }
 
-/**
- * Step 2 of registration.
- * Exchanges the email verification token for a registration session token (30-min).
- */
 export async function verifyEmail(data: VerifyEmailRequest): Promise<{ registrationSessionToken: string }> {
   return apiRequest('/api/Users/verify-email', {
     method: 'POST',
@@ -51,10 +28,6 @@ export async function verifyEmail(data: VerifyEmailRequest): Promise<{ registrat
   });
 }
 
-/**
- * Step 3 of registration.
- * Creates the user account using the session token from verifyEmail.
- */
 export async function register(data: RegisterRequest): Promise<UserDto> {
   return apiRequest('/api/Users/register', {
     method: 'POST',
@@ -63,26 +36,19 @@ export async function register(data: RegisterRequest): Promise<UserDto> {
   });
 }
 
-/**
- * Authenticates a user and returns JWT access + refresh tokens.
- * Automatically persists tokens to localStorage.
- */
 export async function login(data: LoginRequest): Promise<{ tokens: AuthTokens; user: UserDto }> {
   const result = await apiRequest<{ accessToken: string; refreshToken: string }>(
     '/api/Users/login',
     { method: 'POST', body: data, anonymous: true },
   );
   
-  // Save tokens temporarily with ID 0 to allow profile fetch
   tokenStorage.save(
     { accessToken: result.accessToken, refreshToken: result.refreshToken },
     0,
   );
 
-  // Fetch the user profile to get the authoritative userID
   const user = await getProfile();
 
-  // Re-save with the correct userID from the DTO
   tokenStorage.save(
     { accessToken: result.accessToken, refreshToken: result.refreshToken },
     user.userID,
@@ -94,10 +60,6 @@ export async function login(data: LoginRequest): Promise<{ tokens: AuthTokens; u
   };
 }
 
-/**
- * Rotates the refresh token pair.
- * Automatically persists the new tokens.
- */
 export async function refreshToken(data: RefreshTokenRequest): Promise<AuthTokens> {
   const result = await apiRequest<AuthTokens>('/api/Users/refresh-token', {
     method: 'POST',
@@ -109,10 +71,6 @@ export async function refreshToken(data: RefreshTokenRequest): Promise<AuthToken
   return result;
 }
 
-/**
- * Resets the password using a registration session token.
- * Note: the backend route has a typo: /forget-passwod (one 's').
- */
 export async function forgetPassword(data: ForgetPasswordRequest): Promise<string> {
   return apiRequest('/api/Users/forget-passwod', {
     method: 'POST',
@@ -121,33 +79,21 @@ export async function forgetPassword(data: ForgetPasswordRequest): Promise<strin
   });
 }
 
-/**
- * Gets the current authenticated user's profile.
- */
 export async function getProfile(): Promise<UserDto> {
-  return apiRequest('/api/Users/profile');
+  return apiRequest('/api/Users/get-profile');
 }
 
-/**
- * Updates the current authenticated user's profile.
- */
 export async function updateProfile(data: UpdateProfileRequest): Promise<UserDto> {
-  return apiRequest('/api/Users/profile', {
+  return apiRequest('/api/Users/update-profile', {
     method: 'PUT',
     body: data,
   });
 }
 
-/**
- * Deletes the current authenticated user's account.
- */
 export async function deleteProfile(): Promise<string> {
-  return apiRequest('/api/Users/profile', { method: 'DELETE' });
+  return apiRequest('/api/Users/delete-profile', { method: 'DELETE' });
 }
 
-/**
- * Changes the current authenticated user's password.
- */
 export async function changePassword(data: ChangePasswordRequest): Promise<string> {
   return apiRequest('/api/Users/change-password', {
     method: 'PUT',
@@ -155,14 +101,6 @@ export async function changePassword(data: ChangePasswordRequest): Promise<strin
   });
 }
 
-/**
- * [Admin] Returns all registered users.
- */
-export async function getAllUsers(): Promise<UserDto[]> {
-  return apiRequest('/api/Users');
-}
-
-/** Clears stored tokens (client-side logout). */
 export function logout(): void {
   tokenStorage.clear();
 }

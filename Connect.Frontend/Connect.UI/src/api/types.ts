@@ -1,10 +1,3 @@
-// ============================================================
-//  Connect. API — TypeScript Types
-//  Mirrors backend DTOs & request shapes from API_References.md
-// ============================================================
-
-// ─── Enumerations ────────────────────────────────────────────
-
 export type OrderStatus = 'Pending' | 'Processing' | 'Shipping' | 'Completed' | 'Cancelled';
 export type PaymentStatus = 'Unpaid' | 'Pending' | 'Paid';
 export type PaymentMethod = 'Cash' | 'OnlineBanking' | 'VNPAY';
@@ -88,7 +81,6 @@ export interface ProductDto {
   imageURL: string[];
   productStatus: ProductStatus;
   createdAt: string;
-  /** Backend does not return categoryID on list; only on detail */
   categoryID?: number;
 }
 
@@ -123,6 +115,16 @@ export interface CartDto {
 
 export interface AddToCartRequest {
   productID: number;
+}
+
+export interface IncreaseCartAmountRequest {
+  cartID: number;
+  cartQuantity: number;
+}
+
+export interface ReduceCartAmountRequest {
+  cartID: number;
+  cartQuantity: number;
 }
 
 

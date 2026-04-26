@@ -1,14 +1,7 @@
-// ============================================================
-//  Connect. API — Base HTTP Client
-//  Handles base URL, JSON headers, JWT Bearer injection,
-//  automatic token refresh on 401, and typed error responses.
-// ============================================================
-
 import { AuthTokens } from './types';
 
 export const API_BASE_URL = 'https://localhost:7240';
 
-// ─── Token storage helpers ────────────────────────────────────
 
 const TOKEN_KEY = 'connect_access_token';
 const REFRESH_KEY = 'connect_refresh_token';
@@ -37,7 +30,6 @@ export const tokenStorage = {
   },
 };
 
-// ─── API Error ────────────────────────────────────────────────
 
 export class ApiError extends Error {
   constructor(
@@ -50,16 +42,13 @@ export class ApiError extends Error {
   }
 }
 
-// ─── Core fetch wrapper ───────────────────────────────────────
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface RequestOptions {
   method?: HttpMethod;
   body?: unknown;
-  /** Skip auth header (for anonymous endpoints) */
   anonymous?: boolean;
-  /** Skip the 401-retry-with-refresh logic (used inside refresh itself) */
   skipRefresh?: boolean;
 }
 
@@ -106,7 +95,6 @@ export async function apiRequest<T>(
 
   let response = await fetch(`${API_BASE_URL}${path}`, init);
 
-  // ── Auto-refresh on 401 ────────────────────────────────────
   if (response.status === 401 && !skipRefresh && !anonymous) {
     const refreshed = await attemptRefresh();
     if (refreshed) {
@@ -116,7 +104,6 @@ export async function apiRequest<T>(
     }
   }
 
-  // ── Parse response ─────────────────────────────────────────
   if (!response.ok) {
     let traceId: string | undefined;
     let message = `HTTP ${response.status}`;
@@ -128,7 +115,6 @@ export async function apiRequest<T>(
     throw new ApiError(response.status, traceId, message);
   }
 
-  // 204 No Content or empty body
   const text = await response.text();
   if (!text) return undefined as unknown as T;
 
