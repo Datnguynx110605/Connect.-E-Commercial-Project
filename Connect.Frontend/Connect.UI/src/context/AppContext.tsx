@@ -56,22 +56,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         getAllProducts()
       ]);
 
-      const data = Array.isArray(cartData) ? cartData : (cartData ? [cartData] : []);
-      const joined: LocalCartItem[] = data.map(bc => {
+      let rawData: any[] = [];
+      if (Array.isArray(cartData)) {
+        rawData = cartData;
+      } else if (cartData && typeof cartData === 'object') {
+        const potentialArray = (cartData as any).data || (cartData as any).items || (cartData as any).value;
+        if (Array.isArray(potentialArray)) {
+          rawData = potentialArray;
+        } else if ((cartData as any).productID) {
+          rawData = [cartData];
+        }
+      }
+      
+      const mergedMap = new Map<number, LocalCartItem>();
+      
+      rawData.forEach(bc => {
+        if (!bc || !bc.productID) return;
+        
         const prod = productsData.find(p => p.productID === bc.productID);
-        return {
-          cartID: bc.cartID,
-          productID: bc.productID,
-          productName: prod?.productName || `Sản phẩm #${bc.productID}`,
-          finalPrice: bc.cartUnitPrice,
-          imageURL: prod?.imageURL && prod.imageURL[0] ? prod.imageURL[0] : '',
-          color: prod?.color || '',
-          ram: prod?.ram || 0,
-          rom: prod?.rom || 0,
-          quantity: bc.cartQuantity
-        };
+        const existing = mergedMap.get(bc.productID);
+        
+        if (existing) {
+          existing.quantity += bc.cartQuantity;
+        } else {
+          mergedMap.set(bc.productID, {
+            cartID: bc.cartID,
+            productID: bc.productID,
+            productName: prod?.productName || `Sản phẩm #${bc.productID}`,
+            finalPrice: bc.cartUnitPrice,
+            imageURL: prod?.imageURL && prod.imageURL[0] ? prod.imageURL[0] : '',
+            color: prod?.color || '',
+            ram: prod?.ram || 0,
+            rom: prod?.rom || 0,
+            quantity: bc.cartQuantity
+          });
+        }
       });
-      setCart(joined);
+      
+      setCart(Array.from(mergedMap.values()));
     } catch (err: any) {
       if (err.status === 404 || err.status === 500) {
         setCart([]);

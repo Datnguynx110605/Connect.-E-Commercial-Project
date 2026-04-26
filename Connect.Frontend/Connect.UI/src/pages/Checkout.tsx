@@ -10,7 +10,8 @@ import { redirectToVNPAY } from '../api/payments';
 import { getMyCart } from '../api/carts';
 import { useNotification } from '../components/Notification/NotificationContext';
 import { CouponTable } from '../components/Coupon/CouponTable';
-import { Ticket, Truck, Zap, Rocket, Banknote, QrCode, CreditCard } from 'lucide-react';
+import { Ticket, Truck, Zap, Rocket, Banknote, QrCode } from 'lucide-react';
+import { VNPayLogo } from '../components/Icons/VNPayLogo';
 
 export const Checkout = () => {
   const { cart, user, clearCart, refreshCart } = useAppContext();
@@ -190,7 +191,7 @@ export const Checkout = () => {
                 {[
                   { id: 'cash', label: 'Tiền mặt (COD)', icon: <Banknote size={24} />, sub: 'Thanh toán khi nhận' },
                   { id: 'banking', label: 'Chuyển khoản', icon: <QrCode size={24} />, sub: 'Quét mã QR' },
-                  { id: 'vnpay', label: 'VNPAY', icon: <CreditCard size={24} />, sub: 'Cổng thanh toán' }
+                  { id: 'vnpay', label: 'VNPAY', icon: <VNPayLogo size={44} />, sub: 'Cổng thanh toán' }
                 ].map((method) => (
                   <label 
                     key={method.id}
@@ -203,7 +204,7 @@ export const Checkout = () => {
                       onChange={() => setPaymentMethod(method.id)} 
                       className="absolute top-4 right-4 text-blue-600 w-4 h-4" 
                     />
-                    <div className={`mb-4 w-12 h-12 rounded-xl flex items-center justify-center ${paymentMethod === method.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                    <div className={`mb-4 w-12 h-12 rounded-xl flex items-center justify-center ${method.id === 'vnpay' ? '' : (paymentMethod === method.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500')}`}>
                       {method.icon}
                     </div>
                     <span className="font-bold text-gray-900 block mb-1">{method.label}</span>

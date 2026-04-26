@@ -99,7 +99,7 @@ export const Cart = () => {
               <AnimatePresence mode="popLayout">
                 {cart.map(item => (
                   <motion.div
-                    key={item.cartID}
+                    key={item.productID}
                     layout
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
