@@ -43,7 +43,7 @@ namespace Connect.Infrastructure.Services
             }
 
             var subject = $"Order Confirmation #{orderID} — Connect.";
-            var body = BuildOrderConfirmationHtml(user.UserName.Value, order.OrderID, order.OrderTotalPrice.Value, order.OrderShippingMethod.ToString(), order.OrderPaymentMethod.ToString());
+            var body = BuildOrderConfirmationHtml(user.UserName.Value, order.OrderID, order.OrderFinalPrice.Value, order.OrderShippingMethod.ToString(), order.OrderPaymentMethod.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 
@@ -85,7 +85,7 @@ namespace Connect.Infrastructure.Services
             }
 
             var subject = $"Payment Successful — Order #{orderID} | Connect.";
-            var body = BuildPaymentSuccessBillHtml(user.UserName.Value, order.OrderID, order.OrderTotalPrice.Value, order.OrderPaymentStatus.ToString());
+            var body = BuildPaymentSuccessBillHtml(user.UserName.Value, order.OrderID, order.OrderFinalPrice.Value, order.OrderPaymentStatus.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 

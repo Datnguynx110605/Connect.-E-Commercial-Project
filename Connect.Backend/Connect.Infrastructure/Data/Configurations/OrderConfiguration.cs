@@ -25,19 +25,27 @@ namespace Connect.Infrastructure.Data.Configurations
             builder.Property(o => o.CouponID)
                 .IsRequired(false);
 
-            builder.Property(o => o.OrderTotalPrice)
-                .HasConversion(
-                    v => v.Value,
-                    v => Currency.Create(v))
-                .HasColumnName("OrderTotalPrice")
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
-
             builder.Property(o => o.OrderTotalItems)
                 .HasConversion(
                     v => v.Value,
                     v => Amount.Create(v))
                 .HasColumnName("OrderTotalItems")
+                .IsRequired();
+
+            builder.Property(o => o.OrderTotalItemPrice)
+                .HasConversion(
+                    v => v.Value,
+                    v => Currency.Create(v))
+                .HasColumnName("OrderTotalItemPrice")
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            builder.Property(o => o.OrderFinalPrice)
+                .HasConversion(
+                    v => v.Value,
+                    v => Currency.Create(v))
+                .HasColumnName("OrderFinalPrice")
+                .HasColumnType("decimal(18,2)")
                 .IsRequired();
 
             builder.Property(o => o.OrderShippingMethod)

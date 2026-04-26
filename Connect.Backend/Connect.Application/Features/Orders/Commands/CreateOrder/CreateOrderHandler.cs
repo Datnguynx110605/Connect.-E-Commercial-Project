@@ -64,14 +64,17 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
                 if (coupon == null)
                     throw new Exception("Coupon not found");
 
-                coupon.VerifyCoupon();
+                Currency orderItemsTotalPrice = orderItems
+                    .Select(x => x.OrderItemTotalPrice)
+                    .Aggregate(Currency.Create(0), (acc, x) => acc + x);
+
                 mimimumPriceRequired = coupon.MinimumPriceRequired;
                 discountAmount = coupon.DiscountAmount;
+
+                coupon.UseCoupon(orderItemsTotalPrice);
             }
 
             Order order = Order.CreateOrder(currentUserService.UserID, coupon?.CouponID ?? 0, shipMethod, payMethod, orderItems, discountAmount);
-
-            coupon?.UseCoupon(order.OrderTotalPrice);
 
             await unitOfWork.BeginTransactionAsync(cancellationToken);
             unitOfWork.Products.UpdateRange(products);
@@ -85,8 +88,9 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
                 OrderID=order.OrderID,
                 UserID = order.UserID,
                 CouponID = order.CouponID,
-                OrderTotalPrice = order.OrderTotalPrice.Value,
                 OrderTotalItems = order.OrderTotalItems.Value,
+                OrderTotalItemPrice = order.OrderTotalItemPrice.Value,
+                OrderFinalPrice=order.OrderFinalPrice.Value,
                 OrderShippingMethod = order.OrderShippingMethod.ToString(),
                 OrderPaymentMethod = order.OrderPaymentMethod.ToString(),
                 OrderStatus = order.OrderStatus.ToString(),

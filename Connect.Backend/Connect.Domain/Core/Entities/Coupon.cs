@@ -54,7 +54,7 @@ namespace Connect.Domain.Core.Entities
             ExpiryDate = expiryDate;
         }
 
-        public void VerifyCoupon()
+        private void VerifyCoupon(Currency totalItemPrice)
         {
             if(ExpiryDate < DateTime.UtcNow)
                 throw new DomainExceptions(
@@ -73,19 +73,25 @@ namespace Connect.Domain.Core.Entities
                    {
                         { "QUANTITY", CouponQuantity }
                    });
-        }
 
-        public void UseCoupon(Currency totalPrice)
-        {
-            if(totalPrice.Value < MinimumPriceRequired.Value)
+            if (totalItemPrice.Value < MinimumPriceRequired.Value)
                 throw new DomainExceptions(
-                   message: "Coupon is not support for this Order",
+                   message: "Coupon condition is not match",
                    code: "UNUSABLE-COUPON",
                    metadata: new Dictionary<string, object>
                    {
                         { "MINIMUNPRICE", MinimumPriceRequired }
                    });
 
+            if(DiscountAmount.Value > totalItemPrice.Value)
+                throw new DomainExceptions(
+                   message: "Discount amount is higher than total amount",
+                   code: "UNUSABLE-COUPON");
+        }
+
+        public void UseCoupon(Currency totalItemPrice)
+        {
+            VerifyCoupon(totalItemPrice);
             Amount quantity = Amount.Create(1);
             RemoveCouponStock(quantity);
         }

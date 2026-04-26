@@ -29,7 +29,7 @@ namespace Connect.Application.Features.Payments.Commands.CreatePayment
             if (order.UserID != currentUserService.UserID)
                 throw new UnauthorizedAccessException("No permission to access");
 
-            var paymentURL = paymentGateway.CreatePaymentUrl(order.OrderID, order.OrderTotalPrice.Value);
+            var paymentURL = paymentGateway.CreatePaymentUrl(order.OrderID, order.OrderFinalPrice.Value);
 
             return Result.Ok(paymentURL);
         }

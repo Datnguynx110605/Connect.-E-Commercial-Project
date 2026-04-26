@@ -27,7 +27,7 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
             backgroundJobClient.Enqueue<IEmailService>(emailService => emailService.SendOrderConfirmationAsync(
                 notification.Event.Order.UserID,
                 notification.Event.Order.OrderID,
-                notification.Event.Order.OrderTotalPrice.Value,
+                notification.Event.Order.OrderFinalPrice.Value,
                 notification.Event.Order.OrderShippingMethod.ToString(),
                 notification.Event.Order.OrderPaymentMethod.ToString(),
                 CancellationToken.None));
@@ -37,7 +37,7 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
                 notification.Event.Order.UserID,
                 notification.Event.Order.OrderShippingMethod.ToString(),
                 notification.Event.Order.OrderPaymentMethod.ToString(),
-                notification.Event.Order.OrderTotalPrice.Value,
+                notification.Event.Order.OrderFinalPrice.Value,
                 CancellationToken.None));
 
             return Task.CompletedTask;

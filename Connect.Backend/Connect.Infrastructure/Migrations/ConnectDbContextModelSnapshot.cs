@@ -140,6 +140,10 @@ namespace Connect.Infrastructure.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("CreatedAt");
 
+                    b.Property<decimal>("OrderFinalPrice")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("OrderFinalPrice");
+
                     b.Property<string>("OrderPaymentMethod")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -164,13 +168,13 @@ namespace Connect.Infrastructure.Migrations
                         .HasColumnType("nvarchar(20)")
                         .HasColumnName("OrderStatus");
 
+                    b.Property<decimal>("OrderTotalItemPrice")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("OrderTotalItemPrice");
+
                     b.Property<int>("OrderTotalItems")
                         .HasColumnType("int")
                         .HasColumnName("OrderTotalItems");
-
-                    b.Property<decimal>("OrderTotalPrice")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("OrderTotalPrice");
 
                     b.Property<int>("UserID")
                         .HasColumnType("int");

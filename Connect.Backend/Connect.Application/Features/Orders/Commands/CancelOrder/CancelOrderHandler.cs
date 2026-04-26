@@ -53,7 +53,23 @@ namespace Connect.Application.Features.Orders.Commands.CancelOrder
 
             return new OrderDto
             {
-                OrderStatus = order.OrderStatus.ToString()
+                OrderID = order.OrderID,
+                UserID = order.UserID,
+                CouponID = order.CouponID,
+                OrderTotalItems = order.OrderTotalItems.Value,
+                OrderTotalItemPrice = order.OrderTotalItemPrice.Value,
+                OrderFinalPrice = order.OrderFinalPrice.Value,
+                OrderShippingMethod = order.OrderShippingMethod.ToString(),
+                OrderPaymentMethod = order.OrderPaymentMethod.ToString(),
+                OrderStatus = order.OrderStatus.ToString(),
+                OrderPaymentStatus = order.OrderPaymentStatus.ToString(),
+                OrderItems = order.OrderItems.Select(x => new OrderItemDto
+                {
+                    ProductID = x.ProductID,
+                    Quantity = x.Quantity.Value,
+                    UnitPrice = x.UnitPrice.Value,
+                }).ToList(),
+                CreatedAt = order.CreatedAt
             };
         }
     }

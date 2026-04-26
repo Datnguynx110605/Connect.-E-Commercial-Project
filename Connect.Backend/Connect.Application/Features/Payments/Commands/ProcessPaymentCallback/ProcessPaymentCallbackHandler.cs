@@ -27,7 +27,7 @@ namespace Connect.Application.Features.Payments.Commands.ProcessPaymentCallback
             if (order == null)
                 return Result.Fail("Order not found");
 
-            Currency totalAmount = Currency.Create(order.OrderTotalPrice.Value);
+            Currency totalAmount = Currency.Create(order.OrderFinalPrice.Value);
 
             Payment payment = Payment.CreatePayment(request.PaymentID, order.OrderID, request.PaymentType, request.TransactionID, request.BankingInfo, totalAmount, request.IsPaidSuccess, request.PaidAt);
 

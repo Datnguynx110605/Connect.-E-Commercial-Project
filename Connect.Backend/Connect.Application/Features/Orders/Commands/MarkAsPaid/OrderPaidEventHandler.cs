@@ -27,7 +27,7 @@ namespace Connect.Application.Features.Orders.Commands.MarkAsPaid
             backgroundJobClient.Enqueue<IEmailService>(emailService => emailService.SendPaymentSuccessBillEmailAsync(
                 notification.Event.Order.UserID,
                 notification.Event.Order.OrderID,
-                notification.Event.Order.OrderTotalPrice.Value,
+                notification.Event.Order.OrderFinalPrice.Value,
                 notification.Event.Order.OrderPaymentStatus.ToString(),
                 CancellationToken.None));
 
@@ -35,7 +35,7 @@ namespace Connect.Application.Features.Orders.Commands.MarkAsPaid
                 notification.Event.Order.UserID,
                 notification.Event.Order.OrderID,
                 notification.Event.Order.OrderPaymentMethod.ToString(),
-                notification.Event.Order.OrderTotalPrice.Value,
+                notification.Event.Order.OrderFinalPrice.Value,
                 CancellationToken.None));
 
             return Task.CompletedTask;

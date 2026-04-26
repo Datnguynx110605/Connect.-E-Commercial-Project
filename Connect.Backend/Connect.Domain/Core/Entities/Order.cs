@@ -15,8 +15,9 @@ namespace Connect.Domain.Core.Entities
         public int OrderID { get; private set; }
         public int UserID { get; private set; }
         public int? CouponID { get; private set; }
-        public Currency OrderTotalPrice { get; private set; }
         public Amount OrderTotalItems { get; private set; }
+        public Currency OrderTotalItemPrice { get; private set; }
+        public Currency OrderFinalPrice { get; private set; }
         public ShippingMethod OrderShippingMethod { get; private set; }
         public PaymentMethod OrderPaymentMethod { get; private set; }
         public PaymentStatus OrderPaymentStatus { get; private set; }
@@ -66,34 +67,36 @@ namespace Connect.Domain.Core.Entities
 
             var order = new Order(userID,couponID, shipMethod, payMethod, orderItems);
 
-            order.CalculateTotalPrice(discountAmount);
+            order.CalculateTotalPrice(couponID,discountAmount);
 
             order.RaiseDomainEvent(new OrderPlacedEvent(order));
 
             return order;
         }
 
-        private void CalculateTotalPrice(Currency discountAmount)
+        private void CalculateTotalPrice(int? couponID, Currency discountAmount)
         {
-            OrderTotalPrice = items.Select(x => x.OrderItemTotalPrice).Aggregate(Currency.Create(0), (sum, next) => sum + next);
-
-            OrderTotalPrice -= discountAmount;
+            OrderTotalItemPrice = items.Select(x => x.OrderItemTotalPrice).Aggregate(Currency.Create(0), (sum, next) => sum + next);
 
             if (OrderShippingMethod == ShippingMethod.Standard)
             {
                 Currency shippingFee = Currency.Create(30000);
-                OrderTotalPrice += shippingFee;
+                OrderTotalItemPrice += shippingFee;
             }
             if(OrderShippingMethod == ShippingMethod.Fast)
             {
                 Currency shippingFee = Currency.Create(50000);
-                OrderTotalPrice += shippingFee;
+                OrderTotalItemPrice += shippingFee;
             }
             else if (OrderShippingMethod == ShippingMethod.SuperFast)
             {
                 Currency shippingFee = Currency.Create(80000);
-                OrderTotalPrice += shippingFee;
+                OrderTotalItemPrice += shippingFee;
             }
+
+            if (couponID.HasValue)
+                OrderFinalPrice = OrderTotalItemPrice - discountAmount;
+            else OrderFinalPrice = OrderTotalItemPrice;
         }
 
         public void CancelOrder()

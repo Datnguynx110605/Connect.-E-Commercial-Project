@@ -11,8 +11,9 @@ namespace Connect.Application.Commons.DTOs
         public int OrderID { get; init; }
         public int UserID { get; init; }
         public int? CouponID { get; init; }
-        public decimal OrderTotalPrice { get; init; }
         public int OrderTotalItems { get; init; }
+        public decimal OrderTotalItemPrice { get; init; }
+        public decimal OrderFinalPrice { get; init; }
         public string OrderShippingMethod { get; init; }
         public string OrderPaymentMethod { get; init; }
         public string OrderPaymentStatus { get; init; }
