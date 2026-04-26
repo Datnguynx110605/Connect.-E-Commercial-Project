@@ -54,7 +54,7 @@ namespace Connect.Domain.Core.Entities
             ExpiryDate = expiryDate;
         }
 
-        private void VerifyCoupon()
+        public void VerifyCoupon()
         {
             if(ExpiryDate < DateTime.UtcNow)
                 throw new DomainExceptions(
@@ -77,11 +77,9 @@ namespace Connect.Domain.Core.Entities
 
         public void UseCoupon(Currency totalPrice)
         {
-            VerifyCoupon();
-
-            if(MinimumPriceRequired.Value > totalPrice.Value)
+            if(totalPrice.Value < MinimumPriceRequired.Value)
                 throw new DomainExceptions(
-                   message: "Coupon is support for this Order",
+                   message: "Coupon is not support for this Order",
                    code: "UNUSABLE-COUPON",
                    metadata: new Dictionary<string, object>
                    {

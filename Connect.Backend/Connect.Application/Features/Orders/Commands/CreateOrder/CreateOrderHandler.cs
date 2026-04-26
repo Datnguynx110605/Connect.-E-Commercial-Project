@@ -57,12 +57,15 @@ namespace Connect.Application.Features.Orders.Commands.CreateOrder
 
             Coupon? coupon = null;
             Currency discountAmount = Currency.Create(0);
+            Currency mimimumPriceRequired = Currency.Create(0);
             if (request.CouponID.HasValue)
             {
                 coupon = await unitOfWork.Coupons.FirstOrDefaultAsync(x => x.CouponID == request.CouponID, cancellationToken);
                 if (coupon == null)
                     throw new Exception("Coupon not found");
 
+                coupon.VerifyCoupon();
+                mimimumPriceRequired = coupon.MinimumPriceRequired;
                 discountAmount = coupon.DiscountAmount;
             }
 
