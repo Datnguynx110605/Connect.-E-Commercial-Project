@@ -1,4 +1,4 @@
-﻿using Connect.Application.Features.Users.Commands.CheckEmail;
+using Connect.Application.Features.Users.Commands.CheckEmail;
 using Connect.Application.Features.Users.Commands.CreateNewRefreshToken;
 using Connect.Application.Features.Users.Commands.DeleteUserProfile;
 using Connect.Application.Features.Users.Commands.ForgetPassword;
@@ -90,7 +90,7 @@ namespace Connect.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("forget-passwod")] 
+        [HttpPost("forget-password")] 
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

@@ -1,4 +1,4 @@
-﻿using Connect.Application.Features.Categories.Commands.CreateCategory;
+using Connect.Application.Features.Categories.Commands.CreateCategory;
 using Connect.Application.Features.Categories.Commands.DeleteCategory;
 using Connect.Application.Features.Categories.Commands.UpdateCategoryName;
 using Connect.Application.Features.Categories.Queries.GetAllCategories;
@@ -25,7 +25,7 @@ namespace Connect.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id:int}/get-categotybyid")]
+        [HttpGet("{id:int}/get-categorybyid")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
