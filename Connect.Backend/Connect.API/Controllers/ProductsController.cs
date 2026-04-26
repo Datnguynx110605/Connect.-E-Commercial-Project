@@ -4,6 +4,9 @@ using Connect.Application.Features.Products.Commands.UpdateProductImage;
 using Connect.Application.Features.Products.Commands.UpdateProductStock;
 using Connect.Application.Features.Products.Queries.GetAllProducts;
 using Connect.Application.Features.Products.Queries.GetProductByCategory;
+using Connect.Application.Features.Products.Queries.GetProductByColor;
+using Connect.Application.Features.Products.Queries.GetProductByRAM;
+using Connect.Application.Features.Products.Queries.GetProductByROM;
 using Connect.Application.Features.Products.Queries.GetProductDetail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -44,6 +47,36 @@ namespace Connect.API.Controllers
         public async Task<IActionResult> GetProductByCategory(int id, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetProductByCategoryQuery { CategoryID = id }, cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-product-byram")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetProductByRAM(int ram, CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new GetProductByRAMQuery { Ram = ram }, cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-product-byrom")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetProductByROM(int rom, CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new GetProductByROMQuery { Rom = rom }, cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-product-bycolor")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetProductByColor(string color, CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new GetProductByColorQuery { Color = color }, cancellationToken);
             return Ok(result);
         }
 
