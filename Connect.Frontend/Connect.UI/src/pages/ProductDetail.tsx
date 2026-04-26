@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Star, ShieldCheck, Truck, RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 import { Layout } from '../components/Layout';
-import { formatVND } from '../data/mock';
+import { formatVND, formatStorage } from '../data/mock';
 import { useAppContext } from '../context/AppContext';
 import { getProductById } from '../api/products';
 import { getReviewsByProduct, createReview, updateReview, deleteReview } from '../api/reviews';
@@ -36,8 +36,8 @@ export const ProductDetail = () => {
       .then(async (prod) => {
         setProduct(prod);
         setMainImage(prod.imageURL[0] ?? '');
-        setSelectedRam(`${prod.ram}GB`);
-        setSelectedRom(`${prod.rom}GB`);
+        setSelectedRam(formatStorage(prod.ram));
+        setSelectedRom(formatStorage(prod.rom));
         
         try {
           const revs = await getReviewsByProduct(Number(id));
@@ -229,7 +229,7 @@ export const ProductDetail = () => {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">RAM</h3>
                 <div className="flex flex-wrap gap-3">
-                  {[`${product.ram}GB`].map((ram) => (
+                  {[formatStorage(product.ram)].map((ram) => (
                     <button
                       key={ram}
                       onClick={() => setSelectedRam(ram)}
@@ -244,7 +244,7 @@ export const ProductDetail = () => {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">Lưu trữ (ROM)</h3>
                 <div className="flex flex-wrap gap-3">
-                  {[`${product.rom}GB`].map((rom) => (
+                  {[formatStorage(product.rom)].map((rom) => (
                     <button
                       key={rom}
                       onClick={() => setSelectedRom(rom)}

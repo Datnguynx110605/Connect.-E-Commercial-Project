@@ -4,7 +4,7 @@ import { Trash2, Plus, Minus, ArrowRight, ShoppingCart, Loader2, ShieldCheck, Tr
 import { motion, AnimatePresence } from 'motion/react';
 import { Layout } from '../components/Layout';
 import { useAppContext } from '../context/AppContext';
-import { formatVND } from '../data/mock';
+import { formatVND, formatStorage } from '../data/mock';
 
 export const Cart = () => {
   const { cart, isLoadingUser, removeFromCart, updateQuantity, refreshCart } = useAppContext();
@@ -129,12 +129,12 @@ export const Cart = () => {
                         </span>
                         {item.ram > 0 && (
                           <span className="bg-gray-50 text-gray-500 px-3 py-1 rounded-lg text-xs font-medium border border-gray-100">
-                            {item.ram}GB RAM
+                            {formatStorage(item.ram)} RAM
                           </span>
                         )}
                         {item.rom > 0 && (
                           <span className="bg-gray-50 text-gray-500 px-3 py-1 rounded-lg text-xs font-medium border border-gray-100">
-                            {item.rom}GB ROM
+                            {formatStorage(item.rom)} ROM
                           </span>
                         )}
                       </div>

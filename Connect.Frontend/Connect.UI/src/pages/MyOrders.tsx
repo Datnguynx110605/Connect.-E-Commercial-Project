@@ -25,6 +25,24 @@ const STATUS_CLASS: Record<string, string> = {
   Cancelled: 'bg-gray-100 text-gray-500',
 };
 
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  Cash: 'Tiền mặt (COD)',
+  OnlineBanking: 'Chuyển khoản',
+  VNPAY: 'VNPAY',
+};
+
+const PAYMENT_STATUS_LABEL: Record<string, string> = {
+  Paid: 'Đã thanh toán',
+  Pending: 'Đang xử lý',
+  Unpaid: 'Chưa thanh toán',
+};
+
+const PAYMENT_STATUS_CLASS: Record<string, string> = {
+  Paid: 'text-green-600',
+  Pending: 'text-yellow-600',
+  Unpaid: 'text-red-600',
+};
+
 export const MyOrders = () => {
   const { user } = useAppContext();
   const { success, error } = useNotification();
@@ -134,10 +152,10 @@ export const MyOrders = () => {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-gray-100 pt-6 gap-4">
                     <div>
                       <p className="text-xs text-gray-500 mb-0.5">
-                        Thanh toán: <span className="font-medium text-gray-700">{order.paymentMethod}</span>
+                        Thanh toán: <span className="font-medium text-gray-700">{PAYMENT_METHOD_LABEL[order.orderPaymentMethod] ?? order.orderPaymentMethod}</span>
                         {' · '}
-                        <span className={order.paymentStatus === 'Paid' ? 'text-green-600' : 'text-yellow-600'}>
-                          {order.paymentStatus === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                        <span className={PAYMENT_STATUS_CLASS[order.orderPaymentStatus] ?? 'text-gray-600'}>
+                          {PAYMENT_STATUS_LABEL[order.orderPaymentStatus] ?? order.orderPaymentStatus}
                         </span>
                       </p>
                       <p className="text-sm text-gray-500 mb-1">Tổng tiền đơn hàng</p>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Star } from 'lucide-react';
 import { ProductDto } from '../api/types';
-import { formatVND } from '../data/mock';
+import { formatVND, formatStorage } from '../data/mock';
 import { useAppContext } from '../context/AppContext';
 
 export const ProductCard: React.FC<{ product: ProductDto }> = ({ product }) => {
@@ -39,7 +39,7 @@ export const ProductCard: React.FC<{ product: ProductDto }> = ({ product }) => {
 
       <div className="p-5 flex flex-col flex-1">
         <div className="text-xs text-gray-500 mb-1">
-          {product.ram}GB RAM · {product.rom}GB ROM · {product.color}
+          {formatStorage(product.ram)} RAM · {formatStorage(product.rom)} ROM · {product.color}
         </div>
         <Link to={`/product/${product.productID}`} className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-3">
           {product.productName}

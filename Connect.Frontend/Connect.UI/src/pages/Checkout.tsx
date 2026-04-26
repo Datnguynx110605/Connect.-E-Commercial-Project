@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { useAppContext } from '../context/AppContext';
-import { formatVND } from '../data/mock';
+import { formatVND, formatStorage } from '../data/mock';
 import { getAllCoupons } from '../api/coupons';
 import { CouponDto } from '../api/types';
 import { createOrder } from '../api/orders';
@@ -282,7 +282,11 @@ export const Checkout = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{item.productName}</p>
-                      <p className="text-xs text-gray-500">{item.color} {item.ram && ` - ${item.ram}GB`}</p>
+                      <p className="text-xs text-gray-500">
+                        {item.color} 
+                        {item.ram > 0 && ` · ${formatStorage(item.ram)} RAM`} 
+                        {item.rom > 0 && ` · ${formatStorage(item.rom)} ROM`}
+                      </p>
                     </div>
                     <div className="font-semibold text-sm">{formatVND(item.finalPrice * item.quantity)}</div>
                   </div>

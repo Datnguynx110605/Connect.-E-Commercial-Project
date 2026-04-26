@@ -11,9 +11,9 @@ export const Footer = () => {
         <div>
           <h3 className="font-semibold text-white mb-4 uppercase text-xs tracking-wider">Thông tin liên hệ</h3>
           <ul className="space-y-2">
-            <li>Địa chỉ: 123 Đường Công Nghệ, Quận 1, TP. HCM</li>
-            <li>Hotline: 1900 1234</li>
-            <li>Email: support@connect.vn</li>
+            <li>Địa chỉ: 36 Thanh Hoa An Rau Ma </li>
+            <li>Hotline: 1836 1836 18 36</li>
+            <li>Email: doancuatiendat@gmail.com</li>
           </ul>
         </div>
         <div>

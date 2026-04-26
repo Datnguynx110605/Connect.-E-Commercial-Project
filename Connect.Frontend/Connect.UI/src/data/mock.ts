@@ -2,6 +2,15 @@ export const formatVND = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
 
+export const formatStorage = (value: number | undefined) => {
+  if (value === undefined) return '';
+  if (value >= 1000) {
+    const tb = value / 1024;
+    return `${Number.isInteger(tb) ? tb : tb.toFixed(1)}TB`;
+  }
+  return `${value}GB`;
+};
+
 export type Product = {
   id: string;
   name: string;
