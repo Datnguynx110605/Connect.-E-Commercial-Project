@@ -23,9 +23,10 @@ namespace Connect.Application.Features.Coupons.Commands.CreateCoupon
             Code code = Code.Create(request.CouponCode);
             Currency discountAmount = Currency.Create(request.DiscountAmount);
             Amount quantity = Amount.Create(request.CouponQuantity);
+            Currency minimumPriceRequired = Currency.Create(request.MimimumPriceRequired);
             DateTime expiryDate = request.ExpiryDate;
 
-            Coupon coupon = Coupon.CreateCoupon(code, discountAmount, quantity, expiryDate);
+            Coupon coupon = Coupon.CreateCoupon(code, discountAmount, quantity, minimumPriceRequired, expiryDate);
 
             await unitOfWork.Coupons.AddAsync(coupon, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);

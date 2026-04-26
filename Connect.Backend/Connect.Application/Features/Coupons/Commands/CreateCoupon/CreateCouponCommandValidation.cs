@@ -21,6 +21,10 @@ namespace Connect.Application.Features.Coupons.Commands.CreateCoupon
             RuleFor(x => x.CouponQuantity)
                 .NotEmpty().WithMessage("Coupon quantity is required")
                 .GreaterThan(0).WithMessage("Coupon quantity is invalid");
+
+            RuleFor(x => x.MimimumPriceRequired)
+                .NotEmpty().WithMessage("Mimimum price is required")
+                .GreaterThan(0).WithMessage("Minimum price is invalid");
         }
     }
 }

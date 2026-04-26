@@ -11,6 +11,7 @@ namespace Connect.Application.Features.Coupons.Commands.CreateCoupon
         public string CouponCode { get; init; }
         public decimal DiscountAmount { get; init; }
         public int CouponQuantity { get; init; }
+        public decimal MimimumPriceRequired { get; init; }
         public DateTime ExpiryDate { get; init; }
     }
 }
