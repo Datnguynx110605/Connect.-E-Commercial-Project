@@ -94,7 +94,6 @@ export const Cart = () => {
         </div>
         
         <div className="flex flex-col lg:flex-row gap-12">
-          {/* Cart Items */}
           <div className="flex-1">
             <div className="space-y-6">
               <AnimatePresence mode="popLayout">
@@ -196,10 +195,6 @@ export const Cart = () => {
                   <span className="font-medium">Tạm tính ({cart.length} sản phẩm)</span>
                   <span className="font-bold text-gray-900">{formatVND(totalAmount)}</span>
                 </div>
-                <div className="flex justify-between text-gray-500">
-                  <span className="font-medium">Phí vận chuyển</span>
-                  <span className="font-medium text-emerald-600">Miễn phí</span>
-                </div>
               </div>
               
               <div className="border-t border-gray-100 pt-6 mb-10">
@@ -217,20 +212,7 @@ export const Cart = () => {
                 className="w-full bg-blue-600 text-white py-5 rounded-[24px] font-bold text-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-500/25"
               >
                 Đặt hàng ngay <ArrowRight size={24} />
-              </motion.button>
-              
-              <div className="mt-8 pt-8 border-t border-gray-50 space-y-4">
-                <div className="flex items-center gap-3 text-xs text-gray-400 justify-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  Hệ thống bảo mật thanh toán chuẩn quốc tế
-                </div>
-                <div className="flex justify-center gap-6 opacity-30 grayscale hover:grayscale-0 transition-all">
-                  <div className="h-6 w-10 bg-gray-200 rounded" />
-                  <div className="h-6 w-10 bg-gray-200 rounded" />
-                  <div className="h-6 w-10 bg-gray-200 rounded" />
-                  <div className="h-6 w-10 bg-gray-200 rounded" />
-                </div>
-              </div>
+              </motion.button>          
             </div>
           </div>
         </div>
