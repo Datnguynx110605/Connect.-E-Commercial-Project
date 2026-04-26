@@ -9,6 +9,8 @@ import { createOrder } from '../api/orders';
 import { redirectToVNPAY } from '../api/payments';
 import { getMyCart } from '../api/carts';
 import { useNotification } from '../components/Notification/NotificationContext';
+import { CouponTable } from '../components/Coupon/CouponTable';
+import { Ticket, Truck, Zap, Rocket, Banknote, QrCode, CreditCard } from 'lucide-react';
 
 export const Checkout = () => {
   const { cart, user, clearCart, refreshCart } = useAppContext();
@@ -47,6 +49,10 @@ export const Checkout = () => {
       }
       if (new Date(coupon.expiryDate) < new Date()) {
         warning('Mã giảm giá đã hết hạn.', 'Coupon hết hạn');
+        return;
+      }
+      if (totalProductAmount < coupon.minimumPriceRequired) {
+        warning(`Đơn hàng cần tối thiểu ${formatVND(coupon.minimumPriceRequired)} để áp dụng mã này.`, 'Không đủ điều kiện');
         return;
       }
       setAppliedCoupon(coupon);
@@ -149,57 +155,116 @@ export const Checkout = () => {
             </section>
 
             <section className="bg-white p-6 rounded-3xl border border-gray-100">
-              <h2 className="text-xl font-bold mb-4">2. Phương thức giao hàng</h2>
-              <div className="space-y-3">
-                <label className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${shippingMethod === 30000 ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}>
-                  <div className="flex items-center gap-3">
-                    <input type="radio" name="shipping" checked={shippingMethod === 30000} onChange={() => setShippingMethod(30000)} className="text-blue-600 focus:ring-blue-500 w-4 h-4" />
-                    <div>
-                      <span className="font-medium text-gray-900 block">Giao hàng tiêu chuẩn</span>
-                      <span className="text-sm text-gray-500">Dự kiến giao 2-3 ngày</span>
+              <h2 className="text-xl font-bold mb-6">2. Phương thức giao hàng</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { id: 30000, label: 'Tiêu chuẩn', sub: '2-3 ngày', icon: <Truck size={24} />, enum: 0 },
+                  { id: 50000, label: 'Giao nhanh', sub: '24h - 48h', icon: <Zap size={24} />, enum: 1 },
+                  { id: 80000, label: 'Hỏa tốc', sub: 'Trong 2h', icon: <Rocket size={24} />, enum: 2 }
+                ].map((method) => (
+                  <label 
+                    key={method.id}
+                    className={`relative flex flex-col p-5 rounded-2xl border-2 cursor-pointer transition-all hover:shadow-md ${shippingMethod === method.id ? 'border-blue-600 bg-blue-50/50 shadow-blue-100' : 'border-gray-100 bg-white hover:border-blue-200'}`}
+                  >
+                    <input 
+                      type="radio" 
+                      name="shipping" 
+                      checked={shippingMethod === method.id} 
+                      onChange={() => setShippingMethod(method.id)} 
+                      className="absolute top-4 right-4 text-blue-600 w-4 h-4" 
+                    />
+                    <div className={`mb-4 w-12 h-12 rounded-xl flex items-center justify-center ${shippingMethod === method.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      {method.icon}
                     </div>
-                  </div>
-                  <span className="font-bold text-gray-900">30.000 ₫</span>
-                </label>
-                <label className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${shippingMethod === 50000 ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}>
-                  <div className="flex items-center gap-3">
-                    <input type="radio" name="shipping" checked={shippingMethod === 50000} onChange={() => setShippingMethod(50000)} className="text-blue-600 focus:ring-blue-500 w-4 h-4" />
-                    <div>
-                      <span className="font-medium text-gray-900 block">Giao hàng nhanh</span>
-                      <span className="text-sm text-gray-500">Dự kiến giao ngày mai</span>
-                    </div>
-                  </div>
-                  <span className="font-bold text-gray-900">50.000 ₫</span>
-                </label>
-                <label className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${shippingMethod === 80000 ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}>
-                  <div className="flex items-center gap-3">
-                    <input type="radio" name="shipping" checked={shippingMethod === 80000} onChange={() => setShippingMethod(80000)} className="text-blue-600 focus:ring-blue-500 w-4 h-4" />
-                    <div>
-                      <span className="font-medium text-gray-900 block">Giao hàng hỏa tốc</span>
-                      <span className="text-sm text-gray-500">Dự kiến giao trong 2h</span>
-                    </div>
-                  </div>
-                  <span className="font-bold text-gray-900">80.000 ₫</span>
-                </label>
+                    <span className="font-bold text-gray-900 block mb-1">{method.label}</span>
+                    <span className="text-xs text-gray-500 mb-3">{method.sub}</span>
+                    <span className="mt-auto font-bold text-blue-600">{formatVND(method.id)}</span>
+                  </label>
+                ))}
               </div>
             </section>
 
             <section className="bg-white p-6 rounded-3xl border border-gray-100">
-              <h2 className="text-xl font-bold mb-4">3. Phương thức thanh toán</h2>
-              <div className="space-y-3">
-                <label className={`flex items-center p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'cash' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}>
-                  <input type="radio" name="payment" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} className="text-blue-600 focus:ring-blue-500 w-4 h-4 mr-3" />
-                  <span className="font-medium text-gray-900">Thanh toán khi nhận hàng (COD)</span>
-                </label>
-                <label className={`flex items-center p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'banking' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}>
-                  <input type="radio" name="payment" checked={paymentMethod === 'banking'} onChange={() => setPaymentMethod('banking')} className="text-blue-600 focus:ring-blue-500 w-4 h-4 mr-3" />
-                  <span className="font-medium text-gray-900">Chuyển khoản trực tuyến</span>
-                </label>
-                <label className={`flex items-center p-4 rounded-xl border cursor-pointer transition-colors ${paymentMethod === 'vnpay' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}>
-                  <input type="radio" name="payment" checked={paymentMethod === 'vnpay'} onChange={() => setPaymentMethod('vnpay')} className="text-blue-600 focus:ring-blue-500 w-4 h-4 mr-3" />
-                  <span className="font-medium text-gray-900">Thanh toán qua VNPAY</span>
-                </label>
+              <h2 className="text-xl font-bold mb-6">3. Phương thức thanh toán</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { id: 'cash', label: 'Tiền mặt (COD)', icon: <Banknote size={24} />, sub: 'Thanh toán khi nhận' },
+                  { id: 'banking', label: 'Chuyển khoản', icon: <QrCode size={24} />, sub: 'Quét mã QR' },
+                  { id: 'vnpay', label: 'VNPAY', icon: <CreditCard size={24} />, sub: 'Cổng thanh toán' }
+                ].map((method) => (
+                  <label 
+                    key={method.id}
+                    className={`relative flex flex-col p-5 rounded-2xl border-2 cursor-pointer transition-all hover:shadow-md ${paymentMethod === method.id ? 'border-blue-600 bg-blue-50/50 shadow-blue-100' : 'border-gray-100 bg-white hover:border-blue-200'}`}
+                  >
+                    <input 
+                      type="radio" 
+                      name="payment" 
+                      checked={paymentMethod === method.id} 
+                      onChange={() => setPaymentMethod(method.id)} 
+                      className="absolute top-4 right-4 text-blue-600 w-4 h-4" 
+                    />
+                    <div className={`mb-4 w-12 h-12 rounded-xl flex items-center justify-center ${paymentMethod === method.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      {method.icon}
+                    </div>
+                    <span className="font-bold text-gray-900 block mb-1">{method.label}</span>
+                    <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">{method.sub}</span>
+                  </label>
+                ))}
               </div>
+            </section>
+
+            <section className="bg-white p-6 rounded-3xl border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
+                  <Ticket size={24} />
+                </div>
+                <h2 className="text-xl font-bold">4. Mã giảm giá ưu đãi</h2>
+              </div>
+              
+              {coupons.length > 0 && (
+                <CouponTable 
+                  coupons={coupons}
+                  totalProductAmount={totalProductAmount}
+                  onApply={(coupon) => {
+                    setAppliedCoupon(coupon);
+                    setSelectedCouponCode(coupon.couponCode);
+                    success('Đã áp dụng mã giảm giá thành công');
+                  }}
+                  appliedCouponId={appliedCoupon?.couponID}
+                  manualCode={selectedCouponCode}
+                  onManualCodeChange={setSelectedCouponCode}
+                  onManualApply={handleApplyCoupon}
+                />
+              )}
+              {coupons.length === 0 && (
+                <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <input 
+                        type="text" 
+                        value={selectedCouponCode}
+                        onChange={(e) => setSelectedCouponCode(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleApplyCoupon();
+                          }
+                        }}
+                        placeholder="Nhập mã giảm giá..." 
+                        className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-4 py-3 text-sm outline-none focus:border-blue-500 transition-all uppercase font-bold" 
+                      />
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={handleApplyCoupon}
+                      className="bg-gray-900 text-white px-8 py-3 rounded-2xl text-sm font-bold hover:bg-black transition-all"
+                    >
+                      Áp dụng
+                    </button>
+                  </div>
+                </div>
+              )}
             </section>
           </div>
 
@@ -224,36 +289,28 @@ export const Checkout = () => {
               </div>
 
               <div className="mb-6 space-y-3">
-                <select 
-                  value={selectedCouponCode}
-                  onChange={(e) => setSelectedCouponCode(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-500 text-gray-600"
-                >
-                  <option value="">Chọn mã giảm giá có sẵn...</option>
-                  {coupons.filter(c => c.couponQuantity > 0 && new Date(c.expiryDate) > new Date()).map(c => (
-                    <option key={c.couponID} value={c.couponCode}>
-                      {c.couponCode} - Giảm {formatVND(c.discountAmount)}
-                    </option>
-                  ))}
-                </select>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    value={selectedCouponCode}
-                    onChange={(e) => setSelectedCouponCode(e.target.value.toUpperCase())}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleApplyCoupon();
-                      }
-                    }}
-                    placeholder="Hoặc nhập mã giảm giá" 
-                    className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-500 uppercase" 
-                  />
-                  <button type="button" onClick={handleApplyCoupon} className="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-900">Áp dụng</button>
-                </div>
                 {appliedCoupon && (
-                  <p className="text-sm text-green-600 font-medium">Đã áp dụng mã: {appliedCoupon.couponCode}</p>
+                  <div className="bg-green-50 p-4 rounded-2xl border border-green-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-100 text-green-600 rounded-lg">
+                        <Ticket size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-green-600 font-bold uppercase tracking-wider">Đã áp dụng mã</p>
+                        <p className="font-bold text-green-700">{appliedCoupon.couponCode}</p>
+                      </div>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setAppliedCoupon(null);
+                        setSelectedCouponCode('');
+                      }}
+                      className="text-xs text-green-600 hover:underline font-bold"
+                    >
+                      Gỡ bỏ
+                    </button>
+                  </div>
                 )}
               </div>
 

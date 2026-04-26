@@ -98,6 +98,7 @@ export interface CouponDto {
   couponCode: string;
   discountAmount: number;
   couponQuantity: number;
+  minimumPriceRequired: number;
   expiryDate: string;
   createdAt: string;
 }
@@ -140,8 +141,9 @@ export interface OrderDto {
   orderID: number;
   userID: number;
   couponID?: number;
-  orderTotalPrice: number;
   orderTotalItems: number;
+  orderTotalItemPrice: number;
+  orderFinalPrice: number;
   orderShippingMethod: ShippingMethod;
   orderPaymentMethod: PaymentMethod;
   orderPaymentStatus: PaymentStatus;

@@ -141,7 +141,7 @@ export const MyOrders = () => {
                         </span>
                       </p>
                       <p className="text-sm text-gray-500 mb-1">Tổng tiền đơn hàng</p>
-                      <p className="text-xl font-bold text-red-600">{formatVND(order.orderTotalPrice)}</p>
+                      <p className="text-xl font-bold text-red-600">{formatVND(order.orderFinalPrice)}</p>
                     </div>
 
                     <div className="flex gap-3 w-full sm:w-auto">

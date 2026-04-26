@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Star, ShieldCheck, Truck, RotateCcw, CheckCircle2, Loader2 } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { formatVND } from '../data/mock';
 import { useAppContext } from '../context/AppContext';
 import { getProductById } from '../api/products';
-import { getReviewsByProduct } from '../api/reviews';
+import { getReviewsByProduct, createReview, updateReview, deleteReview } from '../api/reviews';
 import { ProductDto, ReviewDto } from '../api/types';
+import { useNotification } from '../components/Notification/NotificationContext';
+import { ConfirmationModal } from '../components/Modal/ConfirmationModal';
 
 export const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useAppContext();
+  const { addToCart, user } = useAppContext();
 
   const [product, setProduct] = useState<ProductDto | null>(null);
   const [reviews, setReviews] = useState<ReviewDto[]>([]);
@@ -20,23 +22,40 @@ export const ProductDetail = () => {
   const [selectedRam, setSelectedRam] = useState('');
   const [selectedRom, setSelectedRom] = useState('');
 
+  // Review states
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState('');
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
+  const [reviewToDelete, setReviewToDelete] = useState<number | null>(null);
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    Promise.all([
-      getProductById(Number(id)),
-      getReviewsByProduct(Number(id)),
-    ])
-      .then(([prod, revs]) => {
+    getProductById(Number(id))
+      .then(async (prod) => {
         setProduct(prod);
-        setReviews(Array.isArray(revs) ? revs : (revs ? [revs as any] : []));
         setMainImage(prod.imageURL[0] ?? '');
         setSelectedRam(`${prod.ram}GB`);
         setSelectedRom(`${prod.rom}GB`);
+        
+        try {
+          const revs = await getReviewsByProduct(Number(id));
+          setReviews(Array.isArray(revs) ? revs : (revs ? [revs as any] : []));
+        } catch {
+          setReviews([]);
+        }
       })
       .catch(() => setProduct(null))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const refreshReviews = () => {
+    if (!id) return;
+    getReviewsByProduct(Number(id))
+      .then(revs => setReviews(Array.isArray(revs) ? revs : (revs ? [revs as any] : [])))
+      .catch(() => setReviews([]));
+  };
 
   if (loading) {
     return (
@@ -74,6 +93,68 @@ export const ProductDetail = () => {
   const handleBuyNow = () => {
     handleAddToCart();
     navigate('/checkout');
+  };
+
+  const { success, error, warning } = useNotification();
+
+  const onSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      warning('Vui lòng đăng nhập để đánh giá.', 'Cần đăng nhập');
+      navigate('/auth');
+      return;
+    }
+    if (!newComment.trim()) {
+      error('Vui lòng nhập nội dung đánh giá.');
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    try {
+      if (editingReviewId) {
+        await updateReview(editingReviewId, {
+          reviewID: editingReviewId,
+          rating: newRating,
+          body: newComment
+        });
+        success('Cập nhật đánh giá thành công');
+      } else {
+        await createReview({
+          productID: product.productID,
+          rating: newRating,
+          body: newComment
+        });
+        success('Thêm đánh giá thành công');
+      }
+      setNewComment('');
+      setEditingReviewId(null);
+      refreshReviews();
+    } catch (err: any) {
+      error(err?.message || 'Không thể gửi đánh giá.');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  const onDeleteReview = async () => {
+    if (!reviewToDelete) return;
+    try {
+      await deleteReview(reviewToDelete);
+      success('Đã xóa đánh giá');
+      refreshReviews();
+    } catch (err: any) {
+      error(err?.message || 'Không thể xóa đánh giá.');
+    } finally {
+      setReviewToDelete(null);
+    }
+  };
+
+  const startEdit = (review: ReviewDto) => {
+    setEditingReviewId(review.reviewID);
+    setNewRating(review.rating);
+    setNewComment(review.body);
+    // Scroll to form
+    document.getElementById('review-form')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -235,20 +316,80 @@ export const ProductDetail = () => {
                   <div className="text-sm text-gray-500">{reviews.length} bài đánh giá</div>
                 </div>
               </div>
+              
+              <ConfirmationModal
+                isOpen={!!reviewToDelete}
+                onClose={() => setReviewToDelete(null)}
+                onConfirm={onDeleteReview}
+                title="Xóa đánh giá"
+                message="Bạn có chắc chắn muốn xóa bài đánh giá này không?"
+                variant="danger"
+              />
+
+              <div id="review-form" className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <h3 className="font-bold text-gray-900 mb-4">{editingReviewId ? 'Cập nhật đánh giá' : 'Viết đánh giá của bạn'}</h3>
+                <form onSubmit={onSubmitReview}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-sm text-gray-600">Đánh giá:</span>
+                    <div className="flex text-yellow-400">
+                      {[1, 2, 3, 4, 5].map((val) => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => setNewRating(val)}
+                          className="hover:scale-110 transition-transform"
+                        >
+                          <Star size={20} fill={val <= newRating ? 'currentColor' : 'none'} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-blue-500 outline-none min-h-[100px] mb-4"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingReview}
+                      className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    >
+                      {isSubmittingReview ? <Loader2 size={18} className="animate-spin mx-auto" /> : (editingReviewId ? 'Cập nhật' : 'Gửi đánh giá')}
+                    </button>
+                    {editingReviewId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingReviewId(null);
+                          setNewComment('');
+                          setNewRating(5);
+                        }}
+                        className="px-4 bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-300 transition-colors"
+                      >
+                        Hủy
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
 
               {reviews.length === 0 ? (
-                <p className="text-gray-400 text-sm text-center py-4">Chưa có đánh giá nào.</p>
+                <p className="text-gray-400 text-sm text-center py-4">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
               ) : (
-                <div className="space-y-6 mt-4">
+                <div className="space-y-6 mt-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                   {reviews.map((review) => (
-                    <div key={review.reviewID} className="border-t border-gray-100 pt-6">
+                    <div key={review.reviewID} className="border-t border-gray-100 pt-6 first:border-t-0 first:pt-0">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600">
-                            U
+                          <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">
+                            {review.userID === user?.userID ? 'Bạn' : 'U'}
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900">User #{review.userID}</p>
+                            <p className="font-bold text-gray-900">
+                              {review.userID === user?.userID ? 'Bạn' : `User #${review.userID}`}
+                            </p>
                             <div className="flex items-center gap-2">
                               <div className="flex text-yellow-400">
                                 {[...Array(5)].map((_, j) => (
@@ -261,11 +402,29 @@ export const ProductDetail = () => {
                             </div>
                           </div>
                         </div>
-                        <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                          <CheckCircle2 size={12} /> Đã mua hàng
-                        </span>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className="flex items-center gap-1 text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                            <CheckCircle2 size={10} /> Đã mua hàng
+                          </span>
+                          {user?.userID === review.userID && (
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => startEdit(review)}
+                                className="text-xs text-blue-600 hover:underline font-medium"
+                              >
+                                Sửa
+                              </button>
+                              <button 
+                                onClick={() => setReviewToDelete(review.reviewID)}
+                                className="text-xs text-red-600 hover:underline font-medium"
+                              >
+                                Xóa
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-gray-700 leading-relaxed text-sm md:text-base">{review.body}</p>
+                      <p className="text-gray-700 leading-relaxed text-sm">{review.body}</p>
                     </div>
                   ))}
                 </div>
