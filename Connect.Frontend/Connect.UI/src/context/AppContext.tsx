@@ -182,7 +182,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (err) {
       console.error('[Cart] Update failed:', err);
       error('Không thể cập nhật số lượng. Vui lòng thử lại.');
-      await refreshCart(); // Force sync on failure
+      await refreshCart(); 
     }
   };
 
