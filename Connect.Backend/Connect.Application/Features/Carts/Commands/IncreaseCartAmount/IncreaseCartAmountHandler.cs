@@ -32,7 +32,7 @@ namespace Connect.Application.Features.Carts.Commands.IncreaseCartAmount
             if (currentUserService.UserID != cart.UserID)
                 throw new UnauthorizedAccessException("No permission to access");
 
-            cart.IncreaseCartAmount(Amount.Create(request.Quantity));
+            cart.IncreaseCartAmount();
 
             unitOfWork.Carts.Update(cart);
             await unitOfWork.SaveChangesAsync(cancellationToken);

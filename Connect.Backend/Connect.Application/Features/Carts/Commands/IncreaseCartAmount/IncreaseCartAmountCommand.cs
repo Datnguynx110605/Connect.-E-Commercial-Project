@@ -9,6 +9,5 @@ namespace Connect.Application.Features.Carts.Commands.IncreaseCartAmount
     public sealed record IncreaseCartAmountCommand:IRequest<CartDto>
     {
         public int CartID { get; init; }
-        public int Quantity { get; init; }
     }
 }
