@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Products.Queries.GetProductByCategory
 {
-    public sealed record GetProductByCategoryQuery:IRequest<ProductDto>
+    public sealed record GetProductByCategoryQuery:IRequest<IEnumerable<ProductDto>>
     {
         public int CategoryID { get; init; }
     }

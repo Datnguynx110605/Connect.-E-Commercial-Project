@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Carts.Queries.GetUserCart
 {
-    internal sealed class GetUserCartHandler : IRequestHandler<GetUserCartQuery, CartDto>
+    internal sealed class GetUserCartHandler : IRequestHandler<GetUserCartQuery, IEnumerable<CartDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly ICurrentUserService currentUserService;
@@ -18,25 +18,25 @@ namespace Connect.Application.Features.Carts.Queries.GetUserCart
             currentUserService = _currentUserService;
         }
 
-        public async Task<CartDto> Handle(GetUserCartQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<CartDto>> Handle(GetUserCartQuery request, CancellationToken cancellationToken)
         {
             bool identity = await unitOfWork.Users.AnyAsync(x => x.UserID == currentUserService.UserID, cancellationToken);
             if (!identity)
                 throw new UnauthorizedAccessException("User is not in the system");
 
-            var cart = await unitOfWork.Carts.FirstOrDefaultNoTrackingAsync(x => x.UserID ==currentUserService.UserID, cancellationToken);
+            var cart = await unitOfWork.Carts.WhereNoTrackingAsync(x => x.UserID ==currentUserService.UserID, cancellationToken);
             if (cart == null)
                 throw new Exception("Cart not found");
 
-            return new CartDto
+            return cart.Select(x => new CartDto
             {
-                CartID = cart.CartID,
-                UserID = cart.UserID,
-                ProductID = cart.ProductID,
-                CartQuantity = cart.CartQuantity.Value,
-                CartUnitPrice = cart.CartUnitPrice.Value,
-                CartTotalPrice = cart.CartTotalPrice.Value
-            };
+                CartID = x.CartID,
+                UserID = x.UserID,
+                ProductID = x.ProductID,
+                CartQuantity = x.CartQuantity.Value,
+                CartUnitPrice = x.CartUnitPrice.Value,
+                CartTotalPrice = x.CartTotalPrice.Value
+            }).ToList();
         }
     }
 }

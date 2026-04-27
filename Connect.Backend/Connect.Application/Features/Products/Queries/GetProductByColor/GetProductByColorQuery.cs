@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Products.Queries.GetProductByColor
 {
-    public sealed record GetProductByColorQuery:IRequest<ProductDto>
+    public sealed record GetProductByColorQuery:IRequest<IEnumerable<ProductDto>>
     {
         public string Color { get; init; }
     }

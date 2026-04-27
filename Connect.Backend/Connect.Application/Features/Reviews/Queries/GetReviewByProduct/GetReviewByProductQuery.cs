@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Reviews.Queries.GetReviewByProduct
 {
-    public sealed record GetReviewByProductQuery:IRequest<ReviewDto>
+    public sealed record GetReviewByProductQuery:IRequest<IEnumerable<ReviewDto>>
     {
         public int ProductID { get; init; }
     }

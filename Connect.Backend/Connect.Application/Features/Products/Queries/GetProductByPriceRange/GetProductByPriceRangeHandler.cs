@@ -1,23 +1,26 @@
 ﻿using Connect.Application.Commons.DTOs;
 using Connect.Application.Interfaces.Persistences;
+using Connect.Domain.Core.ValueObjects;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Connect.Application.Features.Products.Queries.GetProductByCategory
+namespace Connect.Application.Features.Products.Queries.GetProductByPriceRange
 {
-    internal sealed class GetProductByCategoryHandler : IRequestHandler<GetProductByCategoryQuery, IEnumerable<ProductDto>>
+    internal sealed class GetProductByPriceRangeHandler : IRequestHandler<GetProductByPriceRangeQuery, IEnumerable<ProductDto>>
     {
         private readonly IUnitOfWork unitOfWork;
-        public GetProductByCategoryHandler(IUnitOfWork _unitOfWork)
+        public GetProductByPriceRangeHandler(IUnitOfWork _unitOfWork)
         {
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<IEnumerable<ProductDto>> Handle(GetProductByCategoryQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ProductDto>> Handle(GetProductByPriceRangeQuery request, CancellationToken cancellationToken)
         {
-            var product = await unitOfWork.Products.WhereNoTrackingAsync(x => x.CategoryID == request.CategoryID, cancellationToken);
+            Currency fromPrice = Currency.Create(request.FromPrice);
+            Currency toPrice = Currency.Create(request.ToPrice);
+            var product = await unitOfWork.Products.WhereNoTrackingAsync(x => x.FinalPrice >= fromPrice  && x.FinalPrice <= toPrice , cancellationToken);
             if (product == null)
                 throw new Exception("Product not found");
 

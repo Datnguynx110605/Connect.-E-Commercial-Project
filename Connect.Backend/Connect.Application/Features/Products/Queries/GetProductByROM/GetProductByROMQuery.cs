@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Products.Queries.GetProductByROM
 {
-    public sealed record GetProductByROMQuery:IRequest<ProductDto>
+    public sealed record GetProductByROMQuery:IRequest<IEnumerable<ProductDto>>
     {
         public int Rom { get; init; }
     }

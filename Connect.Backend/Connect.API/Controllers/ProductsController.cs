@@ -5,6 +5,7 @@ using Connect.Application.Features.Products.Commands.UpdateProductStock;
 using Connect.Application.Features.Products.Queries.GetAllProducts;
 using Connect.Application.Features.Products.Queries.GetProductByCategory;
 using Connect.Application.Features.Products.Queries.GetProductByColor;
+using Connect.Application.Features.Products.Queries.GetProductByPriceRange;
 using Connect.Application.Features.Products.Queries.GetProductByRAM;
 using Connect.Application.Features.Products.Queries.GetProductByROM;
 using Connect.Application.Features.Products.Queries.GetProductDetail;
@@ -77,6 +78,16 @@ namespace Connect.API.Controllers
         public async Task<IActionResult> GetProductByColor(string color, CancellationToken cancellationToken)
         {
             var result = await Sender.Send(new GetProductByColorQuery { Color = color }, cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-product-pricerange")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetProductByPriceRange(decimal from, decimal to, CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new GetProductByPriceRangeQuery { FromPrice =from, ToPrice=to }, cancellationToken);
             return Ok(result);
         }
 

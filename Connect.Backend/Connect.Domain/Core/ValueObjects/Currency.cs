@@ -48,6 +48,16 @@ namespace Connect.Domain.Core.ValueObjects
             return new Currency(Math.Round(a.Value * b, 0));
         }
 
+        public static bool operator <=(Currency a, Currency b)
+        {
+            return a.Value <= b.Value;
+        }
+
+        public static bool operator >=(Currency a, Currency b)
+        {
+            return a.Value >= b.Value;
+        }
+
         public override string ToString() => Value.ToString("N0") + " VND";
     }
 }

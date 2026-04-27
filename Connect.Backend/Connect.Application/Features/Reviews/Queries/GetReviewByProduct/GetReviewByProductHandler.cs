@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Reviews.Queries.GetReviewByProduct
 {
-    internal sealed class GetReviewByProductHandler : IRequestHandler<GetReviewByProductQuery, ReviewDto>
+    internal sealed class GetReviewByProductHandler : IRequestHandler<GetReviewByProductQuery, IEnumerable<ReviewDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetReviewByProductHandler(IUnitOfWork _unitOfWork)
@@ -15,21 +15,21 @@ namespace Connect.Application.Features.Reviews.Queries.GetReviewByProduct
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<ReviewDto> Handle(GetReviewByProductQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ReviewDto>> Handle(GetReviewByProductQuery request, CancellationToken cancellationToken)
         {
-            var review = await unitOfWork.Reviews.FirstOrDefaultNoTrackingAsync(x => x.ProductID == request.ProductID, cancellationToken);
+            var review = await unitOfWork.Reviews.WhereNoTrackingAsync(x => x.ProductID == request.ProductID, cancellationToken);
             if (review == null)
                 throw new Exception("Review not found");
 
-            return new ReviewDto
+            return review.Select(x => new ReviewDto
             {
-                ReviewID = review.ReviewID,
-                UserID = review.UserID,
-                ProductID = review.ProductID,
-                Rating = review.Rating.Value,
-                Body = review.Body,
-                CreatedAt = review.CreatedAt
-            };
+                ReviewID = x.ReviewID,
+                UserID = x.UserID,
+                ProductID = x.ProductID,
+                Rating = x.Rating.Value,
+                Body = x.Body,
+                CreatedAt = x.CreatedAt
+            }).ToList();
         }
     }
 }
