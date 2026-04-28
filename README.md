@@ -43,6 +43,7 @@ The codebase enforces a strict no-anemic-model policy: every business rule lives
   - [Persistence & EF Core](#persistence--ef-core)
   - [Unit of Work & Repository](#unit-of-work--repository)
   - [Authentication — JWT](#authentication--jwt)
+  - [OAuth 2.0 — Google Sign-In](#oauth-20--google-sign-in)
   - [Password Hashing — BCrypt](#password-hashing--bcrypt)
   - [Email Delivery — MailKit & Hangfire](#email-delivery--mailkit--hangfire)
   - [Payment Gateway — VNPAY](#payment-gateway--vnpay)
@@ -54,6 +55,7 @@ The codebase enforces a strict no-anemic-model policy: every business rule lives
   - [API Endpoints Reference](#api-endpoints-reference)
 - [Key Flows](#key-flows)
   - [User Registration Flow](#user-registration-flow)
+  - [Google OAuth Flow](#google-oauth-flow)
   - [Order Placement Flow](#order-placement-flow)
   - [Order Cancellation Flow](#order-cancellation-flow)
   - [Payment Flow](#payment-flow)
@@ -95,7 +97,7 @@ Connect. is organized as a four-layer Clean Architecture backend paired with a R
 │   Connect.Domain    │               │  Connect.Infrastructure   │
 │  Entities · AggRoots│               │  EF Core · JWT · BCrypt   │
 │  Value Objects      │◄──────────────│  MailKit · VNPAY · Hangfire│
-│  Domain Events      │  references   │  SignalR · Redis · Services│
+│  Domain Events      │  references   │  SignalR · Redis · OAuth  │
 │  Business Rules     │               │                           │
 └─────────────────────┘               └───────────────────────────┘
 ```
@@ -108,7 +110,7 @@ Connect. is organized as a four-layer Clean Architecture backend paired with a R
 
 **`Connect.Application`** — Orchestrates the domain. Houses all CQRS commands and queries (via MediatR), FluentValidation validators, DTO definitions, and `interface` contracts for every external dependency. References `Connect.Domain` only.
 
-**`Connect.Infrastructure`** — Implements every interface defined in `Connect.Application`. Houses the EF Core `DbContext`, all entity configurations, the generic repository, Unit of Work, JWT token generation, BCrypt password hashing, MailKit SMTP delivery, Hangfire job scheduling, VNPAY gateway integration, ASP.NET Core Data Protection for email tokens, and SignalR with a Redis backplane for real-time notifications.
+**`Connect.Infrastructure`** — Implements every interface defined in `Connect.Application`. Houses the EF Core `DbContext`, all entity configurations, the generic repository, Unit of Work, JWT token generation, BCrypt password hashing, MailKit SMTP delivery, Hangfire job scheduling, VNPAY gateway integration, ASP.NET Core Data Protection for email tokens, SignalR with a Redis backplane for real-time notifications, and the `OAuthService` for Google Sign-In via the `OAuth2.Client` library.
 
 **`Connect.API`** — The entry point. Wires together the DI container, registers the middleware pipeline, configures Swagger/OpenAPI, sets up JWT Bearer authentication, and maps controllers. Contains no business logic.
 
@@ -171,15 +173,16 @@ Connect.sln
 │   │   │              { Queries:  GetAllReviews, GetReviewByProduct }
 │   │   └── Users/     { Commands: CheckEmail, VerifyEmail, RegisterUser, LoginUser,
 │   │                              RefreshToken, ForgetPassword, UpdateUserProfile,
-│   │                              UpdateUserPassword, DeleteUserProfile }
-│   │                  { Queries:  GetAllUsers, GetUserProfile }
+│   │                              UpdateUserPassword, DeleteUserProfile,
+│   │                              ProcessOAuthCallback }
+│   │                  { Queries:  GetAllUsers, GetUserProfile, GetSignInWithURL }
 │   ├── Interfaces/
 │   │   ├── Persistences/IRepository.cs, IUnitOfWork.cs
 │   │   └── Services/
 │   │       ├── ICurrentUserService.cs, IEmailService.cs
 │   │       ├── IEmailVerificationService.cs, IJWTService.cs
 │   │       ├── INotificationService.cs, IPasswordService.cs
-│   │       └── IPaymentGateway.cs
+│   │       ├── IPaymentGateway.cs, IOAuthService.cs
 │   └── DependencyInjection.cs
 │
 ├── Connect.Infrastructure/
@@ -193,6 +196,7 @@ Connect.sln
 │   │   ├── EmailVerificationService.cs
 │   │   ├── JWTService.cs
 │   │   ├── NotificationService.cs    # SignalR push to admin/user groups
+│   │   ├── OAuthService.cs           # Google OAuth via OAuth2.Client
 │   │   ├── PasswordService.cs
 │   │   └── PaymentGateway.cs
 │   ├── Settings/JWTSetting.cs, EmailSetting.cs
@@ -250,7 +254,7 @@ The frontend is a single-page application built with React 19, TypeScript 5.8, V
 | `/checkout` | `Checkout` | Yes | Shipping/payment/coupon selection + order submission |
 | `/checkout-success` | `CheckoutSuccess` | Yes | Post-order confirmation screen |
 | `/orders` | `MyOrders` | Yes | Order history with inline cancellation |
-| `/auth` | `Auth` | No | Login + 3-step email-verified registration |
+| `/auth` | `Auth` | No | Login + 3-step email-verified registration + Google Sign-In |
 | `/verify-email` | `Auth` | No | Landing point for email verification link |
 | `/profile` | `Profile` | Yes | Profile editing, password change, account deletion |
 
@@ -267,18 +271,22 @@ All API communication is handled through a typed client in `src/api/`. Every res
 
 ```typescript
 // Example usage
-import { getAllProducts, addToCart, login } from '../api';
+import { getAllProducts, addToCart, login, getGoogleAuthUrl } from '../api';
 
 const products = await getAllProducts();        // anonymous
 const cart    = await addToCart({ productID: 1, quantity: 1, userID }); // authenticated
 const { user, tokens } = await login({ email, password });
+
+// OAuth — redirects the browser to Google's consent screen
+const authUrl = await getGoogleAuthUrl();
+window.location.href = authUrl;
 ```
 
 **Resource modules:**
 
 | Module | Key exports |
 |---|---|
-| `users.ts` | `checkEmail`, `verifyEmail`, `register`, `login`, `refreshToken`, `forgetPassword`, `getProfile`, `updateProfile`, `changePassword`, `deleteProfile`, `logout` |
+| `users.ts` | `checkEmail`, `verifyEmail`, `register`, `login`, `refreshToken`, `forgetPassword`, `getProfile`, `updateProfile`, `changePassword`, `deleteProfile`, `logout`, `getGoogleAuthUrl` |
 | `products.ts` | `getAllProducts`, `getProductById`, `createProduct`, `updateProductStock`, `updateProductImage`, `deleteProduct` |
 | `categories.ts` | `getAllCategories`, `getCategoryById`, `createCategory`, `updateCategory`, `deleteCategory` |
 | `coupons.ts` | `getAllCoupons`, `getCouponById`, `createCoupon`, `updateCouponExpiryDate`, `updateCouponQuantity` |
@@ -346,6 +354,7 @@ The central identity entity. Owns the registration event, profile data, and all 
 
 **Key behaviors:**
 - `CreateUserProfile(...)` — static factory. Validates address is non-empty, then constructs and immediately raises `UserRegisterEvent`. The UserID in the event will be `0` at raise-time because EF Core has not yet assigned a database ID — this is a known nuance; the event handler re-fetches the user by email.
+- `CreateOAuthUserProfile(UserName, Email, string providerName)` — static factory for OAuth-registered users. Skips password, phone number, and address requirements. Sets `OAuthProviderName` and leaves `PasswordHash` null — OAuth users cannot use the email/password login flow.
 - `UpdateUserProfile(...)` — validates address before updating all fields atomically.
 - `UpdateUserPassword(PasswordHash pass)` — guards against setting the same password by comparing `PasswordHash` records directly (record equality on the value).
 
@@ -510,6 +519,7 @@ These rules are enforced at the domain level and cannot be bypassed by the appli
 | Revoked tokens cannot be used | `RefreshToken.VerifyRefreshToken` |
 | Coupon expiry date cannot be set to the past | `Coupon.UpdateCouponExpiryDate` |
 | Product description must be 50–2,000 chars | `Product.CreateProduct` |
+| OAuth users cannot register with an already-used email | `ProcessOAuthCallbackHandler` |
 
 ---
 
@@ -554,6 +564,7 @@ Each feature follows an identical structure: `Command.cs` / `CommandValidation.c
 | `IEmailService` | Send transactional HTML emails |
 | `IPaymentGateway` | Create payment URL and parse VNPAY callback |
 | `INotificationService` | Push real-time notifications via SignalR |
+| `IOAuthService` | Obtain the Google authorization URL and parse the OAuth callback into a `UserDto` |
 
 ---
 
@@ -567,7 +578,7 @@ Each feature follows an identical structure: `Command.cs` / `CommandValidation.c
 
 | Entity | Notable Config |
 |---|---|
-| `User` | Unique index on `Email`. Cascade delete to RefreshTokens, Carts, Reviews. Restrict delete from Orders. |
+| `User` | Unique index on `Email`. Cascade delete to RefreshTokens, Carts, Reviews. Restrict delete from Orders. `OAuthProviderName` is nullable — null for email/password users. |
 | `Order` | `CouponID` is nullable FK with `SetNull` on delete. Cascade delete to `OrderItems`. |
 | `OrderItem` | Composite PK on `(OrderID, ProductID)`. `OrderItemTotalPrice` is `Ignored`. |
 | `Product` | `ImageURL` stored as `\|\|`-delimited string. |
@@ -597,11 +608,58 @@ Events are cleared before saving to prevent re-entrant dispatch.
 
 `JWTService.GenerateAccessToken(User user)` produces a signed HS256 JWT with claims `sub` (UserID), `email`, `role`, and `jti`. Tokens expire in **10 minutes**. Refresh token rotation handles session continuity with a 7-day window.
 
+JWT tokens are issued to OAuth users on the same path as email/password users — after `ProcessOAuthCallbackHandler` saves the new user, it calls `jwtService.GenerateAccessToken(user)` and creates a refresh token, returning `RefreshTokenDto` like any other login.
+
+---
+
+### OAuth 2.0 — Google Sign-In
+
+`OAuthService` wraps the `OAuth2.Client` NuGet library to implement the Authorization Code flow against Google's OAuth 2.0 endpoints.
+
+**Flow:**
+
+1. **`GetGoogleLoginLink()`** — delegates to `IClient.GetLoginLinkUriAsync()`, which constructs the Google authorization URL with the configured `ClientId`, `ClientSecret`, `RedirectUri`, and `scope` (`email`, `profile`). The URL is returned to the API controller, which issues a `302 Redirect` to the browser.
+2. **`ParseCallBack(HttpRequest)`** — extracts the `code` query parameter from the Google redirect, exchanges it for an access token via `IClient.GetUserInfoAsync(...)`, and maps the result to a `UserDto` containing `Email`, `UserName` (derived from the email local-part, letters only, lowercased), and `OAuthProviderName`.
+
+**Handler — `ProcessOAuthCallbackHandler`:**
+
+- Checks that the email returned by Google does not already exist in the database. If it does, the handler throws `Exception("Email already exists")` — existing users must sign in via email/password or link their account manually (future work).
+- Calls `User.CreateOAuthUserProfile(userName, email, providerName)` — this static factory creates a user without a password hash.
+- Persists the user, generates a refresh token, issues a JWT, and returns `RefreshTokenDto`.
+- The API controller redirects the browser to `http://localhost:3000/home` after successful authentication. The frontend is responsible for reading the tokens from the redirect or a cookie (wiring is future work — see [Known Limitations](#known-limitations--future-work)).
+
+**`IOAuthService` interface:**
+
+```csharp
+public interface IOAuthService
+{
+    Task<string> GetGoogleLoginLink();
+    Task<UserDto> ParseCallBack(HttpRequest request);
+}
+```
+
+**Configuration** (see [Configuration Reference](#configuration-reference) for full keys):
+
+```json
+"OAuth": {
+  "Google": {
+    "ClientId":     "your-google-client-id",
+    "ClientSecret": "your-google-client-secret",
+    "RedirectUri":  "https://localhost:7240/api/users/oauth-callback",
+    "Scope":        "email profile"
+  }
+}
+```
+
+> **Google Cloud Console setup:** Create an OAuth 2.0 Client ID of type *Web application*. Add `https://localhost:7240/api/users/oauth-callback` as an authorized redirect URI. Download the credentials and copy `ClientId` and `ClientSecret` into user secrets.
+
 ---
 
 ### Password Hashing — BCrypt
 
 `PasswordService` wraps `BCrypt.Net-Next` with work factor **12** (~250ms per hash). The `PasswordHash` value object validates BCrypt format, preventing raw passwords from being accidentally stored.
+
+OAuth-registered users have no `PasswordHash`. Any attempt to call `UpdateUserPassword` for an OAuth user should be guarded at the application layer (future work).
 
 ---
 
@@ -730,7 +788,7 @@ JWT Bearer authentication validates issuer, audience, lifetime, and HS256 signin
 
 | Role | Assigned | Access |
 |---|---|---|
-| `Customer` | Default on registration | Own cart, orders, reviews, profile |
+| `Customer` | Default on registration (email or OAuth) | Own cart, orders, reviews, profile |
 | `Admin` | Manual DB assignment | All admin endpoints + SignalR `admins` group |
 
 ---
@@ -747,6 +805,8 @@ JWT Bearer authentication validates issuer, audience, lifetime, and HS256 signin
 | `POST` | `/login` | Anonymous | Returns `{ accessToken, refreshToken }` |
 | `POST` | `/refresh-token` | — | Rotates refresh token pair |
 | `POST` | `/forget-passwod` | Anonymous | Resets password via session token *(note: typo in route)* |
+| `GET` | `/get-oauthauthurl` | Anonymous | Returns a redirect to Google's OAuth consent screen |
+| `GET` | `/oauth-callback` | Anonymous | Handles the Google redirect; creates or authenticates the user; redirects to frontend |
 | `GET` | `/` | Admin | Lists all users |
 | `GET` | `/profile` | Authenticated | Gets own profile |
 | `PUT` | `/profile` | Authenticated | Updates own profile |
@@ -857,6 +917,34 @@ Client                    API                   Services               DB
   │                        │   └── dispatch UserRegisterEvent           │
   │                        │       └── Hangfire.Enqueue(SendWelcomeEmail)►
   │◄─ 201 UserDto ─────────┤                        │                   │
+```
+
+### Google OAuth Flow
+
+```
+Client (Browser)        API                   OAuthService         Google
+  │                      │                        │                    │
+  ├─ GET /get-oauthauthurl ►│                      │                    │
+  │                      ├── GetSignInWithURLQuery ►                    │
+  │                      │                        ├─ GetLoginLinkUriAsync()
+  │                      │◄─ Google Auth URL ──────┤                    │
+  │◄─ 302 Redirect ───────┤                        │                    │
+  │                                                                      │
+  ├─ [User logs in & consents] ──────────────────────────────────────────►
+  │                                                                      │
+  │◄─ 302 Redirect to /oauth-callback?code=... ──────────────────────────┤
+  │                      │                        │                    │
+  ├─ GET /oauth-callback ─►│                      │                    │
+  │                      ├── ProcessOAuthCallbackCommand               │
+  │                      │                        ├─ GetUserInfoAsync(code)
+  │                      │                        │  (exchange code → token → user info)
+  │                      │◄─ UserDto { Email, UserName, Provider } ────┤
+  │                      ├── AnyAsync(email) [duplicate check] ─────────►
+  │                      ├── User.CreateOAuthUserProfile(...)          │
+  │                      ├── SaveChangesAsync() ────────────────────────►
+  │                      ├── RefreshToken.CreateRefreshToken(userID)   │
+  │                      ├── GenerateAccessToken(user)                 │
+  │◄─ 302 Redirect to http://localhost:3000/home ─┤                   │
 ```
 
 ### Order Placement Flow
@@ -982,10 +1070,10 @@ Hangfire Worker
 │ PasswordHash│  │    │ IsRevoked       │       │ OrderTotalItems
 │ Address     │  │    └─────────────────┘       │ ShippingMethod
 │ Role        │  │                              │ PaymentMethod
-│ CreatedAt   │  │    ┌─────────────────┐       │ PaymentStatus │
-└─────────────┘  │    │     Carts       │       │ OrderStatus  │
-                 ├───►│─────────────────│       │ CreatedAt    │
-                 │    │ CartID PK       │       └──────────────┘
+│OAuthProvider│  │    ┌─────────────────┐       │ PaymentStatus │
+│ CreatedAt   │  │    │     Carts       │       │ OrderStatus  │
+└─────────────┘  │    │─────────────────│       │ CreatedAt    │
+                 ├───►│ CartID PK       │       └──────────────┘
                  │    │ UserID FK       │               │
                  │    │ ProductID FK    │               │ 1:N
                  │    │ CartQuantity    │               ▼
@@ -1024,6 +1112,8 @@ Hangfire Worker
                                                  │ CreatedAt    │
                                                  └──────────────┘
 ```
+
+> **Schema note:** `Users.OAuthProviderName` is a nullable `varchar` column. It is `null` for email/password accounts and set to the provider name (e.g., `"Google"`) for OAuth accounts. `Users.PasswordHash` is nullable for OAuth users.
 
 ---
 
@@ -1083,6 +1173,10 @@ Log level overrides suppress noisy framework logs (`Microsoft.*`, `System.Net.Ht
 | `VNPAY` | `BaseUrl` | sandbox URL | VNPAY payment page |
 | `VNPAY` | `Version` | `2.1.0` | API version |
 | `VNPAY` | `OrderType` | `other` | Order type classification |
+| `OAuth:Google` | `ClientId` | — | Google OAuth 2.0 client ID |
+| `OAuth:Google` | `ClientSecret` | — | Google OAuth 2.0 client secret |
+| `OAuth:Google` | `RedirectUri` | — | Must match the URI registered in Google Cloud Console |
+| `OAuth:Google` | `Scope` | `email profile` | OAuth scopes requested from Google |
 
 ---
 
@@ -1099,6 +1193,7 @@ Log level overrides suppress noisy framework logs (`Microsoft.*`, `System.Net.Ht
 | [Seq](https://datalust.co/seq) | Latest | Optional — structured log viewer |
 | VNPAY Sandbox Account | — | Optional — payment testing only |
 | Gmail App Password | — | Optional — email testing only |
+| Google Cloud Project | — | Optional — OAuth sign-in only |
 
 ### 1. Clone the Repository
 
@@ -1120,7 +1215,18 @@ dotnet user-secrets set "Email:Password" "your-16-char-app-password"
 dotnet user-secrets set "VNPAY:TmnCode"    "your-tmn-code"
 dotnet user-secrets set "VNPAY:HashSecret" "your-hash-secret"
 dotnet user-secrets set "VNPAY:CallbackUrl" "https://localhost:7240/api/payments/vnpay-callback"
+
+# Optional — Google OAuth
+dotnet user-secrets set "OAuth:Google:ClientId"     "your-google-client-id"
+dotnet user-secrets set "OAuth:Google:ClientSecret" "your-google-client-secret"
+dotnet user-secrets set "OAuth:Google:RedirectUri"  "https://localhost:7240/api/users/oauth-callback"
 ```
+
+> **Google Cloud Console setup:**
+> 1. Go to [console.cloud.google.com](https://console.cloud.google.com) → *APIs & Services* → *Credentials*.
+> 2. Create an **OAuth 2.0 Client ID** of type *Web application*.
+> 3. Add `https://localhost:7240/api/users/oauth-callback` as an **Authorized redirect URI**.
+> 4. Copy the generated **Client ID** and **Client Secret** into user secrets as shown above.
 
 ### 3. Apply Database Migrations
 
@@ -1211,6 +1317,10 @@ Background jobs decouple side effects from business transactions. If the SMTP se
 
 ~250ms per hash makes brute-force attacks impractical even with a leaked database, while being imperceptible to users at login frequency.
 
+### Why OAuth 2.0 Authorization Code flow for Google Sign-In?
+
+The Authorization Code flow keeps the client secret server-side and never exposes access tokens to the browser. `OAuthService` exchanges the authorization code for user info in one server-to-server call, then issues a Connect. JWT — the frontend only ever sees the app's own tokens, not Google's. This also keeps the auth model uniform: every user, regardless of how they signed up, is identified by the same JWT/refresh token pair.
+
 ---
 
 ## Known Limitations & Future Work
@@ -1223,6 +1333,12 @@ Background jobs decouple side effects from business transactions. If the SMTP se
 
 **Missing — `ValidationException` → 400 mapping:**
 `ExceptionMiddleware` currently returns `500` for all unhandled exceptions. `FluentValidation.ValidationException` should map to `400`, `DomainExceptions` to `422`, and `UnauthorizedAccessException` to `403`.
+
+**Missing — OAuth token delivery to frontend:**
+`GoogleCallBack` redirects to `http://localhost:3000/home` after authentication but does not yet pass the JWT/refresh token pair to the frontend. Options include a short-lived query parameter, a `Set-Cookie` header, or a one-time code exchanged at a dedicated frontend endpoint. Until this is wired, OAuth sign-in completes on the backend but the frontend session is not established.
+
+**Missing — OAuth account linking:**
+If a user who registered via email/password later tries to sign in with the same Google email, `ProcessOAuthCallbackHandler` throws `"Email already exists"`. An account-linking flow (verify ownership of the existing account, then attach the OAuth provider) would resolve this.
 
 **Missing — SignalR client integration in the frontend:**
 `NotificationHub` is fully implemented on the backend. The React frontend does not yet include a SignalR connection or notification UI. Wiring `@microsoft/signalr` into `AppContext` and rendering a toast/badge for admin users is the natural next step.
@@ -1245,11 +1361,14 @@ Promoting a user to `Admin` requires a direct database update. A `POST /api/user
 **Improvement — `OrderStatus.Processing`:**
 The enum value exists but no transition implements it. Inserting `Processing` between `Pending` and `Shipping` would provide more granular order tracking.
 
+**Improvement — OAuth user password guard:**
+`UpdateUserPassword` should throw or return a domain error when called on a user whose `PasswordHash` is null (i.e., an OAuth-only account).
+
 ---
 
 ## Author
 
-**datnguynx110605** — Built as a portfolio-grade reference implementation of full-stack Clean Architecture, Domain-Driven Design, CQRS, and real-time notifications in .NET 10 + React 19.
+**datnguynx110605** — Built as a portfolio-grade reference implementation of full-stack Clean Architecture, Domain-Driven Design, CQRS, real-time notifications, and OAuth 2.0 social sign-in in .NET 10 + React 19.
 
 ---
 
