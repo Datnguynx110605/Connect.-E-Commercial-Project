@@ -67,6 +67,8 @@ namespace Connect.Domain.Core.Entities
                 OAuthProviderName = provider,
             };
 
+            user.RaiseDomainEvent(new UserRegisterEvent(user.UserID, user.UserName, user.Email));
+
             return user;
         }
 
