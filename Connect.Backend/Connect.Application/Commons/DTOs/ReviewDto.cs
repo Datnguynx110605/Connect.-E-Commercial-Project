@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Connect.Application.Commons.DTOs
 {
-    public record ReviewDto
+    public sealed record ReviewDto
     {
         public int ReviewID { get; init; }
         public int UserID { get; init; }

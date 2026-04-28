@@ -15,5 +15,4 @@ namespace Connect.Application.Features.Users.Commands.RegisterUser
         public string Password { get; init; }
         public string Address { get; init; }
     }
-    public sealed record RegisterUserResponse(string AccessToken, string RefreshToken);
 }

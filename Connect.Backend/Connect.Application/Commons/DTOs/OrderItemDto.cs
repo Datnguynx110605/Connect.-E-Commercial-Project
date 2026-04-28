@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Connect.Application.Commons.DTOs
 {
-    public record OrderItemDto
+    public sealed record OrderItemDto
     {
         public int ProductID { get; init; }
         public decimal UnitPrice { get; init; }

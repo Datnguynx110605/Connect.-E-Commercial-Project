@@ -40,30 +40,35 @@ namespace Connect.Infrastructure.Data.Configurations
 
             builder.Property(u => u.PhoneNumber)
                 .HasConversion(
-                    v => v.Value,
-                    v => PhoneNumber.Create(v))
+                    v => v == null ? null : v.Value,
+                    v => v == null ? null : PhoneNumber.Create(v))
                 .HasColumnName("PhoneNumber")
                 .HasMaxLength(10)
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(u => u.PasswordHash)
                 .HasConversion(
-                    v => v.Value,
-                    v => PasswordHash.Create(v))
+                    v => v == null ? null : v.Value,
+                    v => v == null ? null : PasswordHash.Create(v))
                 .HasColumnName("PasswordHash")
                 .HasMaxLength(60)
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(u => u.Address)
                 .HasColumnName("Address")
                 .HasMaxLength(300)
-                .IsRequired();
+                .IsRequired(false);
 
             builder.Property(u => u.Role)
                 .HasColumnName("Role")
                 .HasMaxLength(20)
                 .IsRequired()
                 .HasDefaultValue("Customer");
+
+            builder.Property(u => u.OAuthProviderName)
+                .HasColumnName("OAuthProviderName")
+                .HasMaxLength(50)
+                .IsRequired(false);
 
             builder.Property(u => u.CreatedAt)
                 .HasColumnName("CreatedAt")

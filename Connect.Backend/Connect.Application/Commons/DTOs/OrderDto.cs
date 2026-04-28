@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Commons.DTOs
 {
-    public record OrderDto
+    public sealed record OrderDto
     {
         public int OrderID { get; init; }
         public int UserID { get; init; }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Connect.Application.Commons.DTOs
 {
-    public record RefreshTokenDto
+    public sealed record RefreshTokenDto
     {
         public string AccessToken { get; init; }
         public string RefreshToken { get; init; }

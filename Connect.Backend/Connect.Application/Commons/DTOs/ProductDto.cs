@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Connect.Application.Commons.DTOs
 {
-    public record ProductDto
+    public sealed record ProductDto
     {
         public int ProductID { get; init; }
         public int CategoryID { get; init; }

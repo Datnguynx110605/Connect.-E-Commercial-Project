@@ -34,18 +34,18 @@ namespace Connect.Application.Features.Users.Commands.RegisterUser
             PasswordHash passwordHashed = PasswordHash.Create(hashedPassword);
             string address = request.Address;
 
-            User user = User.CreateUserProfile(name, email, phone, passwordHashed, address);
+            User user = User.CreateUserProfile(name, email, phone, passwordHashed, address, null);
 
             await unitOfWork.Users.AddAsync(user, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new UserDto
             {
-                UserID=user.UserID,
                 UserName = user.UserName.Value,
                 Email = user.Email.Value,
                 PhoneNumber = user.PhoneNumber.Value,
                 Address=user.Address,
+                OAuthProviderName=null,
                 CreatedAt=user.CreatedAt
             };
         }

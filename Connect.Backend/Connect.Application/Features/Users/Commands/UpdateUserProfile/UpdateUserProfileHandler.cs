@@ -37,11 +37,11 @@ namespace Connect.Application.Features.Users.Commands.UpdateUserProfile
 
             return new UserDto
             {
-                UserID = identity.UserID,
                 UserName = identity.UserName.Value,
                 Email = identity.Email.Value,
                 PhoneNumber = identity.PhoneNumber.Value,
                 Address = identity.Address,
+                OAuthProviderName=null,
                 CreatedAt = identity.CreatedAt
             };
         }

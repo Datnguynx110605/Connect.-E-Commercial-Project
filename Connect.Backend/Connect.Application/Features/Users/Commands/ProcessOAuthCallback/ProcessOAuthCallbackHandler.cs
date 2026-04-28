@@ -31,10 +31,8 @@ namespace Connect.Application.Features.Users.Commands.ProcessOAuthCallback
                 throw new Exception("Email already exists");
 
             UserName userName = UserName.Create(result.UserName);
-            PhoneNumber phone = PhoneNumber.Create("None");
-            PasswordHash passwordHash = PasswordHash.Create("None");
 
-            User user = User.CreateUserProfile(userName, email, phone, passwordHash, "None");
+            User user = User.CreateOAuthUserProfile(userName, email, result.OAuthProviderName);
 
             await unitOfWork.BeginTransactionAsync(cancellationToken);
             await unitOfWork.Users.AddAsync(user, cancellationToken);

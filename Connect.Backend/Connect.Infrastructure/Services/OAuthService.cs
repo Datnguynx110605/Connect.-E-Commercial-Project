@@ -36,7 +36,8 @@ namespace Connect.Infrastructure.Services
             return new UserDto
             {
                 UserName = result.Email!.Split('@')[0].ToLower().Replace(".", ""),
-                Email = result.Email
+                Email = result.Email,
+                OAuthProviderName=result.ProviderName
             };
         }
     }

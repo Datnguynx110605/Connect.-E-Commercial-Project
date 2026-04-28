@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Connect.Application.Commons.DTOs
 {
-    public record CouponDto
+    public sealed record CouponDto
     {
         public int CouponID { get; init; }
         public string CouponCode { get; init; }

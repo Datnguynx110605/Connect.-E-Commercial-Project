@@ -408,7 +408,6 @@ namespace Connect.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)")
                         .HasColumnName("Address");
@@ -423,14 +422,17 @@ namespace Connect.Infrastructure.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("Email");
 
+                    b.Property<string>("OAuthProviderName")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("OAuthProviderName");
+
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)")
                         .HasColumnName("PasswordHash");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)")
                         .HasColumnName("PhoneNumber");
