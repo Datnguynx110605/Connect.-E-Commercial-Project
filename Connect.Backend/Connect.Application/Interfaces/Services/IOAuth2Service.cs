@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Connect.Application.Interfaces.Services
 {
-    public interface IOAuthService
+    public interface IOAuth2Service
     {
         Task<string> GetGoogleLoginLink();
         Task<UserDto> ParseCallBack(HttpRequest request);

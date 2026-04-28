@@ -10,10 +10,10 @@ using System.Text;
 
 namespace Connect.Infrastructure.Services
 {
-    public sealed class OAuthService : IOAuthService
+    public sealed class OAuth2Service : IOAuth2Service
     {
         private readonly IClient client;
-        public OAuthService(IClient _client)
+        public OAuth2Service(IClient _client)
         {
             client = _client;
         }

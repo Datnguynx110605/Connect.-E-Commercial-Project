@@ -98,7 +98,7 @@ namespace Connect.Infrastructure
             });
 
             services.AddSingleton<IClient, GoogleClient>();
-            services.AddScoped<IOAuthService, OAuthService>();
+            services.AddScoped<IOAuth2Service, OAuth2Service>();
 
             return services;
         }

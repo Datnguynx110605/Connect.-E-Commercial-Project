@@ -9,8 +9,8 @@ namespace Connect.Application.Features.Users.Queries.GetSignInWithURL
 {
     internal sealed class GetSignInLinkWithURLHandler : IRequestHandler<GetSignInWithURLQuery, string>
     {
-        private readonly IOAuthService oAuthService;
-        public GetSignInLinkWithURLHandler(IOAuthService _oAuthService)
+        private readonly IOAuth2Service oAuthService;
+        public GetSignInLinkWithURLHandler(IOAuth2Service _oAuthService)
         {
             oAuthService = _oAuthService;
         }

@@ -25,8 +25,8 @@ namespace Connect.API.Controllers
     [ApiController]
     public sealed class UsersController : APIController
     {
-        private readonly IOAuthService oAuthService;
-        public UsersController(ISender sender, IOAuthService _oAuthService) : base(sender) 
+        private readonly IOAuth2Service oAuthService;
+        public UsersController(ISender sender, IOAuth2Service _oAuthService) : base(sender) 
         {
             oAuthService = _oAuthService;
         }

@@ -15,8 +15,8 @@ namespace Connect.Application.Features.Users.Commands.ProcessOAuthCallback
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IJWTService jwtService;
-        private readonly IOAuthService oAuthService;
-        public ProcessOAuthCallbackHandler(IUnitOfWork _unitOfWork, IJWTService _jwtService, IOAuthService _oAuthService)
+        private readonly IOAuth2Service oAuthService;
+        public ProcessOAuthCallbackHandler(IUnitOfWork _unitOfWork, IJWTService _jwtService, IOAuth2Service _oAuthService)
         {
             unitOfWork = _unitOfWork;
             jwtService = _jwtService;
