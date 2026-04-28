@@ -1,4 +1,5 @@
 ﻿using Connect.Application.Interfaces.Persistences;
+using Connect.Application.Interfaces.Services;
 using Connect.Domain.Core.Entities;
 using Connect.Domain.Core.ValueObjects;
 using FluentResults;
@@ -12,14 +13,18 @@ namespace Connect.Application.Features.Payments.Commands.ProcessPaymentCallback
     internal sealed class ProcessPaymentCallbackHandler : IRequestHandler<ProcessPaymentCallbackCommand, Result>
     {
         private readonly IUnitOfWork unitOfWork;
-        public ProcessPaymentCallbackHandler(IUnitOfWork _unitOfWork)
+        private readonly IPaymentGateway paymentGateway;
+        public ProcessPaymentCallbackHandler(IUnitOfWork _unitOfWork, IPaymentGateway _paymentGateway)
         {
             unitOfWork = _unitOfWork;
+            paymentGateway = _paymentGateway;
         }
 
         public async Task<Result> Handle(ProcessPaymentCallbackCommand request, CancellationToken cancellationToken)
         {
-            var transaction = await unitOfWork.Payments.AnyAsync(x => x.PaymentID == request.PaymentID, cancellationToken);
+            var result = paymentGateway.ParseCallback(request.HttpRequest);
+
+            var transaction = await unitOfWork.Payments.AnyAsync(x => x.PaymentID == result.PaymentID, cancellationToken);
             if (transaction)
                 return Result.Ok();
 
@@ -29,7 +34,7 @@ namespace Connect.Application.Features.Payments.Commands.ProcessPaymentCallback
 
             Currency totalAmount = Currency.Create(order.OrderFinalPrice.Value);
 
-            Payment payment = Payment.CreatePayment(request.PaymentID, order.OrderID, request.PaymentType, request.TransactionID, request.BankingInfo, totalAmount, request.IsPaidSuccess, request.PaidAt);
+            Payment payment = Payment.CreatePayment(result.PaymentID, order.OrderID, result.PaymentType, result.TransactionID, result.BankingInfo, totalAmount, result.IsPaidSuccess, result.PaidAt);
 
             await unitOfWork.BeginTransactionAsync(cancellationToken);
             await unitOfWork.Payments.AddAsync(payment, cancellationToken);

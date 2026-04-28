@@ -54,27 +54,15 @@ namespace Connect.API.Controllers
         [ApiExplorerSettings(IgnoreApi = false)] 
         [ProducesResponseType(StatusCodes.Status302Found)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> VnPayCallback(CancellationToken ct)
+        public async Task<IActionResult> VnPayCallback(CancellationToken cancellationToken)
         {
 
             try
             {
-                var callbackResult = paymentGateway.ParseCallback(Request);
+                var command = new ProcessPaymentCallbackCommand { HttpRequest = Request };
+                var result = await Sender.Send(command, cancellationToken);
 
-                var command = new ProcessPaymentCallbackCommand
-                {
-                    PaymentID=callbackResult.PaymentID,
-                    OrderID=callbackResult.OrderID,
-                    PaymentType=callbackResult.PaymentType,
-                    TransactionID=callbackResult.TransactionID,
-                    BankingInfo=callbackResult.BankingInfo,
-                    IsPaidSuccess=callbackResult.IsPaidSuccess,
-                    PaidAt=callbackResult.PaidAt
-                };
-
-                await Sender.Send(command, ct);
-
-                return Redirect($"/payment/success?orderId={callbackResult.OrderID}");
+                return Redirect("http://localhost:3000/myorder");
             }
             catch (VnpayException ex)
             {

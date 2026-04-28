@@ -1,0 +1,23 @@
+﻿using Connect.Application.Interfaces.Services;
+using FluentResults;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Connect.Application.Features.Users.Queries.GetSignInWithURL
+{
+    internal sealed class GetSignInLinkWithURLHandler : IRequestHandler<GetSignInWithURLQuery, string>
+    {
+        private readonly IOAuthService oAuthService;
+        public GetSignInLinkWithURLHandler(IOAuthService _oAuthService)
+        {
+            oAuthService = _oAuthService;
+        }
+
+        public async Task<string> Handle(GetSignInWithURLQuery request, CancellationToken cancellationToken)
+        {
+            return await oAuthService.GetGoogleLoginLink();
+        }
+    }
+}

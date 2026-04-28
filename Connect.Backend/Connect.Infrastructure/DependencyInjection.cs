@@ -8,6 +8,10 @@ using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OAuth2.Client;
+using OAuth2.Client.Impl;
+using OAuth2.Configuration;
+using OAuth2.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -77,6 +81,22 @@ namespace Connect.Infrastructure
 
             services.AddSignalR().AddStackExchangeRedis("localhost:6379");
             services.AddScoped<INotificationService, NotificationService>();
+
+            var googleauthSection = configuration.GetSection("GoogleOAuth2");
+            services.AddSingleton<IRequestFactory, RequestFactory>();
+
+            services.AddSingleton<IClientConfiguration>(new ClientConfiguration
+            {
+                ClientId = googleauthSection["ClientId"]!,
+                ClientSecret = googleauthSection["ClientSecret"]!,
+                RedirectUri = googleauthSection["RedirectUri"]!,   
+                Scope = googleauthSection["Scope"],
+                ClientTypeName = "Google",
+                IsEnabled = true
+            });
+
+            services.AddSingleton<IClient, GoogleClient>();
+            services.AddScoped<IOAuthService, OAuthService>();
 
             return services;
         }
