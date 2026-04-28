@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Connect.Infrastructure.Migrations
 {
     [DbContext(typeof(ConnectDbContext))]
-    [Migration("20260428101053_ConnectDatabase")]
-    partial class ConnectDatabase
+    [Migration("20260428131349_ConnectDatabaseSystem")]
+    partial class ConnectDatabaseSystem
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
