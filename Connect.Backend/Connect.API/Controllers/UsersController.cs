@@ -111,7 +111,7 @@ namespace Connect.API.Controllers
         {
             var command = new ProcessOAuthCallbackCommand { HttpRequest = Request };
             var result = await Sender.Send(command, cancellationToken);
-            return Redirect("/home");
+            return Redirect("http://localhost:3000/home");
         }
 
         [HttpPost("refresh-token")]
