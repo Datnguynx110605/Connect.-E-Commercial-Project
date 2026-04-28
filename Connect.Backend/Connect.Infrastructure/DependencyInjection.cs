@@ -83,14 +83,16 @@ namespace Connect.Infrastructure
             services.AddScoped<INotificationService, NotificationService>();
 
             var googleauthSection = configuration.GetSection("GoogleOAuth2");
+            var scopesArray = googleauthSection.GetSection("scopes").Get<string[]>();
+            var scopesString = scopesArray != null ? string.Join(" ", scopesArray) : "openid profile email";
             services.AddSingleton<IRequestFactory, RequestFactory>();
 
             services.AddSingleton<IClientConfiguration>(new ClientConfiguration
             {
-                ClientId = googleauthSection["ClientId"]!,
-                ClientSecret = googleauthSection["ClientSecret"]!,
-                RedirectUri = googleauthSection["RedirectUri"]!,   
-                Scope = googleauthSection["Scope"],
+                ClientId = googleauthSection["client_id"]!,
+                ClientSecret = googleauthSection["client_secret"]!,
+                RedirectUri = googleauthSection.GetSection("redirect_uris").Get<string[]>()?[0] ?? "",
+                Scope = scopesString,
                 ClientTypeName = "Google",
                 IsEnabled = true
             });

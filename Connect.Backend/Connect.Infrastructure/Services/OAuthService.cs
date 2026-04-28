@@ -30,15 +30,22 @@ namespace Connect.Infrastructure.Services
                 throw new InvalidOperationException("Missing authorization code.");
 
             var parameters= new NameValueCollection { { "code", code } };
-
-            var result = await client.GetUserInfoAsync(parameters);
-
-            return new UserDto
+            try
             {
-                UserName = result.Email!.Split('@')[0].ToLower().Replace(".", ""),
-                Email = result.Email,
-                OAuthProviderName=result.ProviderName
-            };
+                var result = await client.GetUserInfoAsync(parameters);
+
+                return new UserDto
+                {
+                    UserName = new string(result.Email!.Split('@')[0].ToLower().Where(c => char.IsLetter(c)).ToArray()),
+                    Email = result.Email,
+                    OAuthProviderName = result.ProviderName
+                };
+            }
+            catch (UnexpectedResponseException ex)
+            {
+                var errorDetail = ex.Response?.Content ?? ex.Message;
+                throw new Exception($"OAuth Error: {errorDetail}");
+            }
         }
     }
 }

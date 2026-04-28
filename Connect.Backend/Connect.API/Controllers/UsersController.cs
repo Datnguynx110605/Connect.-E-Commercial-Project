@@ -87,7 +87,7 @@ namespace Connect.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("get-googleauthurl")]
+        [HttpGet("get-oauthauthurl")]
         [EnableRateLimiting("LoginPolicy")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -102,7 +102,7 @@ namespace Connect.API.Controllers
             return Redirect(result);
         }
 
-        [HttpGet("google-callback")]
+        [HttpGet("oauth-callback")]
         [AllowAnonymous]
         [ApiExplorerSettings(IgnoreApi = false)]
         [ProducesResponseType(StatusCodes.Status302Found)]
