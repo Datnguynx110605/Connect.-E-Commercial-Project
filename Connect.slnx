@@ -4,5 +4,6 @@
     <Project Path="Connect.Backend/Connect.Application/Connect.Application.csproj" />
     <Project Path="Connect.Backend/Connect.Domain/Connect.Domain.csproj" />
     <Project Path="Connect.Backend/Connect.Infrastructure/Connect.Infrastructure.csproj" />
+    <Project Path="Connect.Backend/Connect.UnitTest/Connect.Domain.Tests.csproj" />
   </Folder>
 </Solution>
