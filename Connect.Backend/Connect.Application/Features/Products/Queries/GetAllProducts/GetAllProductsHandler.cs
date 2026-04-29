@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Products.Queries.GetAllProducts
 {
-    internal sealed class GetAllProductsHandler : IRequestHandler<GetAllProductsQuery, IEnumerable<ProductDto>>
+    internal sealed class GetAllProductsHandler : IRequestHandler<GetAllProductsQuery, PagedResult<ProductDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetAllProductsHandler(IUnitOfWork _unitOfWork)
@@ -15,28 +15,32 @@ namespace Connect.Application.Features.Products.Queries.GetAllProducts
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<IEnumerable<ProductDto>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<ProductDto>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
         {
-            var product = await unitOfWork.Products.GetAllNoTrackingAsync(cancellationToken);
-            if (product == null)
-                throw new Exception("Product not found");
+            var (items, total) = await unitOfWork.Products.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
 
-            return product.Select(x => new ProductDto
+            return new PagedResult<ProductDto>
             {
-                ProductID=x.ProductID,
-                CategoryID=x.CategoryID,
-                ProductName = x.ProductName.Value,
-                Description = x.Description,
-                OriginalPrice = x.OriginalPrice.Value,
-                FinalPrice = x.FinalPrice.Value,
-                Stock = x.Stock.Value,
-                Ram = x.Ram.Value,
-                Rom = x.Rom.Value,
-                Color = x.Color,
-                ImageURL = x.ImageURL,
-                ProductStatus = x.ProductStatus.ToString(),
-                CreatedAt=x.CreatedAt
-            });
+                Items = items.Select(x => new ProductDto
+                {
+                    ProductID = x.ProductID,
+                    CategoryID = x.CategoryID,
+                    ProductName = x.ProductName.Value,
+                    Description = x.Description,
+                    OriginalPrice = x.OriginalPrice.Value,
+                    FinalPrice = x.FinalPrice.Value,
+                    Stock = x.Stock.Value,
+                    Ram = x.Ram.Value,
+                    Rom = x.Rom.Value,
+                    Color = x.Color,
+                    ImageURL = x.ImageURL,
+                    ProductStatus = x.ProductStatus.ToString(),
+                    CreatedAt = x.CreatedAt
+                }).ToList(),
+                TotalCount = total,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
     }
 }

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Connect.Application.Features.Users.Queries.GetSignInWithURL
+namespace Connect.Application.Features.Users.Commands.GetSignInWithURL
 {
     internal sealed class GetSignInLinkWithURLHandler : IRequestHandler<GetSignInWithURLQuery, string>
     {

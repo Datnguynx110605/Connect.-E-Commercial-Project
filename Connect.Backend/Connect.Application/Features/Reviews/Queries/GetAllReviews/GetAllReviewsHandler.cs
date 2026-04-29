@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Reviews.Queries.GetAllReviews
 {
-    internal sealed class GetAllReviewsHandler : IRequestHandler<GetAllReviewsQuery, IEnumerable<ReviewDto>>
+    internal sealed class GetAllReviewsHandler : IRequestHandler<GetAllReviewsQuery, PagedResult<ReviewDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetAllReviewsHandler(IUnitOfWork _unitOfWork)
@@ -15,21 +15,25 @@ namespace Connect.Application.Features.Reviews.Queries.GetAllReviews
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<IEnumerable<ReviewDto>> Handle(GetAllReviewsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<ReviewDto>> Handle(GetAllReviewsQuery request, CancellationToken cancellationToken)
         {
-            var review = await unitOfWork.Reviews.GetAllNoTrackingAsync(cancellationToken);
-            if (review == null)
-                throw new Exception("Review not found");
+            var (items, total) = await unitOfWork.Reviews.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
 
-            return review.Select(x => new ReviewDto
+            return new PagedResult<ReviewDto>
             {
-                ReviewID=x.ReviewID,
-                UserID=x.UserID,
-                ProductID=x.ProductID,
-                Rating=x.Rating.Value,
-                Body=x.Body,
-                CreatedAt=x.CreatedAt
-            });
+                Items = items.Select(x => new ReviewDto
+                {
+                    ReviewID = x.ReviewID,
+                    UserID = x.UserID,
+                    ProductID = x.ProductID,
+                    Rating = x.Rating.Value,
+                    Body = x.Body,
+                    CreatedAt = x.CreatedAt
+                }).ToList(),
+                TotalCount = total,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
     }
 }

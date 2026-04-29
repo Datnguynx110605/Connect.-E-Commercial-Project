@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Coupons.Queries.GetAllCoupons
 {
-    internal sealed class GetAllCouponsHandler : IRequestHandler<GetAllCouponsQuery, IEnumerable<CouponDto>>
+    internal sealed class GetAllCouponsHandler : IRequestHandler<GetAllCouponsQuery, PagedResult<CouponDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetAllCouponsHandler(IUnitOfWork _unitOfWork)
@@ -15,21 +15,25 @@ namespace Connect.Application.Features.Coupons.Queries.GetAllCoupons
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<IEnumerable<CouponDto>> Handle(GetAllCouponsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<CouponDto>> Handle(GetAllCouponsQuery request, CancellationToken cancellationToken)
         {
-            var coupon = await unitOfWork.Coupons.GetAllNoTrackingAsync(cancellationToken);
-            if (coupon == null)
-                throw new Exception("Coupon not found");
+            var (items, total) = await unitOfWork.Coupons.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
 
-            return coupon.Select(x => new CouponDto
+            return new PagedResult<CouponDto>
             {
-                CouponID=x.CouponID,
-                CouponCode = x.CouponCode.Value,
-                DiscountAmount = x.DiscountAmount.Value,
-                CouponQuantity = x.CouponQuantity.Value,
-                MinimumPriceRequired=x.MinimumPriceRequired.Value,
-                ExpiryDate = x.ExpiryDate
-            });
+                Items = items.Select(x => new CouponDto
+                {
+                    CouponID = x.CouponID,
+                    CouponCode = x.CouponCode.Value,
+                    DiscountAmount = x.DiscountAmount.Value,
+                    CouponQuantity = x.CouponQuantity.Value,
+                    MinimumPriceRequired = x.MinimumPriceRequired.Value,
+                    ExpiryDate = x.ExpiryDate
+                }).ToList(),
+                TotalCount = total,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
     }
 }

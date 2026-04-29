@@ -22,29 +22,34 @@ namespace Connect.Application.Features.Orders.Queries.GetOrderHistory
 
         public async Task<IEnumerable<OrderDto>> Handle(GetOrderHistoryQuery request, CancellationToken cancellationToken)
         {
-            var orders = await unitOfWork.Orders.GetAllNoTrackingAsync(cancellationToken);
-            var userOrders = orders.Where(x => x.UserID == currentUserService.UserID);
+            var identity = await unitOfWork.Users.AnyAsync(x => x.UserID == currentUserService.UserID, cancellationToken);
+            if (!identity)
+                throw new UnauthorizedAccessException("User is not in the system");
 
-            return userOrders.Select(order => new OrderDto
+            var order = await unitOfWork.Orders.WhereNoTrackingAsync(x => x.UserID == currentUserService.UserID, cancellationToken);
+            if (order == null)
+                throw new Exception("Order not found");
+
+            return order.Select(x => new OrderDto
             {
-                OrderID = order.OrderID,
-                UserID = order.UserID,
-                CouponID = order.CouponID,
-                OrderTotalItems = order.OrderTotalItems.Value,
-                OrderTotalItemPrice = order.OrderTotalItemPrice.Value,
-                OrderFinalPrice = order.OrderFinalPrice.Value,
-                OrderShippingMethod = order.OrderShippingMethod.ToString(),
-                OrderPaymentMethod = order.OrderPaymentMethod.ToString(),
-                OrderStatus = order.OrderStatus.ToString(),
-                OrderPaymentStatus = order.OrderPaymentStatus.ToString(),
-                OrderItems = order.OrderItems.Select(x => new OrderItemDto
+                OrderID = x.OrderID,
+                UserID = x.UserID,
+                CouponID = x.CouponID,
+                OrderTotalItems = x.OrderTotalItems.Value,
+                OrderTotalItemPrice = x.OrderTotalItemPrice.Value,
+                OrderFinalPrice = x.OrderFinalPrice.Value,
+                OrderShippingMethod = x.OrderShippingMethod.ToString(),
+                OrderPaymentMethod = x.OrderPaymentMethod.ToString(),
+                OrderStatus = x.OrderStatus.ToString(),
+                OrderPaymentStatus = x.OrderPaymentStatus.ToString(),
+                OrderItems = x.OrderItems.Select(i => new OrderItemDto
                 {
-                    ProductID = x.ProductID,
-                    Quantity = x.Quantity.Value,
-                    UnitPrice = x.UnitPrice.Value,
+                    ProductID = i.ProductID,
+                    Quantity = i.Quantity.Value,
+                    UnitPrice = i.UnitPrice.Value,
                 }).ToList(),
-                CreatedAt = order.CreatedAt
-            });
+                CreatedAt = x.CreatedAt
+            }).ToList();
         }
     }
 }

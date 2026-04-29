@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Orders.Queries.GetAllOrders
 {
-    internal sealed class GetAllOrdersHandler : IRequestHandler<GetAllOrdersQuery, IEnumerable<OrderDto>>
+    internal sealed class GetAllOrdersHandler : IRequestHandler<GetAllOrdersQuery, PagedResult<OrderDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetAllOrdersHandler(IUnitOfWork _unitOfWork)
@@ -16,32 +16,36 @@ namespace Connect.Application.Features.Orders.Queries.GetAllOrders
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<IEnumerable<OrderDto>> Handle(GetAllOrdersQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<OrderDto>> Handle(GetAllOrdersQuery request, CancellationToken cancellationToken)
         {
-            var order = await unitOfWork.Orders.GetAllNoTrackingAsync(cancellationToken);
-            if (order == null)
-                throw new Exception("Order not found");
+            var (items, total) = await unitOfWork.Orders.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
 
-            return order.Select(x => new OrderDto
+            return new PagedResult<OrderDto>
             {
-                OrderID=x.OrderID,
-                UserID=x.UserID,
-                CouponID=x.CouponID,
-                OrderTotalItems=x.OrderTotalItems.Value,
-                OrderTotalItemPrice = x.OrderTotalItemPrice.Value,
-                OrderFinalPrice=x.OrderFinalPrice.Value,
-                OrderShippingMethod = x.OrderShippingMethod.ToString(),
-                OrderPaymentMethod=x.OrderPaymentMethod.ToString(),
-                OrderStatus=x.OrderStatus.ToString(),
-                OrderPaymentStatus=x.OrderPaymentStatus.ToString(),
-                OrderItems= x.OrderItems.Select(x => new OrderItemDto
+                Items = items.Select(x => new OrderDto
                 {
-                    ProductID = x.ProductID,
-                    Quantity = x.Quantity.Value,
-                    UnitPrice = x.UnitPrice.Value,
+                    OrderID = x.OrderID,
+                    UserID = x.UserID,
+                    CouponID = x.CouponID,
+                    OrderTotalItems = x.OrderTotalItems.Value,
+                    OrderTotalItemPrice = x.OrderTotalItemPrice.Value,
+                    OrderFinalPrice = x.OrderFinalPrice.Value,
+                    OrderShippingMethod = x.OrderShippingMethod.ToString(),
+                    OrderPaymentMethod = x.OrderPaymentMethod.ToString(),
+                    OrderStatus = x.OrderStatus.ToString(),
+                    OrderPaymentStatus = x.OrderPaymentStatus.ToString(),
+                    OrderItems = x.OrderItems.Select(i => new OrderItemDto
+                    {
+                        ProductID = i.ProductID,
+                        Quantity = i.Quantity.Value,
+                        UnitPrice = i.UnitPrice.Value,
+                    }).ToList(),
+                    CreatedAt = x.CreatedAt
                 }).ToList(),
-                CreatedAt=x.CreatedAt
-            });
+                TotalCount = total,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
     }
 }

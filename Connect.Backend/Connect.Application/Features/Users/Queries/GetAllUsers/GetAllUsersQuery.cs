@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Users.Queries.GetAllUsers
 {
-    public sealed record GetAllUsersQuery:IRequest<IEnumerable<UserDto>>
+    public sealed record GetAllUsersQuery(int Page = 1, int PageSize = 10): IRequest<PagedResult<UserDto>>
     {
     }
 }

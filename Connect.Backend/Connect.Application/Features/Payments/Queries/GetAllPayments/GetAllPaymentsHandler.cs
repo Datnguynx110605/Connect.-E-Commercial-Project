@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Payments.Queries.GetAllPayments
 {
-    internal sealed class GetAllPaymentsHandler : IRequestHandler<GetAllPaymentsQuery, IEnumerable<PaymentDto>>
+    internal sealed class GetAllPaymentsHandler : IRequestHandler<GetAllPaymentsQuery, PagedResult<PaymentDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetAllPaymentsHandler(IUnitOfWork _unitOfWork)
@@ -15,23 +15,27 @@ namespace Connect.Application.Features.Payments.Queries.GetAllPayments
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<IEnumerable<PaymentDto>> Handle(GetAllPaymentsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<PaymentDto>> Handle(GetAllPaymentsQuery request, CancellationToken cancellationToken)
         {
-            var payment = await unitOfWork.Payments.GetAllNoTrackingAsync(cancellationToken);
-            if (payment == null)
-                throw new Exception("Payment not found");
+            var (items, total) = await unitOfWork.Payments.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
 
-            return payment.Select(x => new PaymentDto
+            return new PagedResult<PaymentDto>
             {
-                PaymentID=x.PaymentID,
-                OrderID=x.OrderID,
-                PaymentType=x.PaymentType,
-                TransactionID=x.TransactionID,
-                BankingInfo=x.BankingInfo,
-                TotalAmount=x.TotalAmount.Value,
-                IsPaidSuccess=x.IsPaidSuccess,
-                PaidAt=x.PaidAt
-            });
+                Items = items.Select(x => new PaymentDto
+                {
+                    PaymentID = x.PaymentID,
+                    OrderID = x.OrderID,
+                    PaymentType = x.PaymentType,
+                    TransactionID = x.TransactionID,
+                    BankingInfo = x.BankingInfo,
+                    TotalAmount = x.TotalAmount.Value,
+                    IsPaidSuccess = x.IsPaidSuccess,
+                    PaidAt = x.PaidAt
+                }).ToList(),
+                TotalCount = total,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
     }
 }

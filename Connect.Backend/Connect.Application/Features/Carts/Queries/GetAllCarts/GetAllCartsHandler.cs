@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Carts.Queries.GetAllCarts
 {
-    internal sealed class GetAllCartsHandler : IRequestHandler<GetAllCartsQuery, IEnumerable<CartDto>>
+    internal sealed class GetAllCartsHandler : IRequestHandler<GetAllCartsQuery, PagedResult<CartDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetAllCartsHandler(IUnitOfWork _unitOfWork)
@@ -15,21 +15,25 @@ namespace Connect.Application.Features.Carts.Queries.GetAllCarts
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<IEnumerable<CartDto>> Handle(GetAllCartsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<CartDto>> Handle(GetAllCartsQuery request, CancellationToken cancellationToken)
         {
-            var cart = await unitOfWork.Carts.GetAllNoTrackingAsync(cancellationToken);
-            if (cart == null)
-                throw new Exception("Cart not found");
+            var (items, total) = await unitOfWork.Carts.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
 
-            return cart.Select(x => new CartDto
+            return new PagedResult<CartDto>
             {
-                CartID=x.CartID,
-                UserID = x.UserID,
-                ProductID = x.ProductID,
-                CartQuantity = x.CartQuantity.Value,
-                CartUnitPrice = x.CartUnitPrice.Value,
-                CartTotalPrice = x.CartTotalPrice.Value
-            });
+                Items = items.Select(x => new CartDto
+                {
+                    CartID = x.CartID,
+                    UserID = x.UserID,
+                    ProductID = x.ProductID,
+                    CartQuantity = x.CartQuantity.Value,
+                    CartUnitPrice = x.CartUnitPrice.Value,
+                    CartTotalPrice = x.CartTotalPrice.Value
+                }).ToList(),
+                TotalCount = total,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
     }
 }

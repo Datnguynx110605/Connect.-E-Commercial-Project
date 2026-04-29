@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Reviews.Queries.GetAllReviews
 {
-    public sealed record GetAllReviewsQuery:IRequest<IEnumerable<ReviewDto>>
+    public sealed record GetAllReviewsQuery(int Page = 1, int PageSize = 10): IRequest<PagedResult<ReviewDto>>
     {
     }
 }

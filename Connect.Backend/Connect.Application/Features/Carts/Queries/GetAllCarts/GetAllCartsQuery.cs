@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Carts.Queries.GetAllCarts
 {
-    public sealed record GetAllCartsQuery:IRequest<IEnumerable<CartDto>>
+    public sealed record GetAllCartsQuery(int Page = 1, int PageSize = 10): IRequest<PagedResult<CartDto>>
     {
     }
 }

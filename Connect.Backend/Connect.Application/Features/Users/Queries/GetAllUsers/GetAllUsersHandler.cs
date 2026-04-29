@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Users.Queries.GetAllUsers
 {
-    internal sealed class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, IEnumerable<UserDto>>
+    internal sealed class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, PagedResult<UserDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetAllUsersHandler(IUnitOfWork _unitOfWork)
@@ -16,21 +16,25 @@ namespace Connect.Application.Features.Users.Queries.GetAllUsers
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<IEnumerable<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
-            var user = await unitOfWork.Users.GetAllNoTrackingAsync(cancellationToken);
-            if (user == null)
-                throw new Exception("User not found");
+            var (items, total) = await unitOfWork.Users.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
 
-            return user.Select(x => new UserDto
+            return new PagedResult<UserDto>
             {
-                UserName = x.UserName.Value,
-                Email = x.Email.Value,
-                PhoneNumber = x.PhoneNumber.Value,
-                Address = x.Address,
-                OAuthProviderName=x.OAuthProviderName,
-                CreatedAt=x.CreatedAt
-            });
+                Items = items.Select(x => new UserDto
+                {
+                    UserName = x.UserName.Value,
+                    Email = x.Email.Value,
+                    PhoneNumber = x.PhoneNumber?.Value,
+                    Address = x.Address,
+                    OAuthProviderName = x.OAuthProviderName,
+                    CreatedAt = x.CreatedAt
+                }).ToList(),
+                TotalCount = total,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
     }
 }
