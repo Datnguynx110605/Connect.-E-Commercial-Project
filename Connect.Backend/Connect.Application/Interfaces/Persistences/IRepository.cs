@@ -7,7 +7,7 @@ namespace Connect.Application.Interfaces.Persistences
 {
     public interface IRepository<T, TKey> where T : class
     {
-        Task<(IReadOnlyList<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, Expression<Func<T, bool>>? filter = null, CancellationToken cancellationToken = default);
+        Task<(IReadOnlyList<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default);
 
         Task<T?> GetByIdAsync(TKey id, CancellationToken cancellationToken = default);
 
