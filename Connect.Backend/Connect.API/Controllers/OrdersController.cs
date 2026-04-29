@@ -4,6 +4,7 @@ using Connect.Application.Features.Orders.Commands.MarkAsPaid;
 using Connect.Application.Features.Orders.Commands.UpdateOrderStatusToCompleted;
 using Connect.Application.Features.Orders.Commands.UpdateOrderStatusToShipping;
 using Connect.Application.Features.Orders.Queries.GetAllOrders;
+using Connect.Application.Features.Orders.Queries.GetOrderById;
 using Connect.Application.Features.Orders.Queries.GetOrderHistory;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -26,6 +27,17 @@ namespace Connect.API.Controllers
         public async Task<IActionResult> GetAllOrders(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var result = await Sender.Send(new GetAllOrdersQuery(page, pageSize), cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-orderbyid")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetOrderById(int id, CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new GetOrderByIdQuery { OrderID = id }, cancellationToken);
             return Ok(result);
         }
 
