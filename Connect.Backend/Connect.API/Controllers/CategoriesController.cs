@@ -19,9 +19,9 @@ namespace Connect.API.Controllers
         [HttpGet("getall-category")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllCategories(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAllCategories(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await Sender.Send(new GetAllCategoriesQuery(), cancellationToken);
+            var result = await Sender.Send(new GetAllCategoriesQuery(page, pageSize), cancellationToken);
             return Ok(result);
         }
 

@@ -18,6 +18,8 @@ namespace Connect.Application.Features.Products.Queries.GetAllProducts
         public async Task<PagedResult<ProductDto>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
         {
             var (items, total) = await unitOfWork.Products.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
+            if (!items.Any())
+                throw new Exception("No products found");
 
             return new PagedResult<ProductDto>
             {

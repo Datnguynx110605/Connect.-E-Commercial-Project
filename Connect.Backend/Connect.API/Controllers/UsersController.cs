@@ -142,9 +142,9 @@ namespace Connect.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await Sender.Send(new GetAllUsersQuery(), cancellationToken);
+            var result = await Sender.Send(new GetAllUsersQuery(page, pageSize), cancellationToken);
             return Ok(result);
         }
 

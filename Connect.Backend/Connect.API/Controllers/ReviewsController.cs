@@ -19,9 +19,9 @@ namespace Connect.API.Controllers
         [HttpGet("getall-review")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllReviews(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAllReviews(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await Sender.Send(new GetAllReviewsQuery(), cancellationToken);
+            var result = await Sender.Send(new GetAllReviewsQuery(page, pageSize), cancellationToken);
             return Ok(result);
         }
 
@@ -29,9 +29,9 @@ namespace Connect.API.Controllers
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetReviewByProduct(int productId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetReviewByProduct(int productId, CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await Sender.Send(new GetReviewByProductQuery { ProductID = productId }, cancellationToken);
+            var result = await Sender.Send(new GetReviewByProductQuery { ProductID = productId, Page = page, PageSize = pageSize }, cancellationToken);
             return Ok(result);
         }
 

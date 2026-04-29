@@ -20,7 +20,7 @@ namespace Connect.Application.Features.Products.Commands.UpdateProductStock
         {
             var product = await unitOfWork.Products.GetByIdAsync(request.ProductID,cancellationToken);
             if (product == null)
-                throw new Exception("Product not found");
+                throw new Exception("No products found");
 
             product.AddToStock(Amount.Create(request.Stock));
 

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Products.Queries.GetProductByCategory
 {
-    internal sealed class GetProductByCategoryHandler : IRequestHandler<GetProductByCategoryQuery, IEnumerable<ProductDto>>
+    internal sealed class GetProductByCategoryHandler : IRequestHandler<GetProductByCategoryQuery, PagedResult<ProductDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetProductByCategoryHandler(IUnitOfWork _unitOfWork)
@@ -15,28 +15,34 @@ namespace Connect.Application.Features.Products.Queries.GetProductByCategory
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<IEnumerable<ProductDto>> Handle(GetProductByCategoryQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<ProductDto>> Handle(GetProductByCategoryQuery request, CancellationToken cancellationToken)
         {
-            var product = await unitOfWork.Products.WhereNoTrackingAsync(x => x.CategoryID == request.CategoryID, cancellationToken);
-            if (product == null)
-                throw new Exception("Product not found");
+            var (items, total) = await unitOfWork.Products.GetPagedAsync(request.Page, request.PageSize, filter: x => x.CategoryID == request.CategoryID, cancellationToken);
+            if (!items.Any())
+                throw new Exception("No products found");
 
-            return product.Select(x => new ProductDto
+            return new PagedResult<ProductDto>
             {
-                ProductID = x.ProductID,
-                CategoryID = x.CategoryID,
-                ProductName = x.ProductName.Value,
-                Description = x.Description,
-                OriginalPrice = x.OriginalPrice.Value,
-                FinalPrice = x.FinalPrice.Value,
-                Stock = x.Stock.Value,
-                Ram = x.Ram.Value,
-                Rom = x.Rom.Value,
-                Color = x.Color,
-                ImageURL = x.ImageURL,
-                ProductStatus = x.ProductStatus.ToString(),
-                CreatedAt = x.CreatedAt
-            }).ToList();
+                Items = items.Select(x => new ProductDto
+                {
+                    ProductID = x.ProductID,
+                    CategoryID = x.CategoryID,
+                    ProductName = x.ProductName.Value,
+                    Description = x.Description,
+                    OriginalPrice = x.OriginalPrice.Value,
+                    FinalPrice = x.FinalPrice.Value,
+                    Stock = x.Stock.Value,
+                    Ram = x.Ram.Value,
+                    Rom = x.Rom.Value,
+                    Color = x.Color,
+                    ImageURL = x.ImageURL,
+                    ProductStatus = x.ProductStatus.ToString(),
+                    CreatedAt = x.CreatedAt
+                }).ToList(),
+                TotalCount = total,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
     }
 }

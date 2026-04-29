@@ -20,9 +20,9 @@ namespace Connect.API.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetAllCoupons(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAllCoupons(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await Sender.Send(new GetAllCouponsQuery(), cancellationToken);
+            var result = await Sender.Send(new GetAllCouponsQuery(page, pageSize), cancellationToken);
             return Ok(result);
         }
 

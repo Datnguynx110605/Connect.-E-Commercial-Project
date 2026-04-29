@@ -18,6 +18,8 @@ namespace Connect.Application.Features.Reviews.Queries.GetAllReviews
         public async Task<PagedResult<ReviewDto>> Handle(GetAllReviewsQuery request, CancellationToken cancellationToken)
         {
             var (items, total) = await unitOfWork.Reviews.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
+            if (!items.Any())
+                throw new Exception("No reviews found");
 
             return new PagedResult<ReviewDto>
             {

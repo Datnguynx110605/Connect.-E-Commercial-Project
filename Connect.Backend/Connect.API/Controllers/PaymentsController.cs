@@ -26,9 +26,9 @@ namespace Connect.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetAllPayments(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAllPayments(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await Sender.Send(new GetAllPaymentsQuery(), cancellationToken);
+            var result = await Sender.Send(new GetAllPaymentsQuery(page, pageSize), cancellationToken);
             return Ok(result);
         }
 

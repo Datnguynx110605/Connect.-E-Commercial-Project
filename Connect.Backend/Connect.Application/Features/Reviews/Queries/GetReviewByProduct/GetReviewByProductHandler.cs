@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Reviews.Queries.GetReviewByProduct
 {
-    internal sealed class GetReviewByProductHandler : IRequestHandler<GetReviewByProductQuery, IEnumerable<ReviewDto>>
+    internal sealed class GetReviewByProductHandler : IRequestHandler<GetReviewByProductQuery, PagedResult<ReviewDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetReviewByProductHandler(IUnitOfWork _unitOfWork)
@@ -15,21 +15,27 @@ namespace Connect.Application.Features.Reviews.Queries.GetReviewByProduct
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<IEnumerable<ReviewDto>> Handle(GetReviewByProductQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<ReviewDto>> Handle(GetReviewByProductQuery request, CancellationToken cancellationToken)
         {
-            var review = await unitOfWork.Reviews.WhereNoTrackingAsync(x => x.ProductID == request.ProductID, cancellationToken);
-            if (review == null)
-                throw new Exception("Review not found");
+            var (items, total) = await unitOfWork.Reviews.GetPagedAsync(request.Page, request.PageSize, filter: x => x.ProductID == request.ProductID, cancellationToken);
+            if (!items.Any())
+                throw new Exception("No reviews found");
 
-            return review.Select(x => new ReviewDto
+            return new PagedResult<ReviewDto>
             {
-                ReviewID = x.ReviewID,
-                UserID = x.UserID,
-                ProductID = x.ProductID,
-                Rating = x.Rating.Value,
-                Body = x.Body,
-                CreatedAt = x.CreatedAt
-            }).ToList();
+                Items = items.Select(x => new ReviewDto
+                {
+                    ReviewID = x.ReviewID,
+                    UserID = x.UserID,
+                    ProductID = x.ProductID,
+                    Rating = x.Rating.Value,
+                    Body = x.Body,
+                    CreatedAt = x.CreatedAt
+                }).ToList(),
+                TotalCount = total,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
     }
 }

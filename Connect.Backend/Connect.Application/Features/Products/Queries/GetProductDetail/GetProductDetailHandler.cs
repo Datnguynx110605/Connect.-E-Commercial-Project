@@ -19,7 +19,7 @@ namespace Connect.Application.Features.Products.Queries.GetProductDetail
         {
             var product = await unitOfWork.Products.GetByIdAsync(request.ProductID, cancellationToken);
             if (product == null)
-                throw new Exception("Product not found");
+                throw new Exception("No products found");
 
             return new ProductDto
             {

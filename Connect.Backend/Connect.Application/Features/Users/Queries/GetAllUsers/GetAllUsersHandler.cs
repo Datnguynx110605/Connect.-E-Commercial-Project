@@ -19,6 +19,8 @@ namespace Connect.Application.Features.Users.Queries.GetAllUsers
         public async Task<PagedResult<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
             var (items, total) = await unitOfWork.Users.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
+            if (!items.Any())
+                throw new Exception("No users found");
 
             return new PagedResult<UserDto>
             {

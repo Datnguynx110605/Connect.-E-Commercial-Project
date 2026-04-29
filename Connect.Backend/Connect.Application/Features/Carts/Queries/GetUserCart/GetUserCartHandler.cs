@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Carts.Queries.GetUserCart
 {
-    internal sealed class GetUserCartHandler : IRequestHandler<GetUserCartQuery, IEnumerable<CartDto>>
+    internal sealed class GetUserCartHandler : IRequestHandler<GetUserCartQuery, PagedResult<CartDto>>
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly ICurrentUserService currentUserService;
@@ -18,25 +18,31 @@ namespace Connect.Application.Features.Carts.Queries.GetUserCart
             currentUserService = _currentUserService;
         }
 
-        public async Task<IEnumerable<CartDto>> Handle(GetUserCartQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<CartDto>> Handle(GetUserCartQuery request, CancellationToken cancellationToken)
         {
             bool identity = await unitOfWork.Users.AnyAsync(x => x.UserID == currentUserService.UserID, cancellationToken);
             if (!identity)
                 throw new UnauthorizedAccessException("User is not in the system");
 
-            var cart = await unitOfWork.Carts.WhereNoTrackingAsync(x => x.UserID ==currentUserService.UserID, cancellationToken);
-            if (cart == null)
-                throw new Exception("Cart not found");
+            var (items, total) = await unitOfWork.Carts.GetPagedAsync(request.Page, request.PageSize, filter: x => x.UserID == currentUserService.UserID, cancellationToken);
+            if (!items.Any())
+                throw new Exception("No carts found");
 
-            return cart.Select(x => new CartDto
+            return new PagedResult<CartDto>
             {
-                CartID = x.CartID,
-                UserID = x.UserID,
-                ProductID = x.ProductID,
-                CartQuantity = x.CartQuantity.Value,
-                CartUnitPrice = x.CartUnitPrice.Value,
-                CartTotalPrice = x.CartTotalPrice.Value
-            }).ToList();
+                Items = items.Select(x => new CartDto
+                {
+                    CartID = x.CartID,
+                    UserID = x.UserID,
+                    ProductID = x.ProductID,
+                    CartQuantity = x.CartQuantity.Value,
+                    CartUnitPrice = x.CartUnitPrice.Value,
+                    CartTotalPrice = x.CartTotalPrice.Value
+                }).ToList(),
+                TotalCount = total,
+                Page = request.Page,
+                PageSize = request.PageSize
+            };
         }
     }
 }

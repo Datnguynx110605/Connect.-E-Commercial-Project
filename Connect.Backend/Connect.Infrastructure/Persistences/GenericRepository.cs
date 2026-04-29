@@ -19,12 +19,15 @@ namespace Connect.Infrastructure.Persistences
             _dbSet = context.Set<T>();
         }
 
-        public async Task<(IReadOnlyList<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+        public async Task<(IReadOnlyList<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, Expression<Func<T, bool>>? filter = null, CancellationToken cancellationToken = default)
         {
             page = Math.Max(1, page);
             pageSize = Math.Clamp(pageSize, 1, 50);
 
             IQueryable<T> query = _dbSet.AsNoTracking();
+
+            if (filter is not null)
+                query = query.Where(filter);
 
             int totalCount = await query.CountAsync(cancellationToken);
 

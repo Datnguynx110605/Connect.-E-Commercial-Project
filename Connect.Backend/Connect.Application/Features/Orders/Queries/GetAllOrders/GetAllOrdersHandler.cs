@@ -19,6 +19,8 @@ namespace Connect.Application.Features.Orders.Queries.GetAllOrders
         public async Task<PagedResult<OrderDto>> Handle(GetAllOrdersQuery request, CancellationToken cancellationToken)
         {
             var (items, total) = await unitOfWork.Orders.GetPagedAsync(request.Page, request.PageSize, cancellationToken: cancellationToken);
+            if (!items.Any())
+                throw new Exception("No orders found");
 
             return new PagedResult<OrderDto>
             {

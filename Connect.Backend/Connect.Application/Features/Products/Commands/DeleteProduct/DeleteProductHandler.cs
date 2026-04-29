@@ -18,7 +18,7 @@ namespace Connect.Application.Features.Products.Commands.DeleteProduct
         {
             var product = await unitOfWork.Products.GetByIdAsync(request.ProductID, cancellationToken);
             if (product == null)
-                throw new Exception("Product not found");
+                throw new Exception("No products found");
 
             unitOfWork.Products.Remove(product);
             await unitOfWork.SaveChangesAsync(cancellationToken);
