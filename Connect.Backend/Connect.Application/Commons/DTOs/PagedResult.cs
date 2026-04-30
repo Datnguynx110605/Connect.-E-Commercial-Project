@@ -4,6 +4,12 @@ using System.Text;
 
 namespace Connect.Application.Commons.DTOs
 {
+    public static class DefaultPagination
+    {
+        public const int Page = 1;
+        public const int PageSize = 10;
+    }
+
     public sealed record PagedResult<T>
     {
         public IReadOnlyList<T> Items { get; init; }

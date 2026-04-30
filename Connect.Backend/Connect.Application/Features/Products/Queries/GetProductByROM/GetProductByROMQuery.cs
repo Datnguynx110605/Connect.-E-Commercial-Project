@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Products.Queries.GetProductByROM
 {
-    public sealed record GetProductByROMQuery(int Page = 1, int PageSize = 10):IRequest<PagedResult<ProductDto>>
+    public sealed record GetProductByROMQuery(int Page = DefaultPagination.Page, int PageSize = DefaultPagination.PageSize) :IRequest<PagedResult<ProductDto>>
     {
         public int Rom { get; init; }
     }

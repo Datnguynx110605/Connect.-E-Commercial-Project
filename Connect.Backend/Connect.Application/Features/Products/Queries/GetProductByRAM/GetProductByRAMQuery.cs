@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Products.Queries.GetProductByRAM
 {
-    public sealed record GetProductByRAMQuery(int Page= 1, int PageSize = 10):IRequest<PagedResult<ProductDto>>
+    public sealed record GetProductByRAMQuery(int Page = DefaultPagination.Page, int PageSize = DefaultPagination.PageSize) :IRequest<PagedResult<ProductDto>>
     {
         public int Ram { get; init; }
     }

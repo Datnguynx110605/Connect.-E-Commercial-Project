@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Connect.Application.Features.Orders.Queries.GetOrderHistory
 {
-    public sealed record GetOrderHistoryQuery(int Page = 1, int PageSize = 10):IRequest<PagedResult<OrderDto>>
+    public sealed record GetOrderHistoryQuery(int Page = DefaultPagination.Page, int PageSize = DefaultPagination.PageSize) :IRequest<PagedResult<OrderDto>>
     {
     }
 }

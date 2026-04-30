@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Coupons.Queries.GetAllCoupons
 {
-    public sealed record GetAllCouponsQuery(int Page = 1, int PageSize = 10): IRequest<PagedResult<CouponDto>>
+    public sealed record GetAllCouponsQuery(int Page = DefaultPagination.Page, int PageSize = DefaultPagination.PageSize) : IRequest<PagedResult<CouponDto>>
     {
     }
 }

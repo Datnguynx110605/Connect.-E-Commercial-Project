@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Orders.Queries.GetAllOrders
 {
-    public sealed record GetAllOrdersQuery(int Page = 1, int PageSize = 10): IRequest<PagedResult<OrderDto>>
+    public sealed record GetAllOrdersQuery(int Page = DefaultPagination.Page, int PageSize = DefaultPagination.PageSize) : IRequest<PagedResult<OrderDto>>
     {
     }
 }

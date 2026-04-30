@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Products.Queries.GetProductByColor
 {
-    public sealed record GetProductByColorQuery(int Page = 1, int PageSize = 10):IRequest<PagedResult<ProductDto>>
+    public sealed record GetProductByColorQuery(int Page = DefaultPagination.Page, int PageSize = DefaultPagination.PageSize) :IRequest<PagedResult<ProductDto>>
     {
         public string Color { get; init; }
     }

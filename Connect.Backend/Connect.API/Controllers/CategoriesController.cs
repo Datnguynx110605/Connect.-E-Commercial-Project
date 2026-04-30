@@ -31,7 +31,7 @@ namespace Connect.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetCategory(int id, CancellationToken cancellationToken)
         {
-            var result = await Sender.Send(new GetSpecificCategoryCommand { CategoryID = id }, cancellationToken);
+            var result = await Sender.Send(new GetSpecificCategoryQuery { CategoryID = id }, cancellationToken);
             return Ok(result);
         }
 

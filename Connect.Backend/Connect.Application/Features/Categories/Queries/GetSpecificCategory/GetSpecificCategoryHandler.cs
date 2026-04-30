@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Categories.Queries.GetSpecificCategory
 {
-    internal sealed class GetSpecificCategoryHandler : IRequestHandler<GetSpecificCategoryCommand, CategoryDto>
+    internal sealed class GetSpecificCategoryHandler : IRequestHandler<GetSpecificCategoryQuery, CategoryDto>
     {
         private readonly IUnitOfWork unitOfWork;
         public GetSpecificCategoryHandler(IUnitOfWork _unitOfWork)
@@ -15,7 +15,7 @@ namespace Connect.Application.Features.Categories.Queries.GetSpecificCategory
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<CategoryDto> Handle(GetSpecificCategoryCommand request, CancellationToken cancellationToken)
+        public async Task<CategoryDto> Handle(GetSpecificCategoryQuery request, CancellationToken cancellationToken)
         {
             var category = await unitOfWork.Categories.GetByIdAsync(request.CategoryID, cancellationToken);
             if (category == null)

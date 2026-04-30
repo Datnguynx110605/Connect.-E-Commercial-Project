@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Reviews.Queries.GetReviewByProduct
 {
-    public sealed record GetReviewByProductQuery(int Page = 1, int PageSize = 10):IRequest<PagedResult<ReviewDto>>
+    public sealed record GetReviewByProductQuery(int Page = DefaultPagination.Page, int PageSize = DefaultPagination.PageSize) :IRequest<PagedResult<ReviewDto>>
     {
         public int ProductID { get; init; }
     }

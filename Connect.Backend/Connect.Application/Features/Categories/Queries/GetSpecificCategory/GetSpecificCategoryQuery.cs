@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Categories.Queries.GetSpecificCategory
 {
-    public sealed record GetSpecificCategoryCommand:IRequest<CategoryDto>
+    public sealed record GetSpecificCategoryQuery:IRequest<CategoryDto>
     {
         public int CategoryID { get; init; }
     }

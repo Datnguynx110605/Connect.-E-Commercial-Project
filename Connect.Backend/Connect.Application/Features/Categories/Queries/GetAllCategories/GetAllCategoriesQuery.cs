@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Categories.Queries.GetAllCategories
 {
-    public sealed record GetAllCategoriesQuery(int Page = 1, int PageSize = 10): IRequest<PagedResult<CategoryDto>>
+    public sealed record GetAllCategoriesQuery(int Page = DefaultPagination.Page, int PageSize = DefaultPagination.PageSize) : IRequest<PagedResult<CategoryDto>>
     {
     }
 }

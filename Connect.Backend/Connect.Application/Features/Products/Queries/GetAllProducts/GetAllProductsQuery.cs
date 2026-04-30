@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Connect.Application.Features.Products.Queries.GetAllProducts
 {
-    public sealed record GetAllProductsQuery(int Page = 1, int PageSize = 10): IRequest<PagedResult<ProductDto>>
+    public sealed record GetAllProductsQuery(int Page = DefaultPagination.Page, int PageSize = DefaultPagination.PageSize) : IRequest<PagedResult<ProductDto>>
     {
     }
 }
