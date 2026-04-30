@@ -32,7 +32,7 @@ namespace Connect.Infrastructure.Data.Configurations
 
             builder.Property(p => p.Description)
                 .HasColumnName("Description")
-                .HasMaxLength(2000)
+                .HasMaxLength(10000)
                 .IsRequired();
 
             builder.Property(p => p.OriginalPrice)

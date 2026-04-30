@@ -272,8 +272,8 @@ namespace Connect.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)")
+                        .HasMaxLength(10000)
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("Description");
 
                     b.Property<decimal>("FinalPrice")

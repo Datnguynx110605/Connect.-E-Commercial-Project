@@ -55,7 +55,7 @@
                             { "DESCRIPTION", description }
                         });
 
-                if (description.Length > 2000 || description.Length < 50)
+                if (description.Length > 10000 || description.Length < 50)
                     throw new DomainExceptions(
                         message: "Description is invalid",
                         code: "INVALID-DESCRIPTION",
