@@ -48,10 +48,10 @@ export default function HomePage() {
             <h1 className="text-apple-hero mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-ink to-ink/70 drop-shadow-sm font-bold relative z-10">MacBook Pro</h1>
             <p className="text-apple-display-md text-ink/80 font-medium mb-10 relative z-10 text-balance">Mind-blowing. Head-turning.</p>
             <div className="flex items-center gap-6 mt-4 relative z-10">
-              <Link to="/product/p2" className="btn-primary px-10 py-4 font-semibold text-[17px] flex items-center justify-center">
+              <Link to="/" className="btn-primary px-10 py-4 font-semibold text-[17px] flex items-center justify-center">
                 Mua ngay
               </Link>
-              <Link to="/product/p2" className="text-[17px] text-ink font-semibold hover:text-primary transition-colors flex items-center gap-1 hover-group">
+              <Link to="/" className="text-[17px] text-ink font-semibold hover:text-primary transition-colors flex items-center gap-1 hover-group">
                 Tìm hiểu thêm <span className="text-[14px] hover-group-hover:translate-x-1 transition-transform">›</span>
               </Link>
             </div>

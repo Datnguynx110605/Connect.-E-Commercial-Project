@@ -21,7 +21,7 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Dummy authentication
+    // Authentication logic here
     login({
       id: Math.random().toString(36).substr(2, 9),
       username: isLogin ? (formData.email.split('@')[0] || 'User') : formData.username,

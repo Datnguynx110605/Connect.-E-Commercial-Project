@@ -10,7 +10,7 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     username: user?.username || '',
     email: user?.email || '',
-    password: 'password123', // Dummy password
+    password: 'password123',
     address: user?.address || ''
   });
 

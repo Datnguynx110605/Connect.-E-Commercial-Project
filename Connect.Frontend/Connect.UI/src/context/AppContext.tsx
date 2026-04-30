@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, CartItem, Product, Order, Coupon } from '../types';
-import { mockProducts, mockCoupons, mockOrders } from '../data';
+
 
 interface AppContextType {
   user: User | null;
@@ -27,9 +27,9 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [coupons, setCoupons] = useState<Coupon[]>(mockCoupons);
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
 
   const login = (newUser: User) => setUser(newUser);
   const logout = () => setUser(null);

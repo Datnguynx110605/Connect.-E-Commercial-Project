@@ -257,14 +257,7 @@ export default function CheckoutPage() {
               {couponError && <p className="text-[#ef4444] text-[12px] mt-2">{couponError}</p>}
               {appliedCoupon && <p className="text-[#22c55e] text-[12px] mt-2">Mã '{appliedCoupon.code}' đã được áp dụng!</p>}
               
-              <div className="mt-4 flex gap-2 flex-wrap">
-                 {/* Display available dummy coupons for test */}
-                 {coupons.map(c => (
-                   <span key={c.id} className="text-[10px] bg-white/50 border border-white/50 backdrop-blur px-2 py-1 rounded-full text-ink/70 font-semibold shadow-sm">
-                     Thử: {c.code}
-                   </span>
-                 ))}
-              </div>
+
             </div>
 
             {/* Totals */}
