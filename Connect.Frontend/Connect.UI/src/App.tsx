@@ -51,6 +51,9 @@ export default function App() {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
               <Route path="/orders" element={<MyOrdersPage />} />
+              <Route path="/myorder" element={<MyOrdersPage />} /> {/* VNPAY callback redirect */}
+              <Route path="/home" element={<HomePage />} /> {/* Google OAuth callback redirect */}
+              <Route path="/verify-email" element={<LoginPage />} /> {/* Email verification redirect */}
               <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </main>

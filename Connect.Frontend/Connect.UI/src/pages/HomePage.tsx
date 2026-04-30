@@ -1,27 +1,28 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { CheckCircle2, ShoppingCart } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Loader2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { Product } from '../types';
 
 export default function HomePage() {
-  const { products, addToCart } = useAppContext();
+  const { products, productsLoading, loadProducts, addToCart, user } = useAppContext();
+  const navigate = useNavigate();
 
-  const handleAddToCart = (product: Product, e: React.MouseEvent) => {
+  useEffect(() => {
+    loadProducts(1, 20);
+  }, [loadProducts]);
+
+  const handleAddToCart = async (product: Product, e: React.MouseEvent) => {
     e.preventDefault();
-    addToCart({
-      id: Math.random().toString(),
-      productId: product.id,
-      name: product.name,
-      image: product.images[0],
-      originalPrice: product.originalPrice,
-      salePrice: product.salePrice,
-      stock: product.stock,
-      quantity: 1,
-      selectedColor: product.colorOptions?.[0],
-      selectedRam: product.ramOptions?.[0],
-      selectedRom: product.romOptions?.[0],
-    });
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      await addToCart(product.productID, 1);
+    } catch (err: any) {
+      alert(err.message || 'Không thể thêm vào giỏ hàng');
+    }
   };
 
   return (
@@ -45,13 +46,13 @@ export default function HomePage() {
             {/* Shimmer effect inside card */}
             <div className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-20deg] group-hover:animate-shimmer pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-            <h1 className="text-apple-hero mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-ink to-ink/70 drop-shadow-sm font-bold relative z-10">MacBook Pro</h1>
-            <p className="text-apple-display-md text-ink/80 font-medium mb-10 relative z-10 text-balance">Mind-blowing. Head-turning.</p>
+            <h1 className="text-apple-hero mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-ink to-ink/70 drop-shadow-sm font-bold relative z-10">Chào mừng đến với Connect.</h1>
+            <p className="text-apple-display-md text-ink/80 font-medium mb-10 relative z-10 text-balance">Connect. là một dự án được phát triển bởi Nguyễn Tiến Đạt</p>
             <div className="flex items-center gap-6 mt-4 relative z-10">
-              <Link to="/" className="btn-primary px-10 py-4 font-semibold text-[17px] flex items-center justify-center">
+              <Link to="/category/All" className="btn-primary px-10 py-4 font-semibold text-[17px] flex items-center justify-center">
                 Mua ngay
               </Link>
-              <Link to="/" className="text-[17px] text-ink font-semibold hover:text-primary transition-colors flex items-center gap-1 hover-group">
+              <Link to="/category/All" className="text-[17px] text-ink font-semibold hover:text-primary transition-colors flex items-center gap-1 hover-group">
                 Tìm hiểu thêm <span className="text-[14px] hover-group-hover:translate-x-1 transition-transform">›</span>
               </Link>
             </div>
@@ -60,34 +61,52 @@ export default function HomePage() {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Loading State */}
+        {productsLoading && products.length === 0 && (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="animate-spin text-primary" size={40} />
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!productsLoading && products.length === 0 && (
+          <div className="text-center py-20 text-ink-muted">
+            <p className="text-apple-body-strong mb-2">Chưa có sản phẩm nào</p>
+            <p>Hãy quay lại sau nhé.</p>
+          </div>
+        )}
+
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
           {products.map(product => (
-            <Link to={`/product/${product.id}`} key={product.id} className="group glass-panel p-6 relative flex flex-col h-full">
+            <Link to={`/product/${product.productID}`} key={product.productID} className="group glass-panel overflow-hidden relative flex flex-col h-full">
               
-              <div className="aspect-square mb-6 flex items-center justify-center p-4">
-                <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" />
+              <div className="h-64 overflow-hidden bg-white/60">
+                <img 
+                  src={product.imageURL?.[0] || 'https://via.placeholder.com/400?text=No+Image'} 
+                  alt={product.productName} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                />
               </div>
               
-              <div className="flex-1 flex flex-col">
-                {product.isAppleVerified && (
-                  <div className="flex items-center gap-1 text-[12px] font-semibold text-[#c96211] mb-2">
-                    <CheckCircle2 size={12} /> Connect Xác minh
-                  </div>
-                )}
-                
-                <h3 className="text-apple-body-strong text-ink mb-1 line-clamp-2">{product.name}</h3>
-                <div className="text-[12px] text-ink-muted mb-4">Đã bán: {product.soldAmount.toLocaleString('vi-VN')} • Kho: {product.stock > 0 ? product.stock : 'Hết hàng'}</div>
+              <div className="flex-1 flex flex-col p-5">
+                <h3 className="text-apple-body-strong text-ink mb-1 line-clamp-2">{product.productName}</h3>
+                <div className="text-[12px] text-ink-muted mb-2">
+                  {product.color} • RAM: {product.ram}GB • ROM: {product.rom}GB
+                </div>
+                <div className="text-[12px] text-ink-muted mb-4">
+                  {product.productStatus === 'InStock' ? `Kho: ${product.stock}` : 'Hết hàng'}
+                </div>
                 
                 <div className="mt-auto pt-4 flex items-end justify-between">
                   <div>
-                    {product.salePrice < product.originalPrice && (
+                    {product.finalPrice < product.originalPrice && (
                       <span className="text-[12px] text-ink-muted line-through block decoration-1">
                         {product.originalPrice.toLocaleString('vi-VN')} ₫
                       </span>
                     )}
                     <span className="text-apple-body text-ink">
-                      {product.salePrice.toLocaleString('vi-VN')} ₫
+                      {product.finalPrice.toLocaleString('vi-VN')} ₫
                     </span>
                   </div>
                   

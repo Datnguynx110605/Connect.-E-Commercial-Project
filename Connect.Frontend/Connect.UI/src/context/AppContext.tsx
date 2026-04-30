@@ -1,84 +1,260 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, CartItem, Product, Order, Coupon } from '../types';
-
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { User, CartItem, Product, Order, Category } from '../types';
+import {
+  authApi,
+  productsApi,
+  categoriesApi,
+  cartApi,
+  ordersApi,
+  getAccessToken,
+  setTokens,
+  clearTokens,
+  ApiError,
+} from '../services/api';
 
 interface AppContextType {
+  // Auth
   user: User | null;
-  login: (user: User) => void;
+  isAuthLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => void;
   logout: () => void;
-  updateUser: (user: Partial<User>) => void;
-  
-  cart: CartItem[];
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (id: string, selectFields?: {color?: string, ram?: string, rom?: string}) => void;
-  updateCartQuantity: (id: string, selectFields: any, delta: number) => void;
-  clearCart: () => void;
-  
+  loadProfile: () => Promise<void>;
+
+  // Products
   products: Product[];
-  coupons: Coupon[];
-  
+  productsLoading: boolean;
+  totalProducts: number;
+  currentPage: number;
+  totalPages: number;
+  loadProducts: (page?: number, pageSize?: number) => Promise<void>;
+
+  // Categories
+  categories: Category[];
+  loadCategories: () => Promise<void>;
+
+  // Cart
+  cart: CartItem[];
+  cartLoading: boolean;
+  loadCart: () => Promise<void>;
+  addToCart: (productID: number, quantity: number) => Promise<void>;
+  increaseCartItem: (cartID: number) => Promise<void>;
+  decreaseCartItem: (cartID: number) => Promise<void>;
+  removeCartItem: (cartID: number) => Promise<void>;
+
+  // Orders
   orders: Order[];
-  addOrder: (order: Order) => void;
-  updateOrderStatus: (id: string, status: Order['status']) => void;
+  ordersLoading: boolean;
+  loadOrders: (page?: number) => Promise<void>;
+
+  // Product detail cache
+  productCache: Map<number, Product>;
+  getProduct: (id: number) => Promise<Product>;
+
+  // Error handling
+  error: string | null;
+  clearError: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartLoading, setCartLoading] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [productCache, setProductCache] = useState<Map<number, Product>>(new Map());
+  const [error, setError] = useState<string | null>(null);
 
-  const login = (newUser: User) => setUser(newUser);
-  const logout = () => setUser(null);
-  const updateUser = (updates: Partial<User>) => {
-    if (user) setUser({ ...user, ...updates });
+  const clearError = () => setError(null);
+
+  // ── Auth ─────────────────────────────────────────────────────────────────
+
+  const loadProfile = useCallback(async () => {
+    try {
+      const profile = await authApi.getProfile();
+      setUser(profile);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        clearTokens();
+        setUser(null);
+      }
+    }
+  }, []);
+
+  // On mount: check for existing token and load profile
+  useEffect(() => {
+    const token = getAccessToken();
+    if (token) {
+      loadProfile().finally(() => setIsAuthLoading(false));
+    } else {
+      setIsAuthLoading(false);
+    }
+  }, [loadProfile]);
+
+  const login = async (email: string, password: string) => {
+    const response = await authApi.login(email, password);
+    setTokens(response.accessToken, response.refreshToken);
+    await loadProfile();
   };
 
-  const addToCart = (item: CartItem) => {
-    setCart((prev) => {
-      const existing = prev.find(
-        (c) => c.productId === item.productId &&
-               c.selectedColor === item.selectedColor &&
-               c.selectedRam === item.selectedRam &&
-               c.selectedRom === item.selectedRom
-      );
-      if (existing) {
-        return prev.map((c) => c === existing ? { ...c, quantity: c.quantity + item.quantity } : c);
-      }
-      return [...prev, item];
+  const loginWithGoogle = () => {
+    window.location.href = authApi.getOAuthUrl();
+  };
+
+  const logout = () => {
+    clearTokens();
+    setUser(null);
+    setCart([]);
+    setOrders([]);
+  };
+
+  // ── Products ──────────────────────────────────────────────────────────────
+
+  const loadProducts = useCallback(async (page = 1, pageSize = 20) => {
+    setProductsLoading(true);
+    try {
+      const result = await productsApi.getAll(page, pageSize);
+      setProducts(result.items);
+      setTotalProducts(result.totalCount);
+      setCurrentPage(result.page);
+      setTotalPages(result.totalPages);
+      // Update cache
+      setProductCache(prev => {
+        const newCache = new Map(prev);
+        result.items.forEach(p => newCache.set(p.productID, p));
+        return newCache;
+      });
+    } catch (err: any) {
+      setError(err.message || 'Failed to load products');
+    } finally {
+      setProductsLoading(false);
+    }
+  }, []);
+
+  const getProduct = useCallback(async (id: number): Promise<Product> => {
+    const cached = productCache.get(id);
+    if (cached) return cached;
+
+    const product = await productsApi.getDetail(id);
+    setProductCache(prev => {
+      const newCache = new Map(prev);
+      newCache.set(id, product);
+      return newCache;
     });
-  };
+    return product;
+  }, [productCache]);
 
-  const removeFromCart = (id: string, selectFields?: any) => {
-    setCart((prev) => prev.filter((c) => !(c.productId === id && c.selectedColor === selectFields?.color && c.selectedRom === selectFields?.rom && c.selectedRam === selectFields?.ram)));
-  };
+  // ── Categories ────────────────────────────────────────────────────────────
 
-  const updateCartQuantity = (id: string, selectFields: any, delta: number) => {
-    setCart((prev) => prev.map((c) => {
-      if (c.productId === id && c.selectedColor === selectFields?.color && c.selectedRom === selectFields?.rom && c.selectedRam === selectFields?.ram) {
-        const newQ = c.quantity + delta;
-        return newQ > 0 ? { ...c, quantity: newQ } : c;
+  const loadCategories = useCallback(async () => {
+    try {
+      const result = await categoriesApi.getAll(1, 50);
+      setCategories(result.items);
+    } catch (err: any) {
+      console.error('Failed to load categories:', err);
+    }
+  }, []);
+
+  // Load categories on mount
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
+
+  // ── Cart ──────────────────────────────────────────────────────────────────
+
+  const loadCart = useCallback(async () => {
+    if (!getAccessToken()) return;
+    setCartLoading(true);
+    try {
+      const result = await cartApi.getMyCart();
+      setCart(result.items);
+    } catch (err: any) {
+      if (!(err instanceof ApiError && err.status === 401)) {
+        setError(err.message || 'Failed to load cart');
       }
-      return c;
-    }));
+    } finally {
+      setCartLoading(false);
+    }
+  }, []);
+
+  // Load cart when user logs in
+  useEffect(() => {
+    if (user) {
+      loadCart();
+    }
+  }, [user, loadCart]);
+
+  const addToCart = async (productID: number, quantity: number) => {
+    try {
+      await cartApi.addToCart(productID, quantity);
+      await loadCart();
+    } catch (err: any) {
+      throw err;
+    }
   };
 
-  const clearCart = () => setCart([]);
-  
-  const addOrder = (order: Order) => setOrders((prev) => [order, ...prev]);
-  const updateOrderStatus = (id: string, status: Order['status']) => {
-    setOrders((prev) => prev.map(o => o.id === id ? { ...o, status } : o));
+  const increaseCartItem = async (cartID: number) => {
+    try {
+      await cartApi.increaseAmount(cartID);
+      await loadCart();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update cart');
+    }
   };
+
+  const decreaseCartItem = async (cartID: number) => {
+    try {
+      await cartApi.reduceAmount(cartID);
+      await loadCart();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update cart');
+    }
+  };
+
+  const removeCartItem = async (cartID: number) => {
+    try {
+      await cartApi.deleteCart(cartID);
+      await loadCart();
+    } catch (err: any) {
+      setError(err.message || 'Failed to remove from cart');
+    }
+  };
+
+  // ── Orders ────────────────────────────────────────────────────────────────
+
+  const loadOrders = useCallback(async (page = 1) => {
+    if (!getAccessToken()) return;
+    setOrdersLoading(true);
+    try {
+      const result = await ordersApi.getHistory(page, 20);
+      setOrders(result.items);
+    } catch (err: any) {
+      if (!(err instanceof ApiError && err.status === 401)) {
+        setError(err.message || 'Failed to load orders');
+      }
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, []);
 
   return (
     <AppContext.Provider value={{
-      user, login, logout, updateUser,
-      cart, addToCart, removeFromCart, updateCartQuantity, clearCart,
-      products, coupons,
-      orders, addOrder, updateOrderStatus
+      user, isAuthLoading, login, loginWithGoogle, logout, loadProfile,
+      products, productsLoading, totalProducts, currentPage, totalPages, loadProducts,
+      categories, loadCategories,
+      cart, cartLoading, loadCart, addToCart, increaseCartItem, decreaseCartItem, removeCartItem,
+      orders, ordersLoading, loadOrders,
+      productCache, getProduct,
+      error, clearError,
     }}>
       {children}
     </AppContext.Provider>
