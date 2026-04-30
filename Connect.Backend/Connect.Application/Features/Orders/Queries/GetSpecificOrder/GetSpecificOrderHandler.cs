@@ -7,15 +7,15 @@ using System.Text;
 
 namespace Connect.Application.Features.Orders.Queries.GetOrderById
 {
-    internal sealed class GetOrderByIdHandler : IRequestHandler<GetOrderByIdQuery, OrderDto>
+    internal sealed class GetSpecificOrderHandler : IRequestHandler<GetSpecificOrderQuery, OrderDto>
     {
         private readonly IUnitOfWork unitOfWork;
-        public GetOrderByIdHandler(IUnitOfWork _unitOfWork)
+        public GetSpecificOrderHandler(IUnitOfWork _unitOfWork)
         {
             unitOfWork = _unitOfWork;
         }
 
-        public async Task<OrderDto> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
+        public async Task<OrderDto> Handle(GetSpecificOrderQuery request, CancellationToken cancellationToken)
         {
             var order = await unitOfWork.Orders.GetByIdAsync(request.OrderID, cancellationToken);
             if (order == null)
