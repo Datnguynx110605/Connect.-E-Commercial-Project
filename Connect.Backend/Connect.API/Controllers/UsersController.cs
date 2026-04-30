@@ -10,6 +10,9 @@ using Connect.Application.Features.Users.Commands.UpdateUserPassword;
 using Connect.Application.Features.Users.Commands.UpdateUserProfile;
 using Connect.Application.Features.Users.Commands.VerifyEmail;
 using Connect.Application.Features.Users.Queries.GetAllUsers;
+using Connect.Application.Features.Users.Queries.GetUserByEmail;
+using Connect.Application.Features.Users.Queries.GetUserByPhoneNumber;
+using Connect.Application.Features.Users.Queries.GetUserByUserName;
 using Connect.Application.Features.Users.Queries.GetUserProfile;
 using Connect.Application.Interfaces.Services;
 using MediatR;
@@ -145,6 +148,39 @@ namespace Connect.API.Controllers
         public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var result = await Sender.Send(new GetAllUsersQuery(page, pageSize), cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-userbyusername")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetUserByUserName (string userName,CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new GetUserByUserNameQuery { UserName = userName }, cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-userbyemail")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetUserByEmail (string email,CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new GetUserByEmailQuery { Email = email}, cancellationToken);
+            return Ok(result);
+        }
+
+        [HttpGet("get-userbyphonenumber")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetUserByPhoneNumber (string phoneNumber,CancellationToken cancellationToken)
+        {
+            var result = await Sender.Send(new GetUserByPhoneNumberQuery { PhoneNumber = phoneNumber }, cancellationToken);
             return Ok(result);
         }
 

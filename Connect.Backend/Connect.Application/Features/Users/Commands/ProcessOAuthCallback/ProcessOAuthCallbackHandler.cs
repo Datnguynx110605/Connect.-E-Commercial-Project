@@ -25,11 +25,8 @@ namespace Connect.Application.Features.Users.Commands.ProcessOAuthCallback
         public async Task<RefreshTokenDto> Handle(ProcessOAuthCallbackCommand request, CancellationToken cancellationToken)
         {
             var result = await oAuthService.ParseCallBack(request.HttpRequest);
-            Email email = Email.Create(result.Email);
-            bool existingEmail = await unitOfWork.Users.AnyAsync(x => x.Email == email, cancellationToken);
-            if (existingEmail)
-                throw new Exception("Email already exists");
 
+            Email email = Email.Create(result.Email);
             UserName userName = UserName.Create(result.UserName);
 
             User user = User.CreateOAuthUserProfile(userName, email, result.OAuthProviderName);
