@@ -5,18 +5,19 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![EF Core](https://img.shields.io/badge/EF%20Core-10.0-7B3F9E?logo=microsoftsqlserver&logoColor=white)](https://learn.microsoft.com/ef/)
+[![EF Core](https://img.shields.io/badge/EF%20Core-10.0-7B3F9E)](https://learn.microsoft.com/ef/)
 [![MediatR](https://img.shields.io/badge/MediatR-14.1-0078D4)](https://github.com/jbogard/MediatR)
 [![FluentValidation](https://img.shields.io/badge/FluentValidation-12.1-e74c3c)](https://docs.fluentvalidation.net/)
 [![Hangfire](https://img.shields.io/badge/Hangfire-1.8-2ecc71)](https://www.hangfire.io/)
 [![Serilog](https://img.shields.io/badge/Serilog-10.0-blue)](https://serilog.net/)
+[![xUnit](https://img.shields.io/badge/xUnit-2.9-brightgreen)](https://xunit.net/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-**Connect.** is a fully self-contained e-commerce platform covering the complete commerce lifecycle — user registration, product browsing, cart management, order placement, coupon redemption, online payment via VNPAY, transactional email delivery, and real-time admin notifications. The backend is a serious reference implementation of Clean Architecture, DDD, and CQRS in .NET. The frontend is a production-quality React SPA with a typed API client that mirrors every backend contract.
+**Connect.** is a fully self-contained e-commerce platform covering the complete commerce lifecycle — user registration with email verification, product browsing, cart management, order placement, coupon redemption, online payment via VNPAY, transactional email delivery, real-time admin notifications via SignalR, and Google OAuth2 sign-in. The backend is a serious reference implementation of Clean Architecture, DDD, and CQRS in .NET 10. The frontend is a production-quality React SPA with a typed API client that mirrors every backend contract.
 
-The codebase enforces a strict no-anemic-model policy: every business rule lives inside the domain, every value is validated at the point of construction, and every side effect is decoupled through domain events and background jobs.
+The codebase enforces a strict no-anemic-model policy: every business rule lives inside the domain, every value is validated at the point of construction, and every side effect is decoupled through domain events and Hangfire background jobs.
 
 ---
 
@@ -25,43 +26,13 @@ The codebase enforces a strict no-anemic-model policy: every business rule lives
 - [Architecture Overview](#architecture-overview)
 - [Solution Structure](#solution-structure)
 - [Frontend — React SPA](#frontend--react-spa)
-  - [Pages & Routing](#pages--routing)
-  - [API Client Layer](#api-client-layer)
-  - [AppContext — Global State](#appcontext--global-state)
-  - [Component Library](#component-library)
 - [Domain Model](#domain-model)
-  - [Aggregates & Entities](#aggregates--entities)
-  - [Value Objects](#value-objects)
-  - [Enumerations](#enumerations)
-  - [Domain Events](#domain-events)
-  - [Business Rules & Invariants](#business-rules--invariants)
 - [Application Layer — CQRS](#application-layer--cqrs)
-  - [Pipeline Behaviors](#pipeline-behaviors)
-  - [Feature Modules](#feature-modules)
-  - [Service Interfaces](#service-interfaces)
 - [Infrastructure Layer](#infrastructure-layer)
-  - [Persistence & EF Core](#persistence--ef-core)
-  - [Unit of Work & Repository](#unit-of-work--repository)
-  - [Authentication — JWT](#authentication--jwt)
-  - [OAuth 2.0 — Google Sign-In](#oauth-20--google-sign-in)
-  - [Password Hashing — BCrypt](#password-hashing--bcrypt)
-  - [Email Delivery — MailKit & Hangfire](#email-delivery--mailkit--hangfire)
-  - [Payment Gateway — VNPAY](#payment-gateway--vnpay)
-  - [Email Verification — Data Protection](#email-verification--data-protection)
-  - [Real-Time Notifications — SignalR & Redis](#real-time-notifications--signalr--redis)
 - [API Layer](#api-layer)
-  - [Middleware Pipeline](#middleware-pipeline)
-  - [Authentication & Authorization](#authentication--authorization)
-  - [API Endpoints Reference](#api-endpoints-reference)
 - [Key Flows](#key-flows)
-  - [User Registration Flow](#user-registration-flow)
-  - [Google OAuth Flow](#google-oauth-flow)
-  - [Order Placement Flow](#order-placement-flow)
-  - [Order Cancellation Flow](#order-cancellation-flow)
-  - [Payment Flow](#payment-flow)
-  - [Domain Event Dispatch Flow](#domain-event-dispatch-flow)
-  - [Real-Time Notification Flow](#real-time-notification-flow)
 - [Database Schema](#database-schema)
+- [Unit Tests](#unit-tests)
 - [Observability](#observability)
 - [Configuration Reference](#configuration-reference)
 - [Getting Started](#getting-started)
@@ -74,7 +45,7 @@ The codebase enforces a strict no-anemic-model policy: every business rule lives
 
 ## Architecture Overview
 
-Connect. is organized as a four-layer Clean Architecture backend paired with a React frontend. Backend layer dependencies always point inward — outer layers know about inner layers, never the reverse.
+Connect. is organized as a four-layer Clean Architecture backend paired with a React frontend. Backend layer dependencies always point inward — outer layers depend on inner layers, never the reverse.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -97,22 +68,21 @@ Connect. is organized as a four-layer Clean Architecture backend paired with a R
 │   Connect.Domain    │               │  Connect.Infrastructure   │
 │  Entities · AggRoots│               │  EF Core · JWT · BCrypt   │
 │  Value Objects      │◄──────────────│  MailKit · VNPAY · Hangfire│
-│  Domain Events      │  references   │  SignalR · Redis · OAuth  │
+│  Domain Events      │  references   │  SignalR · Redis · OAuth2  │
 │  Business Rules     │               │                           │
 └─────────────────────┘               └───────────────────────────┘
 ```
 
 ### Layer Responsibilities
 
-**`Connect.Frontend`** — A React 19 + TypeScript SPA with TailwindCSS v4 and React Router v7. Provides the complete customer-facing shopping experience: browsing, cart, checkout, order history, authentication, and profile management. Communicates with the backend exclusively via a typed API client layer and subscribes to real-time notifications via SignalR.
-
-**`Connect.Domain`** — The heart of the system. Contains all entities, value objects, domain events, enumerations, and business invariants. Has zero framework dependencies — plain C# targeting `net10.0`. No EF Core attributes, no ASP.NET concerns, no NuGet packages.
-
-**`Connect.Application`** — Orchestrates the domain. Houses all CQRS commands and queries (via MediatR), FluentValidation validators, DTO definitions, and `interface` contracts for every external dependency. References `Connect.Domain` only.
-
-**`Connect.Infrastructure`** — Implements every interface defined in `Connect.Application`. Houses the EF Core `DbContext`, all entity configurations, the generic repository, Unit of Work, JWT token generation, BCrypt password hashing, MailKit SMTP delivery, Hangfire job scheduling, VNPAY gateway integration, ASP.NET Core Data Protection for email tokens, SignalR with a Redis backplane for real-time notifications, and the `OAuthService` for Google Sign-In via the `OAuth2.Client` library.
-
-**`Connect.API`** — The entry point. Wires together the DI container, registers the middleware pipeline, configures Swagger/OpenAPI, sets up JWT Bearer authentication, and maps controllers. Contains no business logic.
+| Layer | Responsibility |
+|---|---|
+| **Connect.Frontend** | React 19 + TypeScript SPA. Provides the complete customer-facing shopping experience: browsing, cart, checkout, order history, authentication, profile, and real-time notifications via SignalR. |
+| **Connect.Domain** | The heart of the system. Contains all entities, value objects, domain events, enumerations, and business invariants. Zero framework dependencies — plain C# targeting `net10.0`. |
+| **Connect.Application** | Orchestrates the domain. Houses all CQRS commands and queries (via MediatR), FluentValidation validators, DTO definitions, and `interface` contracts for every external dependency. References `Connect.Domain` only. |
+| **Connect.Infrastructure** | Implements every interface defined in `Connect.Application`. Houses the EF Core `DbContext`, entity configurations, generic repository, Unit of Work, JWT, BCrypt, MailKit, Hangfire, VNPAY, ASP.NET Core Data Protection, OAuth2, and SignalR with a Redis backplane. |
+| **Connect.API** | The entry point. Wires together the DI container, middleware pipeline, Swagger/OpenAPI, JWT Bearer authentication, rate limiting, CORS, and controller mapping. Contains no business logic. |
+| **Connect.UnitTest** | xUnit + FluentAssertions test project covering all domain value objects and aggregate roots. |
 
 ---
 
@@ -123,109 +93,155 @@ Connect.sln
 │
 ├── Connect.Domain/
 │   ├── Common/
-│   │   ├── AggregateRoot.cs
-│   │   ├── DomainEvent.cs
-│   │   └── DomainExceptions.cs
+│   │   ├── AggregateRoot.cs          # Base class with domain event collection
+│   │   ├── DomainEvent.cs            # Abstract record with EventID + CreatedAt
+│   │   └── DomainExceptions.cs       # Typed exception with Code + Metadata
 │   ├── Core/
 │   │   ├── Entities/
-│   │   │   ├── User.cs, Order.cs, OrderItem.cs, Product.cs
-│   │   │   ├── Cart.cs, Coupon.cs, Review.cs, Payment.cs
-│   │   │   ├── Category.cs, RefreshToken.cs
+│   │   │   ├── User.cs               # AggregateRoot — identity, registration, profile
+│   │   │   ├── Order.cs              # AggregateRoot — lifecycle, pricing, events
+│   │   │   ├── OrderItem.cs          # Owned by Order
+│   │   │   ├── Product.cs            # Stock management, image, pricing rules
+│   │   │   ├── Cart.cs               # Price-snapshotted cart item
+│   │   │   ├── Coupon.cs             # Expiry, stock, minimum-price enforcement
+│   │   │   ├── Review.cs             # AggregateRoot — per-user-per-product
+│   │   │   ├── Payment.cs            # Immutable VNPAY payment record
+│   │   │   ├── Category.cs
+│   │   │   └── RefreshToken.cs       # Cryptographic token with 7-day lifetime
 │   │   ├── Enums/
-│   │   │   ├── OrderStatus.cs, PaymentStatus.cs, PaymentMethod.cs
-│   │   │   ├── ShippingMethod.cs, ProductStatus.cs
+│   │   │   ├── OrderStatus.cs        # Pending, Processing, Shipping, Completed, Cancelled
+│   │   │   ├── PaymentStatus.cs      # Unpaid, Pending, Paid
+│   │   │   ├── PaymentMethod.cs      # Cash, OnlineBanking, VNPAY
+│   │   │   ├── ShippingMethod.cs     # Standard, Fast, SuperFast
+│   │   │   └── ProductStatus.cs      # InStock, OutOfStock
 │   │   └── ValueObjects/
-│   │       ├── Amount.cs, Currency.cs, Email.cs, UserName.cs
-│   │       ├── PhoneNumber.cs, PasswordHash.cs, ProductName.cs
-│   │       ├── CategoryName.cs, Code.cs
+│   │       ├── Amount.cs             # int ≥ 0, operators +/-
+│   │       ├── Currency.cs           # decimal ≥ 0, operators +/-/*/comparisons
+│   │       ├── Email.cs              # non-empty, must contain @
+│   │       ├── UserName.cs           # 3–30 chars, ^[a-z]+$ only
+│   │       ├── PhoneNumber.cs        # exactly 10 chars, digits only
+│   │       ├── PasswordHash.cs       # exactly 60 chars, BCrypt prefix validation
+│   │       ├── ProductName.cs        # 5–100 chars, unicode letters/numbers/spaces/-|
+│   │       ├── CategoryName.cs       # 2–20 chars, no special characters
+│   │       └── Code.cs               # 5–12 chars, must contain at least one digit
 │   └── Events/
 │       ├── UserEvents/UserRegisterEvent.cs
 │       └── OrderEvents/
-│           ├── OrderPlacedEvent.cs, OrderCancelledEvent.cs
-│           ├── OrderPaidEvent.cs, OrderCompletedEvent.cs
+│           ├── OrderPlacedEvent.cs
+│           ├── OrderCancelledEvent.cs
+│           ├── OrderPaidEvent.cs
+│           └── OrderCompletedEvent.cs
 │
 ├── Connect.Application/
-│   ├── Commons/Behaviors/
-│   │   ├── LoggingBehavior.cs
-│   │   └── ValidationBehavior.cs
-│   ├── Commons/DomainEventNotification.cs
-│   ├── DTOs/
-│   │   ├── CartDto.cs, CategoryDto.cs, CouponDto.cs
-│   │   ├── NotificationDto.cs, OrderDto.cs, OrderItemDto.cs
-│   │   ├── PaymentDto.cs, ProductDto.cs, RefreshTokenDto.cs
-│   │   ├── ReviewDto.cs, UserDto.cs
+│   ├── Commons/
+│   │   ├── Behaviors/
+│   │   │   ├── LoggingBehavior.cs    # [START]/[END]/[SLOW]/[FAILURE] pipeline logging
+│   │   │   └── ValidationBehavior.cs # Concurrent FluentValidation, throws on failures
+│   │   ├── DomainEventNotification.cs
+│   │   └── DTOs/                     # CartDto, CategoryDto, CouponDto, NotificationDto,
+│   │                                 # OrderDto, OrderItemDto, PagedResult<T>, PaymentDto,
+│   │                                 # ProductDto, RefreshTokenDto, ReviewDto, UserDto
 │   ├── Features/
-│   │   ├── Carts/     { Commands: AddToCart, ReduceCartAmount, RemoveCart }
-│   │   │              { Queries:  GetAllCarts, GetUserCart }
-│   │   ├── Categories/{ Commands: CreateCategory, UpdateCategoryName, DeleteCategory }
-│   │   │              { Queries:  GetAllCategories, GetSpecificCategory }
-│   │   ├── Coupons/   { Commands: CreateCoupon, UpdateCouponExpiryDate, UpdateCouponQuantity }
-│   │   │              { Queries:  GetAllCoupons, GetSpecificCoupon }
-│   │   ├── Orders/    { Commands: CreateOrder, CancelOrder, MarkAsPaid,
-│   │   │                          UpdateOrderStatusToShipping, UpdateOrderStatusToCompleted }
-│   │   │              { Queries:  GetAllOrders, GetOrderHistory }
-│   │   ├── Payments/  { Commands: CreatePayment, ProcessPaymentCallback }
-│   │   │              { Queries:  GetAllPayments }
-│   │   ├── Products/  { Commands: CreateProduct, UpdateProductStock,
-│   │   │                          UpdateProductImage, DeleteProduct }
-│   │   │              { Queries:  GetAllProducts, GetProductDetail }
-│   │   ├── Reviews/   { Commands: CreateReview, UpdateReview, DeleteReview }
-│   │   │              { Queries:  GetAllReviews, GetReviewByProduct }
-│   │   └── Users/     { Commands: CheckEmail, VerifyEmail, RegisterUser, LoginUser,
-│   │                              RefreshToken, ForgetPassword, UpdateUserProfile,
-│   │                              UpdateUserPassword, DeleteUserProfile,
-│   │                              ProcessOAuthCallback }
-│   │                  { Queries:  GetAllUsers, GetUserProfile, GetSignInWithURL }
+│   │   ├── Carts/     Commands: AddToCart, IncreaseCartAmount, ReduceCartAmount, RemoveCart
+│   │   │              Queries:  GetAllCarts, GetUserCart
+│   │   ├── Categories/Commands: CreateCategory, UpdateCategoryName, DeleteCategory
+│   │   │              Queries:  GetAllCategories, GetSpecificCategory
+│   │   ├── Coupons/   Commands: CreateCoupon, UpdateCouponExpiryDate, UpdateCouponQuantity
+│   │   │              Queries:  GetAllCoupons, GetSpecificCoupon
+│   │   ├── Orders/    Commands: CreateOrder, CancelOrder, MarkAsPaid,
+│   │   │                        UpdateOrderStatusToShipping, UpdateOrderStatusToCompleted
+│   │   │              Queries:  GetAllOrders, GetOrderById, GetOrderHistory
+│   │   ├── Payments/  Commands: CreatePayment, ProcessPaymentCallback
+│   │   │              Queries:  GetAllPayments
+│   │   ├── Products/  Commands: CreateProduct, UpdateProductStock,
+│   │   │                        UpdateProductImage, DeleteProduct
+│   │   │              Queries:  GetAllProducts, GetProductDetail, GetProductByCategory,
+│   │   │                        GetProductByRAM, GetProductByROM, GetProductByColor,
+│   │   │                        GetProductByPriceRange
+│   │   ├── Reviews/   Commands: CreateReview, UpdateReview, DeleteReview
+│   │   │              Queries:  GetAllReviews, GetReviewByProduct
+│   │   └── Users/     Commands: CheckEmail, VerifyEmail, RegisterUser, LoginUser,
+│   │                            RefreshToken, ForgetPassword, UpdateUserProfile,
+│   │                            UpdateUserPassword, DeleteUserProfile,
+│   │                            GetSignInWithURL, ProcessOAuthCallback
+│   │                  Queries:  GetAllUsers, GetUserProfile, GetUserByEmail,
+│   │                            GetUserByUserName, GetUserByPhoneNumber
 │   ├── Interfaces/
 │   │   ├── Persistences/IRepository.cs, IUnitOfWork.cs
 │   │   └── Services/
-│   │       ├── ICurrentUserService.cs, IEmailService.cs
-│   │       ├── IEmailVerificationService.cs, IJWTService.cs
-│   │       ├── INotificationService.cs, IPasswordService.cs
-│   │       ├── IPaymentGateway.cs, IOAuthService.cs
+│   │       ├── ICurrentUserService.cs
+│   │       ├── IEmailService.cs
+│   │       ├── IEmailVerificationService.cs
+│   │       ├── IJWTService.cs
+│   │       ├── INotificationService.cs
+│   │       ├── IPasswordService.cs
+│   │       ├── IPaymentGateway.cs
+│   │       └── IOAuth2Service.cs
 │   └── DependencyInjection.cs
 │
 ├── Connect.Infrastructure/
-│   ├── Data/Configurations/          # One IEntityTypeConfiguration<T> per entity
-│   ├── Data/MyDbContext/ConnectDbContext.cs
-│   ├── Hub/NotificationHub.cs        # SignalR hub + INotificationClient interface
-│   ├── Persistences/GenericRepository.cs, UnitOfWork.cs
+│   ├── Data/
+│   │   ├── Configurations/           # One IEntityTypeConfiguration<T> per entity
+│   │   └── MyDbContext/ConnectDbContext.cs  # SaveChangesAsync dispatches domain events
+│   ├── Hub/NotificationHub.cs        # Typed SignalR hub; user-{id} + admins groups
+│   ├── Persistences/
+│   │   ├── GenericRepository.cs      # Paged, filter, tracking/no-tracking queries
+│   │   └── UnitOfWork.cs             # Transaction management with auto-rollback
 │   ├── Services/
-│   │   ├── CurrentUserService.cs
-│   │   ├── EmailService.cs
-│   │   ├── EmailVerificationService.cs
-│   │   ├── JWTService.cs
-│   │   ├── NotificationService.cs    # SignalR push to admin/user groups
-│   │   ├── OAuthService.cs           # Google OAuth via OAuth2.Client
-│   │   ├── PasswordService.cs
-│   │   └── PaymentGateway.cs
-│   ├── Settings/JWTSetting.cs, EmailSetting.cs
+│   │   ├── CurrentUserService.cs     # Reads UserID + Role from JWT claims
+│   │   ├── EmailService.cs           # MailKit SMTP, HTML email templates
+│   │   ├── EmailVerificationService.cs  # ASP.NET Data Protection time-limited tokens
+│   │   ├── JWTService.cs             # HS256, 10-minute access tokens
+│   │   ├── NotificationService.cs    # SignalR push to admins group
+│   │   ├── OAuth2Service.cs          # Google OAuth2 via OAuth2.Client library
+│   │   ├── PasswordService.cs        # BCrypt work factor 12
+│   │   └── PaymentGateway.cs         # VNPAY.NET client wrapper
+│   ├── Settings/JWTSetting.cs, EmailSettings.cs
+│   ├── Migrations/                   # EF Core migration history
 │   └── DependencyInjection.cs
 │
 ├── Connect.API/
 │   ├── Controllers/
-│   │   ├── APIController.cs, CartsController.cs, CategoriesController.cs
-│   │   ├── CouponsController.cs, OrdersController.cs, PaymentsController.cs
-│   │   ├── ProductsController.cs, ReviewsController.cs, UsersController.cs
+│   │   ├── APIController.cs          # Abstract base: Problem helpers (404/409/403/422/400)
+│   │   ├── CartsController.cs
+│   │   ├── CategoriesController.cs
+│   │   ├── CouponsController.cs
+│   │   ├── OrdersController.cs
+│   │   ├── PaymentsController.cs
+│   │   ├── ProductsController.cs
+│   │   ├── ReviewsController.cs
+│   │   └── UsersController.cs
 │   ├── Middlewares/
-│   │   ├── CorrelationMiddleware.cs, RequestLoggingMiddleware.cs
-│   │   ├── ExceptionMiddleware.cs, PerformanceMiddleware.cs
-│   ├── DependencyInjection.cs
+│   │   ├── CorrelationMiddleware.cs  # X-Correlation-Id read or generate
+│   │   ├── RequestLoggingMiddleware.cs  # Method+Path on entry, StatusCode+ms on exit
+│   │   ├── ExceptionMiddleware.cs    # Global catch → 500 JSON { title, status, traceId }
+│   │   └── PerformanceMiddleware.cs  # LogWarning if request > 1000ms
+│   ├── DependencyInjection.cs        # JWT, Swagger, RateLimiter, CORS
 │   ├── MiddlewareExtensions.cs
 │   └── Program.cs
+│
+├── Connect.UnitTest/
+│   ├── AmountTests.cs
+│   ├── CartTests.cs
+│   ├── CouponTests.cs
+│   ├── CurrencyTests.cs
+│   ├── EmailTests.cs
+│   ├── OrderTests.cs
+│   ├── OtherEntityTests.cs           # OrderItem, Review, RefreshToken, Category, Payment
+│   ├── OtherValueObjectTests.cs      # PasswordHash, ProductName, CategoryName, Code
+│   ├── PhoneNumberTests.cs
+│   ├── ProductTests.cs
+│   ├── UserNameTests.cs
+│   └── UserTests.cs
 │
 └── Connect.Frontend/Connect.UI/
     ├── src/
     │   ├── api/                      # Typed API client (one file per resource)
-    │   │   ├── client.ts             # Base fetch wrapper, token storage, auto-refresh
+    │   │   ├── client.ts             # Base fetch wrapper, Bearer injection, auto-refresh
     │   │   ├── types.ts              # All DTO & request type definitions
-    │   │   ├── users.ts, products.ts, categories.ts
-    │   │   ├── coupons.ts, carts.ts, orders.ts
-    │   │   ├── reviews.ts, payments.ts
-    │   │   └── index.ts              # Barrel export
-    │   ├── components/
-    │   │   ├── Header.tsx, Footer.tsx, Layout.tsx, ProductCard.tsx
-    │   ├── context/AppContext.tsx    # Global user auth + local cart state
+    │   │   └── [users|products|categories|coupons|carts|orders|reviews|payments].ts
+    │   ├── components/               # Header, Footer, Layout, ProductCard
+    │   ├── context/AppContext.tsx    # Global auth + local cart state
     │   ├── data/mock.ts              # formatVND utility
     │   └── pages/
     │       ├── Landing.tsx, Home.tsx, Products.tsx, ProductDetail.tsx
@@ -240,7 +256,7 @@ Connect.sln
 
 ## Frontend — React SPA
 
-The frontend is a single-page application built with React 19, TypeScript 5.8, Vite 6, TailwindCSS v4, and React Router v7. It runs on `http://localhost:3000` in development and communicates with the backend at `https://localhost:7240`.
+The frontend is a single-page application built with React 19, TypeScript 5.8, Vite 6, TailwindCSS v4, and React Router v7. It runs on `http://localhost:3000` in development and proxies API calls to `https://localhost:7240`.
 
 ### Pages & Routing
 
@@ -254,143 +270,64 @@ The frontend is a single-page application built with React 19, TypeScript 5.8, V
 | `/checkout` | `Checkout` | Yes | Shipping/payment/coupon selection + order submission |
 | `/checkout-success` | `CheckoutSuccess` | Yes | Post-order confirmation screen |
 | `/orders` | `MyOrders` | Yes | Order history with inline cancellation |
-| `/auth` | `Auth` | No | Login + 3-step email-verified registration + Google Sign-In |
+| `/auth` | `Auth` | No | Login + 3-step email-verified registration + Google OAuth |
 | `/verify-email` | `Auth` | No | Landing point for email verification link |
 | `/profile` | `Profile` | Yes | Profile editing, password change, account deletion |
 
-### API Client Layer
-
-All API communication is handled through a typed client in `src/api/`. Every resource has its own file; all types are centralized in `types.ts`; everything is re-exported from `index.ts`.
-
-**Base client** (`client.ts`) provides:
-
-- Automatic `Bearer` token injection from `localStorage`
-- **401 auto-retry** — on a 401 response the client attempts a token refresh and replays the original request transparently
-- `tokenStorage` helper — saves/reads/clears `accessToken`, `refreshToken`, and `userID` from `localStorage`
-- `ApiError` class with `status`, `traceId`, and `message` for structured error handling
-
-```typescript
-// Example usage
-import { getAllProducts, addToCart, login, getGoogleAuthUrl } from '../api';
-
-const products = await getAllProducts();        // anonymous
-const cart    = await addToCart({ productID: 1, quantity: 1, userID }); // authenticated
-const { user, tokens } = await login({ email, password });
-
-// OAuth — redirects the browser to Google's consent screen
-const authUrl = await getGoogleAuthUrl();
-window.location.href = authUrl;
-```
-
-**Resource modules:**
-
-| Module | Key exports |
-|---|---|
-| `users.ts` | `checkEmail`, `verifyEmail`, `register`, `login`, `refreshToken`, `forgetPassword`, `getProfile`, `updateProfile`, `changePassword`, `deleteProfile`, `logout`, `getGoogleAuthUrl` |
-| `products.ts` | `getAllProducts`, `getProductById`, `createProduct`, `updateProductStock`, `updateProductImage`, `deleteProduct` |
-| `categories.ts` | `getAllCategories`, `getCategoryById`, `createCategory`, `updateCategory`, `deleteCategory` |
-| `coupons.ts` | `getAllCoupons`, `getCouponById`, `createCoupon`, `updateCouponExpiryDate`, `updateCouponQuantity` |
-| `carts.ts` | `getMyCart`, `addToCart`, `reduceCartItem`, `removeCartItem`, `getAllCarts` |
-| `orders.ts` | `getOrderHistory`, `createOrder`, `cancelOrder`, `getAllOrders`, `markOrderAsShipping`, `markOrderAsCompleted`, `markOrderAsPaid` |
-| `reviews.ts` | `getAllReviews`, `getReviewsByProduct`, `createReview`, `updateReview`, `deleteReview` |
-| `payments.ts` | `createPaymentUrl`, `redirectToVNPAY`, `getAllPayments` |
-
 ### AppContext — Global State
 
-`AppContext` (`src/context/AppContext.tsx`) provides application-wide state via React Context:
+`AppContext` provides application-wide state via React Context:
 
-**Auth state:**
-- `user: UserDto | null` — the current authenticated user (rehydrated from the stored JWT on mount via `getProfile()`)
-- `isLoadingUser: boolean` — prevents flash of unauthenticated content on first render
-- `setUser(user)` — used after login or profile update
-- `logout()` — clears `tokenStorage` and resets all state
+**Auth state:** `user: UserDto | null` rehydrated from stored JWT on mount via `getProfile()`. `setUser(user)` after login or profile update. `logout()` clears token storage and resets all state.
 
-**Local cart state:**
-
-The cart is managed locally in React state (not persisted to `localStorage`) and synced to the backend silently on every `addToCart` call. This means the cart survives page navigation within a session but resets on refresh — the authoritative source for checkout is the backend cart fetched fresh at order time.
+**Local cart state:** Managed in React state, synced to the backend on every `addToCart` call. The authoritative source at checkout is the backend cart fetched fresh at order time.
 
 | Method | Description |
 |---|---|
-| `addToCart(item, quantity?)` | Adds or increments item; caps at 10; silently syncs to backend if logged in |
+| `addToCart(item, qty?)` | Adds or increments item; caps at 10; silently syncs to backend if logged in |
 | `removeFromCart(productID)` | Removes item by productID |
 | `updateQuantity(productID, qty)` | Sets quantity; caps at 10; ignores values ≤ 0 |
 | `clearCart()` | Empties the cart (called after successful order creation) |
-
-**LocalCartItem shape:**
-
-```typescript
-type LocalCartItem = {
-  productID: number;
-  productName: string;
-  finalPrice: number;
-  imageURL: string;
-  color: string;
-  ram: number;
-  rom: number;
-  quantity: number;
-};
-```
-
-### Component Library
-
-| Component | Description |
-|---|---|
-| `Layout` | Wraps every page with `Header` + `Footer`; accepts `showFooter` prop |
-| `Header` | Sticky nav with search bar, location display, cart badge, user avatar/login CTA |
-| `Footer` | Contact info, policy links, social icons |
-| `ProductCard` | Product thumbnail with price, specs, add-to-cart button, out-of-stock state |
 
 ---
 
 ## Domain Model
 
-The domain model is the most important part of this codebase. Everything else exists to serve it.
-
 ### Aggregates & Entities
 
 #### `User` — AggregateRoot
 
-The central identity entity. Owns the registration event, profile data, and all relationships downstream (orders, cart items, reviews, refresh tokens).
+The central identity entity. Owns the registration event, profile data, and downstream relationships (orders, cart items, reviews, refresh tokens).
 
-**Key behaviors:**
-- `CreateUserProfile(...)` — static factory. Validates address is non-empty, then constructs and immediately raises `UserRegisterEvent`. The UserID in the event will be `0` at raise-time because EF Core has not yet assigned a database ID — this is a known nuance; the event handler re-fetches the user by email.
-- `CreateOAuthUserProfile(UserName, Email, string providerName)` — static factory for OAuth-registered users. Skips password, phone number, and address requirements. Sets `OAuthProviderName` and leaves `PasswordHash` null — OAuth users cannot use the email/password login flow.
-- `UpdateUserProfile(...)` — validates address before updating all fields atomically.
-- `UpdateUserPassword(PasswordHash pass)` — guards against setting the same password by comparing `PasswordHash` records directly (record equality on the value).
-
-**Database relationships:**
-- `HasMany<RefreshToken>` — cascade delete
-- `HasMany<Cart>` — cascade delete
-- `HasMany<Order>` — restrict delete (orders must be managed explicitly)
-- `HasMany<Review>` — cascade delete
+| Method | Behavior |
+|---|---|
+| `CreateUserProfile(...)` | Static factory. Validates address non-empty, constructs user, raises `UserRegisterEvent`. Note: UserID in the event is `0` at raise-time — event handler re-fetches by email. |
+| `CreateOAuthUserProfile(...)` | Creates OAuth user (null phone, null password hash, null address). Validates provider string is non-empty. Raises `UserRegisterEvent`. |
+| `UpdateUserProfile(...)` | Validates address before updating all profile fields atomically. |
+| `UpdateUserPassword(PasswordHash)` | Guards against setting the same password using record equality. |
 
 ---
 
 #### `Order` — AggregateRoot
 
-The most complex aggregate. Owns its `OrderItem` collection as a read-only list backed by a private `List<OrderItem>`. Enforces all order lifecycle transitions.
+The most complex aggregate. Owns its `OrderItem` collection as a read-only list.
 
-**Key behaviors:**
-
-`CreateOrder(...)` — validates `userID > 0`, validates `ShippingMethod` and `PaymentMethod` enum membership, validates `orderItems` is non-empty, constructs the order, calls `CalculateTotalPrice`, and raises `OrderPlacedEvent`.
-
-`CalculateTotalPrice(Currency discountAmount)` — sums all `OrderItem.OrderItemTotalPrice` values, subtracts the discount, then applies the shipping fee. **Note:** There is a logic defect — the `if/else if/else` chain for shipping fees applies both the `Standard` branch AND the final `else` branch when `ShippingMethod` is `Standard`. Standard orders are charged 30,000 + 80,000 VND. This is a known issue.
-
-`CancelOrder()` — only allowed from `OrderStatus.Pending`. Sets status to `Cancelled`, raises `OrderCancelledEvent`.
-
-`MarkAsPaid()` — guards against double-payment (throws if already `Paid`) and against paying a cancelled order. Sets `PaymentStatus = Paid`, raises `OrderPaidEvent`.
-
-`MarkOrderStatusToShipping()` — cannot transition a cancelled order to shipping.
-
-`MarkOrderStatusToCompleted()` — requires payment status to not be `Unpaid` and order to not be `Cancelled`.
-
-`IntitalizePaymentStatus()` — called in the constructor. Cash orders start `Unpaid`; all online payment methods start `Pending`.
+| Method | Behavior |
+|---|---|
+| `CreateOrder(...)` | Validates userID > 0, validates enum memberships, validates orderItems non-empty, calculates total price, raises `OrderPlacedEvent`. |
+| `CalculateTotalPrice(couponID, discountAmount)` | Sums OrderItem totals, adds shipping fee, subtracts coupon discount. **Known bug:** Standard shipping adds both 30,000 and 80,000 VND due to a missing `else if`. |
+| `CancelOrder()` | Only from `Pending`. Sets `Cancelled`, raises `OrderCancelledEvent`. |
+| `MarkAsPaid()` | Guards double-payment and cancelled orders. Sets `PaymentStatus = Paid`. Does NOT raise an event (admin manual payment path). |
+| `MarkAsPaidForPaymentGateway(bool)` | Validates success flag, guards double-payment and cancelled orders. Sets `PaymentStatus = Paid`, raises `OrderPaidEvent`. |
+| `MarkOrderStatusToShipping()` | Cannot transition a cancelled order to Shipping. |
+| `MarkOrderStatusToCompleted()` | Requires payment status ≠ Unpaid and order status ≠ Cancelled. Raises `OrderCompletedEvent`. |
+| `IntitalizePaymentStatus()` | Cash → `Unpaid`; all other payment methods → `Pending`. |
 
 **Shipping fees:**
 
 | Method | Fee (VND) |
 |---|---|
-| `Standard` | 30,000 |
+| `Standard` | 30,000 *(+ bug: also adds 80,000)* |
 | `Fast` | 50,000 |
 | `SuperFast` | 80,000 |
 
@@ -398,32 +335,35 @@ The most complex aggregate. Owns its `OrderItem` collection as a read-only list 
 
 #### `Product`
 
-Manages its own stock lifecycle and enforces domain rules on product data quality.
-
-**Key behaviors:**
-- `CreateProduct(...)` — validates description length (50–2,000 chars), no special characters (`[<>{}\[\]\\|^~\`]`), `finalPrice ≤ originalPrice`, non-empty `imageURL`, color length (≤ 15 chars), `ram ≤ rom`.
-- `AddToStock(Amount)` / `RemoveFromStock(Amount)` — mutate `Stock` and call `MarkProductStock()` to automatically sync `ProductStatus`.
-- `MarkProductStock()` — private. Sets `ProductStatus = OutOfStock` when `Stock.Value == 0`, otherwise `InStock`.
+| Method | Behavior |
+|---|---|
+| `CreateProduct(...)` | Validates description (50–10,000 chars, no `<>{}\[\]\\|^~\``), `finalPrice ≤ originalPrice`, non-empty `imageURL`, color length ≤ 15, `ram ≤ rom`. |
+| `AddToStock(Amount)` | Increments stock, calls `MarkProductStock()`. |
+| `RemoveFromStock(Amount)` | Guards against out-of-stock, decrements stock, calls `MarkProductStock()`. |
+| `UpdateProductFinalPrice(Currency)` | Guards `finalPrice ≤ originalPrice`. |
+| `UpdateProductImage(List<string>)` | Guards against null/empty list. |
+| `MarkProductStock()` | Private. Sets `ProductStatus = OutOfStock` when `Stock.Value == 0`. |
 
 ---
 
 #### `Cart`
 
-A price-snapshotted cart item. When a product's price changes, existing cart items retain the price from when they were added.
-
-**Key behaviors:**
-- `CreateCart(...)` — validates `userID > 0`, `productID > 0`, then calls `AddToCart`.
-- `ReduceCartAmount(Amount)` — guards against reducing when quantity is already 0, then subtracts and recalculates `CartTotalPrice`.
+| Method | Behavior |
+|---|---|
+| `CreateCart(...)` | Validates `userID > 0`, `productID > 0`. Enforces quantity ≤ 10. Calculates `CartTotalPrice = unitPrice * quantity`. |
+| `IncreaseCartAmount()` | Guards quantity ≤ 10 before incrementing by 1. |
+| `ReduceCartAmount()` | Guards quantity > 0 before decrementing by 1. |
 
 ---
 
 #### `Coupon`
 
-A discount code with expiry enforcement, stock tracking, and atomic `UseCoupon()` behavior.
-
-**Key behaviors:**
-- `UseCoupon()` — calls `VerifyCoupon()` (checks expiry and stock > 0), then decrements stock by exactly 1.
-- `UpdateCouponExpiryDate(DateTime)` — rejects past dates.
+| Method | Behavior |
+|---|---|
+| `CreateCoupon(...)` | Factory constructor. |
+| `UseCoupon(totalItemPrice)` | Calls `VerifyCoupon()` (checks expiry, stock > 0, total ≥ minimum, discount ≤ total), then decrements stock by 1. |
+| `UpdateCouponQuantity(Amount)` | Adds to `CouponQuantity`. |
+| `UpdateCouponExpiryDate(DateTime)` | Rejects past dates. |
 
 ---
 
@@ -431,140 +371,107 @@ A discount code with expiry enforcement, stock tracking, and atomic `UseCoupon()
 
 One review per user per product, enforced at the database level via a unique composite index on `(UserID, ProductID)`.
 
-**Validation:**
-- Creation: body must be 1–2,000 chars, non-empty.
-- Updates: body must be 5–300 chars (stricter on update than creation).
+- **Creation:** body 1–2,000 chars, non-empty.
+- **Update:** body must be 5–300 chars (stricter than creation).
 
 ---
 
 #### `Payment` — `sealed`
 
-An immutable record of a completed payment transaction. Created exclusively from a VNPAY callback. Idempotency: `ProcessPaymentCallbackHandler` checks for an existing `Payment` with the same `PaymentID` before creating a new one.
+Immutable record of a VNPAY payment transaction. `PaymentID` is set from VNPAY (never database-generated). `ProcessPaymentCallbackHandler` checks for existing `PaymentID` before creating for idempotency.
 
 ---
 
 #### `RefreshToken`
 
-A cryptographically random 64-byte token (Base64 encoded) with a 7-day expiry and revocation support.
-
-**Key behaviors:**
-- `CreateRefreshToken(int userID)` — generates token on construction via `RandomNumberGenerator`.
-- `VerifyRefreshToken()` — throws if expired OR if revoked.
-- `RevokeRefreshToken()` — idempotent (returns early if already revoked).
+64-byte cryptographically random token (Base64), 7-day expiry, revocation support. `VerifyRefreshToken()` throws if expired OR revoked. `RevokeRefreshToken()` is idempotent.
 
 ---
 
 ### Value Objects
 
-All value objects are `sealed record` with a private constructor. The only way to obtain an instance is through the static `Create(...)` factory, which throws `DomainExceptions` for invalid input — it is impossible to have an invalid value object in memory.
+All value objects are `sealed record` with a private constructor. The only way to obtain an instance is through the static `Create(...)` factory, which throws `DomainExceptions` for invalid input — invalid value objects cannot exist in memory.
 
-| Value Object | Type | Rules |
+| Value Object | Underlying Type | Validation Rules |
 |---|---|---|
 | `Amount` | `int` | `value >= 0`. Operators: `+`, `-`. |
-| `Currency` | `decimal` | `value >= 0`. Operators: `+`, `-`, `* Amount`, `* decimal` (rounds to 0 decimal places). |
+| `Currency` | `decimal` | `value >= 0`. Operators: `+`, `-`, `* Amount`, `* decimal` (rounds to 0 dp). Comparisons: `<=`, `>=`. |
 | `Email` | `string` | Non-empty, must contain `@`. Trimmed on creation. |
-| `UserName` | `string` | 3–30 chars, must match `^[a-z]+$` (lowercase letters only). |
-| `PhoneNumber` | `string` | Exactly 10 chars, no `\W` characters, no `[a-z]` letters. |
+| `UserName` | `string` | 3–30 chars, must match `^[a-z]+$`. |
+| `PhoneNumber` | `string` | Exactly 10 chars, no `\W`, no `[a-z]`. |
 | `PasswordHash` | `string` | Exactly 60 chars, must match BCrypt prefix `^\$2[aby]\$\d{2}\$`. |
 | `ProductName` | `string` | 5–100 chars, allows `\p{L}\p{N}\s\-\|`. |
-| `CategoryName` | `string` | 2–20 chars, no `\W` characters. |
+| `CategoryName` | `string` | 2–20 chars, no `\W`. |
 | `Code` | `string` | 5–12 chars, must contain at least one digit. |
-
----
-
-### Enumerations
-
-```csharp
-enum OrderStatus   { Pending=0, Processing=1, Shipping=2, Completed=3, Cancelled=4 }
-enum PaymentStatus { Unpaid=0, Pending=1, Paid=2 }
-enum PaymentMethod { Cash=0, OnlineBanking=1, VNPAY=2 }
-enum ShippingMethod{ Standard=0, Fast=1, SuperFast=2 }
-enum ProductStatus { InStock=0, OutOfStock=1 }
-```
 
 ---
 
 ### Domain Events
 
-Domain events are plain C# records inheriting `DomainEvent` (carries auto-generated `EventID` + `CreatedAt`). Events are raised inside `AggregateRoot.RaiseDomainEvent`, stored in a private list, and dispatched after `SaveChangesAsync` inside `ConnectDbContext`.
+Events are plain C# records inheriting `DomainEvent` (auto-generated `EventID` + `CreatedAt`). Raised inside aggregates, stored in a private list, cleared and dispatched by `ConnectDbContext.SaveChangesAsync` after the DB write.
 
 | Event | Raised In | Handler | Effect |
 |---|---|---|---|
-| `UserRegisterEvent` | `User` constructor | `UserRegisteredEventHandler` | Enqueues welcome email job |
+| `UserRegisterEvent` | `User` constructor | `UserRegisteredEventHandler`, `UserVerifiedByOAuthEventHandler` | Enqueues welcome email job |
 | `OrderPlacedEvent` | `Order.CreateOrder` | `CreatedOrderEventHandler` | Enqueues confirmation email + notifies admins via SignalR |
 | `OrderCancelledEvent` | `Order.CancelOrder` | `CancelledOrderEventHandler` | Enqueues cancellation email + notifies admins via SignalR |
 | `OrderPaidEvent` | `Order.MarkAsPaidForPaymentGateway` | `OrderPaidEventHandler` | Enqueues payment bill email + notifies admins via SignalR |
-| `OrderCompletedEvent` | `Order.MarkOrderStatusToCompleted` *(event class exists; `RaiseDomainEvent` not yet called)* | `OrderCompletedEventHandler` | Would enqueue completion email |
+| `OrderCompletedEvent` | `Order.MarkOrderStatusToCompleted` | `OrderCompletedEventHandler` | Enqueues completion email |
 
 ---
 
 ### Business Rules & Invariants
 
-These rules are enforced at the domain level and cannot be bypassed by the application or API layers:
-
 | Rule | Enforced In |
 |---|---|
-| Cart quantity per item ≤ 10 | `Cart.AddToCart` |
-| Cart quantity cannot go below 0 | `Amount` subtraction |
+| Cart quantity per item ≤ 10 | `Cart.AddToCart`, `Cart.IncreaseCartAmount` |
+| Cart quantity cannot go below 0 | `Cart.ReduceCartAmount` |
 | Final price must not exceed original price | `Product.CreateProduct`, `Product.UpdateProductFinalPrice` |
 | RAM value must not exceed ROM value | `Product.CreateProduct` |
 | Coupons cannot be used after expiry | `Coupon.VerifyCoupon` |
 | Coupons cannot be used with zero stock | `Coupon.VerifyCoupon` |
+| Coupon order total must meet minimum price | `Coupon.VerifyCoupon` |
+| Discount cannot exceed order total | `Coupon.VerifyCoupon` |
+| Coupon expiry date cannot be set to the past | `Coupon.UpdateCouponExpiryDate` |
 | Orders can only be cancelled from Pending status | `Order.CancelOrder` |
 | Cancelled orders cannot be marked as Shipping | `Order.MarkOrderStatusToShipping` |
 | Unpaid or cancelled orders cannot be completed | `Order.MarkOrderStatusToCompleted` |
-| Already-paid orders cannot be paid again | `Order.MarkAsPaid` |
+| Already-paid orders cannot be paid again | `Order.MarkAsPaid`, `Order.MarkAsPaidForPaymentGateway` |
 | Passwords cannot be updated to the same value | `User.UpdateUserPassword` |
 | Refresh tokens have a fixed 7-day lifetime | `RefreshToken` constructor |
 | Revoked tokens cannot be used | `RefreshToken.VerifyRefreshToken` |
-| Coupon expiry date cannot be set to the past | `Coupon.UpdateCouponExpiryDate` |
-| Product description must be 50–2,000 chars | `Product.CreateProduct` |
-| OAuth users cannot register with an already-used email | `ProcessOAuthCallbackHandler` |
+| OAuth provider string cannot be empty | `User.CreateOAuthUserProfile` |
 
 ---
 
 ## Application Layer — CQRS
 
-Every operation is modeled as either a **Command** (mutates state, returns a DTO) or a **Query** (reads state, returns a DTO or collection). MediatR `ISender` is the only dependency in controllers.
+Every operation is modeled as either a **Command** (mutates state, returns a DTO) or a **Query** (reads state). MediatR `ISender` is the only dependency in controllers.
 
 ### Pipeline Behaviors
 
-Two `IPipelineBehavior<TRequest, TResponse>` implementations wrap every command and query:
-
 #### `LoggingBehavior<TRequest, TResponse>`
 
-- Logs `[START]` with request type name and full serialized payload
-- Uses `Stopwatch` to measure execution duration
-- Logs `[END]` on success; `[SLOW]` warning if duration exceeds **500ms**; `[FAILURE]` with exception details on error
+Wraps every MediatR handler. Logs `[START]` with serialized payload, uses `Stopwatch` for duration, logs `[END]` on success, `[SLOW]` warning if > 500ms, `[FAILURE]` with exception details.
 
 #### `ValidationBehavior<TRequest, TResponse>`
 
-- Runs all `IValidator<TRequest>` implementations concurrently via `Task.WhenAll`
-- Aggregates all failures and throws `FluentValidation.ValidationException` if any exist
-- Short-circuits before the handler if no validators are registered
-
----
-
-### Feature Modules
-
-Each feature follows an identical structure: `Command.cs` / `CommandValidation.cs` / `CommandHandler.cs` / optional `EventHandler.cs` in the Commands folder, mirrored by `Query.cs` / `QueryHandler.cs` in Queries.
-
----
+Runs all `IValidator<TRequest>` concurrently via `Task.WhenAll`. Aggregates all failures and throws `FluentValidation.ValidationException` if any exist. Short-circuits before the handler if no validators are registered.
 
 ### Service Interfaces
 
 | Interface | Purpose |
 |---|---|
-| `IUnitOfWork` | Repository access + transaction management |
-| `IRepository<T, TKey>` | Generic CRUD, query, and bulk operations |
-| `ICurrentUserService` | `UserID` and `Role` from the current HTTP context |
-| `IJWTService` | Access token generation |
-| `IPasswordService` | Hash and verify passwords |
-| `IEmailVerificationService` | Generate and unprotect time-limited tokens |
-| `IEmailService` | Send transactional HTML emails |
-| `IPaymentGateway` | Create payment URL and parse VNPAY callback |
-| `INotificationService` | Push real-time notifications via SignalR |
-| `IOAuthService` | Obtain the Google authorization URL and parse the OAuth callback into a `UserDto` |
+| `IUnitOfWork` | Repository access + `BeginTransactionAsync` / `CommitTransactionAsync` / `RollbackTransactionAsync` |
+| `IRepository<T, TKey>` | Generic CRUD: `GetPagedAsync`, `GetByIdAsync`, `FirstOrDefaultAsync`, `WhereAsync`, `AnyAsync`, `AddAsync`, `Update`, `Remove`, `AddRangeAsync`, `UpdateRange`, `RemoveRange` |
+| `ICurrentUserService` | `UserID` and `Role` from the current HTTP context JWT claims |
+| `IJWTService` | HS256 JWT access token generation |
+| `IPasswordService` | BCrypt hash and verify |
+| `IEmailVerificationService` | Generate and unprotect time-limited tokens (`email-verification` 30min, `registration-session` 15min) |
+| `IEmailService` | Send transactional HTML emails via MailKit SMTP |
+| `IPaymentGateway` | Create VNPAY payment URL and parse VNPAY callback |
+| `INotificationService` | Push real-time notifications to SignalR `admins` group |
+| `IOAuth2Service` | Google OAuth2 login link generation and callback processing |
 
 ---
 
@@ -574,139 +481,103 @@ Each feature follows an identical structure: `Command.cs` / `CommandValidation.c
 
 `ConnectDbContext` inherits `DbContext` and exposes 10 `DbSet<T>` properties. All configuration is done through `IEntityTypeConfiguration<T>` classes — no data annotations on domain entities.
 
-**Key configuration details by entity:**
+**Key EF Core configuration details:**
 
 | Entity | Notable Config |
 |---|---|
-| `User` | Unique index on `Email`. Cascade delete to RefreshTokens, Carts, Reviews. Restrict delete from Orders. `OAuthProviderName` is nullable — null for email/password users. |
-| `Order` | `CouponID` is nullable FK with `SetNull` on delete. Cascade delete to `OrderItems`. |
-| `OrderItem` | Composite PK on `(OrderID, ProductID)`. `OrderItemTotalPrice` is `Ignored`. |
-| `Product` | `ImageURL` stored as `\|\|`-delimited string. |
+| `User` | Unique index on `Email`. Cascade delete → RefreshTokens, Carts, Reviews. Restrict delete from Orders. |
+| `Order` | `CouponID` nullable FK with `SetNull`. Cascade delete → `OrderItems`. |
+| `OrderItem` | Composite PK on `(OrderID, ProductID)`. `OrderItemTotalPrice` is `Ignored` (computed property). |
+| `Product` | `ImageURL` stored as `\|\|`-delimited string via value converter. |
 | `Review` | Unique composite index on `(UserID, ProductID)`. |
-| `Payment` | `PaymentID` is `ValueGeneratedNever()` — set from VNPAY. |
+| `Payment` | `PaymentID` is `ValueGeneratedNever()` — set from VNPAY response. |
 | `RefreshToken` | Unique index on `Token`. Default value `false` for `IsRevoked`. |
+| `Category` | Unique index on `CategoryName`. |
+| `Coupon` | Unique index on `CouponCode`. |
 
 **Domain event dispatch in `SaveChangesAsync`:**
 
-```csharp
-// 1. Collect events from all tracked aggregates (before save)
-// 2. base.SaveChangesAsync() — persist to DB
-// 3. Publish each event via MediatR (after successful save)
+```
+1. Collect events from all tracked AggregateRoot entities
+2. ClearDomainEvents() on each aggregate
+3. base.SaveChangesAsync() — persist to DB
+4. Foreach event: MediatR.Publish(DomainEventNotification<T>)
 ```
 
-Events are cleared before saving to prevent re-entrant dispatch.
+Events are cleared **before** saving to prevent re-entrant dispatch.
 
 ---
 
 ### Unit of Work & Repository
 
-`IUnitOfWork` provides a single-session view over the entire database with transaction control. `CommitTransactionAsync` wraps `SaveChangesAsync` + `CommitAsync` in a try/catch that automatically rolls back and disposes the transaction on failure.
+`UnitOfWork` wraps a single `ConnectDbContext` and provides typed `IRepository<T, TKey>` instances for all 10 entities. `CommitTransactionAsync` calls `SaveChangesAsync` + `CommitAsync` inside a try/catch that automatically rolls back and disposes on failure.
 
 ---
 
 ### Authentication — JWT
 
-`JWTService.GenerateAccessToken(User user)` produces a signed HS256 JWT with claims `sub` (UserID), `email`, `role`, and `jti`. Tokens expire in **10 minutes**. Refresh token rotation handles session continuity with a 7-day window.
-
-JWT tokens are issued to OAuth users on the same path as email/password users — after `ProcessOAuthCallbackHandler` saves the new user, it calls `jwtService.GenerateAccessToken(user)` and creates a refresh token, returning `RefreshTokenDto` like any other login.
-
----
-
-### OAuth 2.0 — Google Sign-In
-
-`OAuthService` wraps the `OAuth2.Client` NuGet library to implement the Authorization Code flow against Google's OAuth 2.0 endpoints.
-
-**Flow:**
-
-1. **`GetGoogleLoginLink()`** — delegates to `IClient.GetLoginLinkUriAsync()`, which constructs the Google authorization URL with the configured `ClientId`, `ClientSecret`, `RedirectUri`, and `scope` (`email`, `profile`). The URL is returned to the API controller, which issues a `302 Redirect` to the browser.
-2. **`ParseCallBack(HttpRequest)`** — extracts the `code` query parameter from the Google redirect, exchanges it for an access token via `IClient.GetUserInfoAsync(...)`, and maps the result to a `UserDto` containing `Email`, `UserName` (derived from the email local-part, letters only, lowercased), and `OAuthProviderName`.
-
-**Handler — `ProcessOAuthCallbackHandler`:**
-
-- Checks that the email returned by Google does not already exist in the database. If it does, the handler throws `Exception("Email already exists")` — existing users must sign in via email/password or link their account manually (future work).
-- Calls `User.CreateOAuthUserProfile(userName, email, providerName)` — this static factory creates a user without a password hash.
-- Persists the user, generates a refresh token, issues a JWT, and returns `RefreshTokenDto`.
-- The API controller redirects the browser to `http://localhost:3000/home` after successful authentication. The frontend is responsible for reading the tokens from the redirect or a cookie (wiring is future work — see [Known Limitations](#known-limitations--future-work)).
-
-**`IOAuthService` interface:**
-
-```csharp
-public interface IOAuthService
-{
-    Task<string> GetGoogleLoginLink();
-    Task<UserDto> ParseCallBack(HttpRequest request);
-}
-```
-
-**Configuration** (see [Configuration Reference](#configuration-reference) for full keys):
-
-```json
-"OAuth": {
-  "Google": {
-    "ClientId":     "your-google-client-id",
-    "ClientSecret": "your-google-client-secret",
-    "RedirectUri":  "https://localhost:7240/api/users/oauth-callback",
-    "Scope":        "email profile"
-  }
-}
-```
-
-> **Google Cloud Console setup:** Create an OAuth 2.0 Client ID of type *Web application*. Add `https://localhost:7240/api/users/oauth-callback` as an authorized redirect URI. Download the credentials and copy `ClientId` and `ClientSecret` into user secrets.
+`JWTService.GenerateAccessToken(User)` produces a signed HS256 JWT with claims `sub` (UserID), `email`, `role`, and `jti`. Tokens expire in **10 minutes**. Refresh token rotation provides session continuity with a 7-day window via `/api/users/refresh-token`.
 
 ---
 
 ### Password Hashing — BCrypt
 
-`PasswordService` wraps `BCrypt.Net-Next` with work factor **12** (~250ms per hash). The `PasswordHash` value object validates BCrypt format, preventing raw passwords from being accidentally stored.
-
-OAuth-registered users have no `PasswordHash`. Any attempt to call `UpdateUserPassword` for an OAuth user should be guarded at the application layer (future work).
+`PasswordService` wraps `BCrypt.Net-Next` with work factor **12** (~250ms per hash). The `PasswordHash` value object validates BCrypt format at construction, making it impossible to accidentally store raw passwords.
 
 ---
 
 ### Email Delivery — MailKit & Hangfire
 
-`EmailService` sends HTML transactional emails via SMTP (StartTLS, port 587) using MailKit. All email sends are enqueued as Hangfire background jobs inside domain event handlers — the business transaction never fails because of email unavailability.
+`EmailService` sends HTML transactional emails via SMTP (StartTLS, port 587). All email sends are enqueued as **Hangfire background jobs** inside domain event handlers — the business transaction never fails because of email unavailability.
 
-| Method | Trigger |
-|---|---|
-| `SendOrderConfirmationAsync` | Order placed |
-| `SendOrderCancelledAsync` | Order cancelled |
-| `SendPaymentSuccessBillEmailAsync` | Payment marked paid |
-| `SendOrderCompletedAsync` | Order completed |
-| `SendEmailVerificationAsync` | Registration started |
-| `SendWelcomeEmailAsync` | Registration completed |
+| Email Method | Trigger | Template |
+|---|---|---|
+| `SendEmailVerificationAsync` | `CheckEmailHandler` | Verification link with 30-min expiry |
+| `SendWelcomeEmailAsync` | `UserRegisterEvent` handler | Welcome + feature list |
+| `SendOrderConfirmationAsync` | `OrderPlacedEvent` handler | Order summary with totals |
+| `SendOrderCancelledAsync` | `OrderCancelledEvent` handler | Cancellation confirmation |
+| `SendPaymentSuccessBillEmailAsync` | `OrderPaidEvent` handler | Payment receipt |
+| `SendOrderCompletedAsync` | `OrderCompletedEvent` handler | Completion notice with review CTA |
 
 ---
 
 ### Payment Gateway — VNPAY
 
-`PaymentGateway` wraps the `VNPAY.NET` NuGet client. `CreatePaymentUrl` embeds the OrderID in the description as `ORDER:{orderId}`. `ParseCallback` extracts the OrderID from the callback and throws `InvalidOperationException` if the description prefix does not match.
-
-The callback controller redirects to `/payment/success?orderId={id}` on success and `/payment/failed?code={code}` on failure.
+`PaymentGateway` wraps the `VNPAY.NET` NuGet client. `CreatePaymentUrl` embeds the OrderID in the description as `ORDER:{orderId}`. `ParseCallback` extracts the OrderID from the callback description and throws `InvalidOperationException` if the prefix does not match. On VNPAY callback success, the API redirects to `http://localhost:3000/myorder`.
 
 ---
 
 ### Email Verification — Data Protection
 
-Two time-limited `IDataProtector` instances with distinct purpose strings:
+Two time-limited `ITimeLimitedDataProtector` instances with distinct purpose strings prevent token cross-use:
 
 ```
-"email-verification"    → 30-minute lifetime → sent in verification link
-"registration-session"  → 15-minute lifetime → returned after link click
+"email-verification"    → 30-minute lifetime → embedded in email verification link
+"registration-session"  → 15-minute lifetime → returned after link click, used during /register
 ```
 
-This two-step chain proves email ownership without storing anything in the database.
+This stateless chain proves email ownership without any database table or cleanup jobs.
+
+---
+
+### Google OAuth2
+
+`OAuth2Service` wraps the `OAuth2.Client` library with a `GoogleClient`. The flow:
+
+1. `GET /api/users/get-oauthauthurl` — redirects client to Google OAuth consent screen.
+2. Google redirects back to `GET /api/users/oauth-callback` with `?code=...`.
+3. `ProcessOAuthCallbackHandler` exchanges the code for user info, creates or retrieves the user, issues JWT + refresh token, and redirects to `http://localhost:3000/home`.
 
 ---
 
 ### Real-Time Notifications — SignalR & Redis
 
-`NotificationHub` is a typed SignalR hub (`Hub<INotificationClient>`) that organizes connected clients into two groups:
+`NotificationHub` is a typed SignalR hub (`Hub<INotificationClient>`) organizing connected clients into:
 
-- **`user-{userID}`** — per-user group, populated from the `sub` JWT claim on connect
+- **`user-{userID}`** — per-user group (populated from `sub` JWT claim on connect)
 - **`admins`** — populated when the `role` claim equals `Admin`
 
-`NotificationService` implements `INotificationService` and calls `hub.Clients.Group(AdminGroup).ReceiveNotification(dto)` to push structured `NotificationDto` payloads.
+`NotificationService` pushes `NotificationDto` payloads to the `admins` group.
 
 ```csharp
 public sealed record NotificationDto(
@@ -718,34 +589,14 @@ public sealed record NotificationDto(
     object? Payload = null);
 ```
 
-**Notification types pushed to the `admins` group:**
-
-| Type | Trigger | Message |
+| Notification Type | Trigger | Message |
 |---|---|---|
 | `low_stock` | Product stock drops to ≤ 5 during order placement | Product name + remaining units |
 | `order_placed` | Order successfully created | OrderID, UserID, shipping/payment method, total |
 | `order_cancelled` | Order cancelled by customer | OrderID, UserID, new status |
-| `payment_success` | VNPAY callback processed successfully | UserID, OrderID, payment method, total |
+| `payment_success` | VNPAY callback processed | UserID, OrderID, payment method, total |
 
-**Redis backplane** — SignalR uses `AddStackExchangeRedis("localhost:6379")` so notifications are fanned out across multiple API server instances. Ensure Redis is running before starting the API.
-
-**Frontend connection** (to be wired in future work):
-
-```typescript
-import * as signalR from '@microsoft/signalr';
-
-const connection = new signalR.HubConnectionBuilder()
-  .withUrl('/hubs/notifications', {
-    accessTokenFactory: () => tokenStorage.getAccess() ?? '',
-  })
-  .build();
-
-connection.on('ReceiveNotification', (dto) => {
-  console.log(dto.type, dto.title, dto.body);
-});
-
-await connection.start();
-```
+**Redis backplane** — `AddStackExchangeRedis("localhost:6379")` fans notifications across multiple API instances.
 
 ---
 
@@ -753,136 +604,39 @@ await connection.start();
 
 ### Middleware Pipeline
 
-Executes in this exact order on every request:
-
 ```
 Request
   │
-  ▼
-1. CorrelationMiddleware       — X-Correlation-Id header (read or generate)
+  ▼  1. CorrelationMiddleware       — X-Correlation-Id (read or generate)
   │
-  ▼
-2. RequestLoggingMiddleware    — logs Method + Path on entry, StatusCode + ms on exit
+  ▼  2. RequestLoggingMiddleware    — logs Method+Path on entry, StatusCode+ms on exit
   │
-  ▼
-3. ExceptionMiddleware         — catches all exceptions → 500 JSON { title, status, traceId }
+  ▼  3. ExceptionMiddleware         — all uncaught exceptions → 500 JSON
   │
-  ▼
-4. PerformanceMiddleware       — LogWarning if ElapsedMs > 1,000ms
+  ▼  4. PerformanceMiddleware       — LogWarning if request > 1,000ms
   │
-  ▼
-5. Authentication / Authorization
+  ▼  5. Authentication / Authorization
   │
-  ▼
-6. Rate Limiter                — global 100 req/min; login 5 req/2 min sliding window
+  ▼  6. Rate Limiter                — global 100 req/min; login 5 req/2 min sliding window
   │
-  ▼
-7. Controllers
+  ▼  7. Controllers
 ```
-
----
 
 ### Authentication & Authorization
 
-JWT Bearer authentication validates issuer, audience, lifetime, and HS256 signing key. CORS allows `http://localhost:3000` (frontend dev server) with credentials.
+JWT Bearer authentication validates issuer, audience, lifetime, and HS256 signing key. CORS allows `http://localhost:3000` with credentials.
 
 | Role | Assigned | Access |
 |---|---|---|
-| `Customer` | Default on registration (email or OAuth) | Own cart, orders, reviews, profile |
+| `Customer` | Default on registration / OAuth | Own cart, orders, reviews, profile |
 | `Admin` | Manual DB assignment | All admin endpoints + SignalR `admins` group |
 
----
+### Rate Limiting
 
-### API Endpoints Reference
-
-#### Users — `/api/users`
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `POST` | `/check-email` | Anonymous | Validates uniqueness, sends verification link |
-| `POST` | `/verify-email` | Anonymous | Exchanges verification token for session token |
-| `POST` | `/register` | Anonymous | Creates user account |
-| `POST` | `/login` | Anonymous | Returns `{ accessToken, refreshToken }` |
-| `POST` | `/refresh-token` | — | Rotates refresh token pair |
-| `POST` | `/forget-passwod` | Anonymous | Resets password via session token *(note: typo in route)* |
-| `GET` | `/get-oauthauthurl` | Anonymous | Returns a redirect to Google's OAuth consent screen |
-| `GET` | `/oauth-callback` | Anonymous | Handles the Google redirect; creates or authenticates the user; redirects to frontend |
-| `GET` | `/` | Admin | Lists all users |
-| `GET` | `/profile` | Authenticated | Gets own profile |
-| `PUT` | `/profile` | Authenticated | Updates own profile |
-| `PUT` | `/change-password` | Authenticated | Changes own password |
-| `DELETE` | `/profile` | Authenticated | Deletes own account |
-
-#### Products — `/api/products`
-
-| Method | Endpoint | Auth |
+| Policy | Limit | Window |
 |---|---|---|
-| `GET` | `/` | Anonymous |
-| `GET` | `/{id}` | Anonymous |
-| `POST` | `/` | Admin (multipart/form-data) |
-| `PATCH` | `/{id}/stock` | Admin |
-| `PATCH` | `/{id}/image` | Admin |
-| `DELETE` | `/{id}` | Admin |
-
-#### Orders — `/api/orders`
-
-| Method | Endpoint | Auth |
-|---|---|---|
-| `GET` | `/` | Admin |
-| `GET` | `/history` | Authenticated |
-| `POST` | `/` | Authenticated |
-| `PATCH` | `/{id}/cancel` | Authenticated |
-| `PATCH` | `/{id}/shipping` | Admin |
-| `PATCH` | `/{id}/completed` | Admin |
-| `PATCH` | `/{id}/paid` | Admin |
-
-#### Carts — `/api/carts`
-
-| Method | Endpoint | Auth |
-|---|---|---|
-| `GET` | `/` | Admin |
-| `GET` | `/me` | Authenticated |
-| `POST` | `/` | Authenticated |
-| `PATCH` | `/{id}/reduce` | Authenticated |
-| `DELETE` | `/{id}` | Authenticated |
-
-#### Categories — `/api/categories`
-
-| Method | Endpoint | Auth |
-|---|---|---|
-| `GET` | `/`, `/{id}` | Anonymous |
-| `POST` | `/` | Admin |
-| `PUT` | `/{id}` | Admin |
-| `DELETE` | `/{id}` | Admin |
-
-#### Coupons — `/api/coupons`
-
-| Method | Endpoint | Auth |
-|---|---|---|
-| `GET` | `/`, `/{id}` | Authenticated |
-| `POST` | `/` | Admin |
-| `PATCH` | `/{id}/expiry-date`, `/{id}/quantity` | Admin |
-
-#### Reviews — `/api/reviews`
-
-| Method | Endpoint | Auth |
-|---|---|---|
-| `GET` | `/`, `/product/{productId}` | Anonymous |
-| `POST` | `/` | Authenticated |
-| `PUT` | `/{id}` | Authenticated |
-| `DELETE` | `/{id}` | Authenticated |
-
-#### Payments — `/api/payments`
-
-| Method | Endpoint | Auth |
-|---|---|---|
-| `GET` | `/` | Admin |
-| `POST` | `/create-url` | Authenticated |
-| `GET` | `/vnpay-callback` | Anonymous (VNPAY redirect) |
-
-#### SignalR Hub — `/hubs/notifications`
-
-Clients connect with a valid JWT. On connect, the hub adds the client to their user group and, if admin, to the `admins` group. The client must handle the `ReceiveNotification(NotificationDto)` event.
+| Global | 100 requests | 1 minute (fixed window, per user/IP) |
+| `LoginPolicy` | 5 requests | 2 minutes (sliding window, per IP) |
 
 ---
 
@@ -891,168 +645,91 @@ Clients connect with a valid JWT. On connect, the hub adds the client to their u
 ### User Registration Flow
 
 ```
-Client                    API                   Services               DB
-  │                        │                        │                   │
-  ├─ POST /check-email ────►│                        │                   │
-  │                        ├── Email.Create()        │                   │
-  │                        │               AnyAsync(email) ─────────────►
-  │                        │◄──────────────────────────────── false ─────┤
-  │                        ├── GenerateVerificationToken(30 min)         │
-  │                        ├── SendEmailVerificationAsync() ─────────────►
-  │◄─ 200 OK ──────────────┤                        │                   │
-  │                        │                        │                   │
-  │  [User clicks email link]
-  │                        │                        │                   │
-  ├─ POST /verify-email ───►│                        │                   │
-  │  { verificationToken } ├── UnprotectToken("email-verification")      │
-  │                        ├── GenerateRegistrationSessionToken(15 min)  │
-  │◄─ 200 { sessionToken } ┤                        │                   │
-  │                        │                        │                   │
-  ├─ POST /register ───────►│                        │                   │
-  │  { sessionToken, ... } ├── UnprotectToken("registration-session")   │
-  │                        ├── Hash(password) [BCrypt cost 12]          │
-  │                        ├── User.CreateUserProfile(...)              │
-  │                        │   └── RaiseDomainEvent(UserRegisterEvent)  │
-  │                        ├── SaveChangesAsync() ───────────────────────►
-  │                        │   └── dispatch UserRegisterEvent           │
-  │                        │       └── Hangfire.Enqueue(SendWelcomeEmail)►
-  │◄─ 201 UserDto ─────────┤                        │                   │
-```
+Client → POST /check-email (email)
+  → Email.Create() validates format
+  → AnyAsync checks uniqueness
+  → Generate 30-min verification token
+  → Send verification email via Hangfire
+  → 200 OK
 
-### Google OAuth Flow
+Client clicks email link → POST /verify-email (verificationToken)
+  → Unprotect token ("email-verification")
+  → Generate 15-min registration session token
+  → 200 { RegistrationSessionToken }
 
-```
-Client (Browser)        API                   OAuthService         Google
-  │                      │                        │                    │
-  ├─ GET /get-oauthauthurl ►│                      │                    │
-  │                      ├── GetSignInWithURLQuery ►                    │
-  │                      │                        ├─ GetLoginLinkUriAsync()
-  │                      │◄─ Google Auth URL ──────┤                    │
-  │◄─ 302 Redirect ───────┤                        │                    │
-  │                                                                      │
-  ├─ [User logs in & consents] ──────────────────────────────────────────►
-  │                                                                      │
-  │◄─ 302 Redirect to /oauth-callback?code=... ──────────────────────────┤
-  │                      │                        │                    │
-  ├─ GET /oauth-callback ─►│                      │                    │
-  │                      ├── ProcessOAuthCallbackCommand               │
-  │                      │                        ├─ GetUserInfoAsync(code)
-  │                      │                        │  (exchange code → token → user info)
-  │                      │◄─ UserDto { Email, UserName, Provider } ────┤
-  │                      ├── AnyAsync(email) [duplicate check] ─────────►
-  │                      ├── User.CreateOAuthUserProfile(...)          │
-  │                      ├── SaveChangesAsync() ────────────────────────►
-  │                      ├── RefreshToken.CreateRefreshToken(userID)   │
-  │                      ├── GenerateAccessToken(user)                 │
-  │◄─ 302 Redirect to http://localhost:3000/home ─┤                   │
+Client → POST /register (sessionToken, userName, phone, password, address)
+  → Unprotect session token ("registration-session") → recovers verified email
+  → Hash password (BCrypt cost 12)
+  → User.CreateUserProfile(...)
+  → SaveChangesAsync() → dispatch UserRegisterEvent
+  → Hangfire.Enqueue(SendWelcomeEmail)
+  → 201 UserDto
 ```
 
 ### Order Placement Flow
 
 ```
-Client            API                Application           Domain            DB
-  │                │                      │                   │               │
-  ├─ POST /orders ─►│                      │                   │               │
-  │                ├── CreateOrderCommand ─►                   │               │
-  │                │                      ├── AnyAsync(userID) ───────────────►
-  │                │                      ├── WhereAsync(productIDs) ─────────►
-  │                │                      ├── FirstOrDefault(couponID) ───────►
-  │                │                      ├── coupon.UseCoupon()              │
-  │                │                      ├── foreach item:                   │
-  │                │                      │   ├── product.RemoveFromStock(qty)│
-  │                │                      │   └── if stock ≤ 5:              │
-  │                │                      │       Hangfire.Enqueue(NotifyLowStock)
-  │                │                      ├── Order.CreateOrder(...)          │
-  │                │                      │   └── RaiseDomainEvent(OrderPlaced)│
-  │                │                      ├── BeginTransactionAsync() ────────►
-  │                │                      ├── CommitTransactionAsync() ───────►
-  │                │                      │   └── dispatch OrderPlacedEvent   │
-  │                │                      │       ├── Hangfire.Enqueue(Email) ►
-  │                │                      │       └── SignalR → admins group  │
-  │◄─ 201 OrderDto ┤◄─────────────────────┤                   │               │
-```
-
-### Order Cancellation Flow
-
-```
-Client              API              Application           DB
-  │                  │                    │                  │
-  ├─ PATCH /{id}/cancel ►│                │                  │
-  │                  ├── CancelOrderCommand ►                │
-  │                  │                    ├── GetByIdAsync(orderID) ──────────►
-  │                  │                    ├── Check currentUser == order.UserID
-  │                  │                    ├── BeginTransactionAsync() ─────────►
-  │                  │                    ├── product.AddToStock(qty) each item│
-  │                  │                    ├── order.CancelOrder()              │
-  │                  │                    │   └── RaiseDomainEvent(Cancelled)  │
-  │                  │                    ├── CommitTransactionAsync() ─────────►
-  │                  │                    │   └── dispatch OrderCancelledEvent  │
-  │                  │                    │       ├── Hangfire.Enqueue(Email)  ►
-  │                  │                    │       └── SignalR → admins group   │
-  │◄─ 200 OrderDto ──┤◄───────────────────┤                  │
+Client → POST /orders (items, couponID?, shippingMethod, paymentMethod)
+  → Verify user identity
+  → Load all products by IDs
+  → Load coupon (if provided)
+  → foreach item: product.RemoveFromStock(qty)
+     if stock ≤ 5: Hangfire.Enqueue(NotifyLowStock)
+  → coupon.UseCoupon(totalItemPrice) [validates + decrements stock]
+  → Order.CreateOrder(..., discountAmount)
+     → CalculateTotalPrice (items sum + shipping fee - discount)
+     → RaiseDomainEvent(OrderPlacedEvent)
+  → BeginTransactionAsync()
+  → Save products + coupon + order
+  → CommitTransactionAsync()
+     → dispatch OrderPlacedEvent
+     → Hangfire.Enqueue(SendOrderConfirmationEmail)
+     → Hangfire.Enqueue(NotifyOrderPlaced → SignalR admins)
+  → 201 OrderDto
 ```
 
 ### Payment Flow
 
 ```
-Client               API                       VNPAY
-  │                   │                           │
-  ├─ POST /payments/create-url ►│                  │
-  │                   ├── PaymentGateway.CreatePaymentUrl() ───────────────►
-  │◄─ 200 { paymentUrl } ┤                        │
-  │                   │                           │
-  ├─ [Redirect to paymentUrl] ──────────────────────────────────────────────►
-  │                   │◄── GET /vnpay-callback ────────────────────────────── │
-  │                   ├── ParseCallback → ProcessPaymentCallbackCommand       │
-  │                   │   ├── AnyAsync(paymentID) [idempotency check]         │
-  │                   │   ├── Payment.CreatePayment(...)                      │
-  │                   │   ├── order.MarkAsPaidForPaymentGateway(true)         │
-  │                   │   │   └── RaiseDomainEvent(OrderPaidEvent)            │
-  │                   │   └── CommitTransaction → dispatch event              │
-  │                   │       ├── Hangfire.Enqueue(SendPaymentBillEmail)      │
-  │                   │       └── SignalR → admins group (payment_success)    │
-  │◄─ Redirect /payment/success ┤                 │
+Client → POST /payments/create-paymenturl (orderID)
+  → Verify user owns the order
+  → PaymentGateway.CreatePaymentUrl(orderID, amount)
+     embeds "ORDER:{orderId}" in description
+  → 200 { PaymentUrl }
+
+Client redirects to VNPAY → pays → VNPAY calls:
+GET /api/payments/vnpay-callback (VNPAY query params)
+  → PaymentGateway.ParseCallback(request)
+     extracts OrderID from description prefix
+  → AnyAsync(paymentID) idempotency check
+  → Payment.CreatePayment(...)
+  → order.MarkAsPaidForPaymentGateway(true)
+     → RaiseDomainEvent(OrderPaidEvent)
+  → CommitTransactionAsync()
+     → dispatch OrderPaidEvent
+     → Hangfire.Enqueue(SendPaymentBillEmail)
+     → Hangfire.Enqueue(NotifyPaymentCompleted → SignalR admins)
+  → Redirect http://localhost:3000/myorder
 ```
 
 ### Domain Event Dispatch Flow
 
 ```
-Handler
-  │
-  ├── aggregate.SomeMethod()
-  │   └── RaiseDomainEvent(new SomeEvent(...))    ← in-memory list
-  │
-  ├── unitOfWork.CommitTransactionAsync()
-  │   └── _context.SaveChangesAsync()
-  │       ├── [1] Collect DomainEvents from all tracked AggregateRoots
-  │       │       ClearDomainEvents() on each
-  │       ├── [2] base.SaveChangesAsync()         ← actual DB write
-  │       └── [3] foreach event:
-  │               MediatR.Publish(DomainEventNotification<T>)
-  │               └── EventHandler.Handle(notification)
-  │                   ├── backgroundJobClient.Enqueue<IEmailService>(...)
-  │                   └── backgroundJobClient.Enqueue<INotificationService>(...)
-  │                                               ↑
-  │                                     SignalR push executed by Hangfire
-```
+1. handler calls aggregate.SomeMethod()
+     → RaiseDomainEvent(new SomeEvent(...))  [in-memory list]
 
-### Real-Time Notification Flow
-
-```
-Hangfire Worker
-  │
-  ├── INotificationService.NotifyOrderPlacedAsync(orderID, userID, ...)
-  │   └── NotificationService.NotifyOrderPlacedAsync(...)
-  │       └── hub.Clients.Group("admins")
-  │           .ReceiveNotification(new NotificationDto(
-  │               Id:    Guid.NewGuid().ToString(),
-  │               Type:  "order_placed",
-  │               Title: "New order received",
-  │               Body:  "Order: {id} from User: {uid} — ...",
-  │               CreatedAt: DateTime.UtcNow
-  │           ))
-  │
-  └── [All connected Admin clients receive the notification in real-time]
+2. unitOfWork.CommitTransactionAsync()
+     → _context.SaveChangesAsync()
+         a. Collect DomainEvents from all tracked AggregateRoots
+         b. ClearDomainEvents() on each
+         c. base.SaveChangesAsync()  [actual DB write]
+         d. foreach event:
+              MediatR.Publish(DomainEventNotification<T>)
+              → EventHandler.Handle(notification)
+                   → backgroundJobClient.Enqueue<IEmailService>(...)
+                   → backgroundJobClient.Enqueue<INotificationService>(...)
+                                         ↑
+                               SignalR push executed by Hangfire worker
 ```
 
 ---
@@ -1060,60 +737,54 @@ Hangfire Worker
 ## Database Schema
 
 ```
-┌─────────────┐       ┌─────────────────┐       ┌──────────────┐
-│    Users    │       │   RefreshTokens  │       │    Orders    │
-│─────────────│       │─────────────────│       │──────────────│
-│ UserID PK   │──┬───►│ RefreshTokenID  │       │ OrderID PK   │
-│ UserName    │  │    │ UserID FK       │       │ UserID FK ───┼──► Users
-│ Email UNIQ  │  │    │ Token UNIQ      │       │ CouponID FK? │
-│ PhoneNumber │  │    │ ExpiryDate      │       │ OrderTotalPrice
-│ PasswordHash│  │    │ IsRevoked       │       │ OrderTotalItems
-│ Address     │  │    └─────────────────┘       │ ShippingMethod
-│ Role        │  │                              │ PaymentMethod
-│OAuthProvider│  │    ┌─────────────────┐       │ PaymentStatus │
-│ CreatedAt   │  │    │     Carts       │       │ OrderStatus  │
-└─────────────┘  │    │─────────────────│       │ CreatedAt    │
-                 ├───►│ CartID PK       │       └──────────────┘
-                 │    │ UserID FK       │               │
-                 │    │ ProductID FK    │               │ 1:N
-                 │    │ CartQuantity    │               ▼
-                 │    │ CartUnitPrice   │       ┌──────────────────┐
-                 │    │ CartTotalPrice  │       │    OrderItems     │
-                 │    └─────────────────┘       │──────────────────│
-                 │                              │ OrderID FK (PK)  │
-                 └───►┌─────────────────┐       │ ProductID FK (PK)│
-                      │    Reviews      │       │ UnitPrice        │
-                      │─────────────────│       │ Quantity         │
-                      │ ReviewID PK     │       └──────────────────┘
-                      │ UserID FK       │
-                      │ ProductID FK    │       ┌──────────────┐
-                      │ Rating          │       │   Payments   │
-                      │ Body            │       │──────────────│
-                      │ CreatedAt       │       │ PaymentID PK │
-                      │ UNIQ(UserID,    │       │   (external) │
-                      │      ProductID) │       │ OrderID FK   │
-                      └─────────────────┘       │ PaymentType  │
-                                                │ TransactionID│
-┌──────────────────┐  ┌─────────────────┐       │ BankingInfo  │
-│    Products      │  │   Categories    │       │ TotalAmount  │
-│──────────────────│  │─────────────────│       │ IsPaidSuccess│
-│ ProductID PK     │  │ CategoryID PK   │       │ PaidAt       │
-│ CategoryID FK ───┼─►│ CategoryName    │       └──────────────┘
-│ ProductName      │  │   UNIQ          │
-│ Description      │  └─────────────────┘       ┌──────────────┐
-│ OriginalPrice    │                             │   Coupons    │
-│ FinalPrice       │  ┌─────────────────┐        │──────────────│
-│ Stock            │  │  Hangfire Tables│        │ CouponID PK  │
-│ Ram, Rom, Color  │  │ (auto-created)  │        │ CouponCode   │
-│ ImageURL (||sep) │  └─────────────────┘        │   UNIQ       │
-│ ProductStatus    │                             │ DiscountAmount
-│ CreatedAt        │                             │ CouponQuantity
-└──────────────────┘                             │ ExpiryDate   │
-                                                 │ CreatedAt    │
-                                                 └──────────────┘
+Users ──┬──► RefreshTokens
+        ├──► Carts ─────────────────────────────► Products
+        ├──► Reviews ───────────────────────────► Products
+        └──► Orders ──► Coupons (nullable, SetNull)
+                   └──► OrderItems ─────────────► Products
+
+Categories ──► Products
+
+Payments (standalone, OrderID FK index only)
 ```
 
-> **Schema note:** `Users.OAuthProviderName` is a nullable `varchar` column. It is `null` for email/password accounts and set to the provider name (e.g., `"Google"`) for OAuth accounts. `Users.PasswordHash` is nullable for OAuth users.
+**Key constraints:**
+
+- `Users.Email` — unique index
+- `RefreshTokens.Token` — unique index
+- `Categories.CategoryName` — unique index
+- `Coupons.CouponCode` — unique index
+- `Reviews.(UserID, ProductID)` — unique composite index
+- `Payment.PaymentID` — `ValueGeneratedNever()` (external VNPAY ID)
+- `OrderItems.(OrderID, ProductID)` — composite primary key
+- `Product.ImageURL` — `||`-delimited string via value converter
+
+---
+
+## Unit Tests
+
+`Connect.UnitTest` uses xUnit 2.9 and FluentAssertions 6.12. All tests target `Connect.Domain` only — no framework or infrastructure dependencies.
+
+| Test File | Coverage |
+|---|---|
+| `AmountTests.cs` | Create, addition, subtraction (including negative result), equality, ToString |
+| `CurrencyTests.cs` | Create, +/-, multiply by Amount/decimal, comparisons, equality, ToString |
+| `EmailTests.cs` | Create, trimming, missing @, empty, equality |
+| `UserNameTests.cs` | Create, length bounds, lowercase-only enforcement |
+| `PhoneNumberTests.cs` | Create, length, special chars, letters |
+| `OtherValueObjectTests.cs` | PasswordHash (BCrypt prefix), ProductName (chars), CategoryName, Code (digit required) |
+| `UserTests.cs` | CreateUserProfile, CreateOAuthUserProfile, UpdateProfile, UpdatePassword, domain events |
+| `CartTests.cs` | CreateCart, quantity cap, IncreaseCartAmount, ReduceCartAmount |
+| `CouponTests.cs` | CreateCoupon, UseCoupon (expired, out-of-stock, below min, discount > total), UpdateExpiryDate |
+| `ProductTests.cs` | CreateProduct (all validation paths), AddToStock, RemoveFromStock, UpdateFinalPrice, UpdateImage |
+| `OrderTests.cs` | CreateOrder, shipping fee calculation (including documented bug), CancelOrder, MarkAsPaid, MarkAsPaidForPaymentGateway, MarkToShipping, MarkToCompleted, domain events |
+| `OtherEntityTests.cs` | OrderItem, Review, RefreshToken, Category, Payment |
+
+Run all tests:
+
+```bash
+dotnet test Connect.Backend/Connect.UnitTest
+```
 
 ---
 
@@ -1121,7 +792,7 @@ Hangfire Worker
 
 ### Serilog + Seq
 
-Serilog is bootstrapped in `Program.cs` before `WebApplication.CreateBuilder` returns:
+Bootstrapped in `Program.cs` before `WebApplication.CreateBuilder`:
 
 ```csharp
 Log.Logger = new LoggerConfiguration()
@@ -1135,7 +806,7 @@ Log level overrides suppress noisy framework logs (`Microsoft.*`, `System.Net.Ht
 
 ### MediatR Logging
 
-`LoggingBehavior` adds a pipeline-level layer:
+`LoggingBehavior` adds pipeline-level structured log entries:
 
 ```
 [START] Handling CreateOrderCommand | Payload: { ... }
@@ -1157,26 +828,26 @@ Log level overrides suppress noisy framework logs (`Microsoft.*`, `System.Net.Ht
 
 | Section | Key | Default | Description |
 |---|---|---|---|
-| `ConnectionStrings` | `Default` | — | SQL Server (also used by Hangfire) |
-| `Jwt` | `SecretKey` | — | HS256 signing key (min 256 bits) |
+| `ConnectionStrings` | `Default` | — | SQL Server connection string (also used by Hangfire) |
+| `Jwt` | `SecretKey` | — | HS256 signing key (minimum 256 bits recommended) |
 | `Jwt` | `Issuer` | `Connect.API` | JWT `iss` claim |
 | `Jwt` | `Audience` | `Connect.Client` | JWT `aud` claim |
-| `Jwt` | `ExpiryMinutes` | `60` | Access token lifetime *(code uses 10 min hardcoded)* |
+| `Jwt` | `ExpiryMinutes` | `60` | Config value (code uses 10 min hardcoded in `JWTService`) |
 | `Email` | `Host` | `smtp.gmail.com` | SMTP hostname |
 | `Email` | `Port` | `587` | SMTP port (StartTLS) |
-| `Email` | `Username` | — | SMTP auth username |
-| `Email` | `Password` | — | SMTP app password |
+| `Email` | `Username` | — | SMTP auth username (Gmail address) |
+| `Email` | `Password` | — | SMTP app password (16-char Google App Password) |
 | `Email` | `FromName` | `Connect.` | `From:` display name |
 | `VNPAY` | `TmnCode` | — | Merchant terminal code |
 | `VNPAY` | `HashSecret` | — | HMAC hash secret |
 | `VNPAY` | `CallbackUrl` | — | Publicly accessible callback URL |
-| `VNPAY` | `BaseUrl` | sandbox URL | VNPAY payment page |
+| `VNPAY` | `BaseUrl` | sandbox URL | VNPAY payment page base URL |
 | `VNPAY` | `Version` | `2.1.0` | API version |
 | `VNPAY` | `OrderType` | `other` | Order type classification |
-| `OAuth:Google` | `ClientId` | — | Google OAuth 2.0 client ID |
-| `OAuth:Google` | `ClientSecret` | — | Google OAuth 2.0 client secret |
-| `OAuth:Google` | `RedirectUri` | — | Must match the URI registered in Google Cloud Console |
-| `OAuth:Google` | `Scope` | `email profile` | OAuth scopes requested from Google |
+| `GoogleOAuth2` | `client_id` | — | Google OAuth2 client ID |
+| `GoogleOAuth2` | `client_secret` | — | Google OAuth2 client secret |
+| `GoogleOAuth2` | `redirect_uris` | — | Array of allowed redirect URIs |
+| `GoogleOAuth2` | `scopes` | — | Array of OAuth2 scopes |
 
 ---
 
@@ -1193,7 +864,7 @@ Log level overrides suppress noisy framework logs (`Microsoft.*`, `System.Net.Ht
 | [Seq](https://datalust.co/seq) | Latest | Optional — structured log viewer |
 | VNPAY Sandbox Account | — | Optional — payment testing only |
 | Gmail App Password | — | Optional — email testing only |
-| Google Cloud Project | — | Optional — OAuth sign-in only |
+| Google Cloud OAuth2 App | — | Optional — Google sign-in only |
 
 ### 1. Clone the Repository
 
@@ -1202,31 +873,27 @@ git clone https://github.com/datnguynx110605/connect-ecommerce.git
 cd connect-ecommerce
 ```
 
-### 2. Configure the Backend
+### 2. Configure Backend Secrets
 
 ```bash
 cd Connect.Backend/Connect.API
 
 dotnet user-secrets set "ConnectionStrings:Default" \
   "Server=localhost;Database=ConnectDb;Trusted_Connection=True;TrustServerCertificate=True;"
+
 dotnet user-secrets set "Jwt:SecretKey" "your-minimum-32-character-secret-key-here"
+
 dotnet user-secrets set "Email:Username" "your@gmail.com"
 dotnet user-secrets set "Email:Password" "your-16-char-app-password"
-dotnet user-secrets set "VNPAY:TmnCode"    "your-tmn-code"
-dotnet user-secrets set "VNPAY:HashSecret" "your-hash-secret"
+
+dotnet user-secrets set "VNPAY:TmnCode"     "your-tmn-code"
+dotnet user-secrets set "VNPAY:HashSecret"  "your-hash-secret"
 dotnet user-secrets set "VNPAY:CallbackUrl" "https://localhost:7240/api/payments/vnpay-callback"
 
-# Optional — Google OAuth
-dotnet user-secrets set "OAuth:Google:ClientId"     "your-google-client-id"
-dotnet user-secrets set "OAuth:Google:ClientSecret" "your-google-client-secret"
-dotnet user-secrets set "OAuth:Google:RedirectUri"  "https://localhost:7240/api/users/oauth-callback"
+# Optional: Google OAuth2
+dotnet user-secrets set "GoogleOAuth2:client_id"     "your-client-id"
+dotnet user-secrets set "GoogleOAuth2:client_secret"  "your-client-secret"
 ```
-
-> **Google Cloud Console setup:**
-> 1. Go to [console.cloud.google.com](https://console.cloud.google.com) → *APIs & Services* → *Credentials*.
-> 2. Create an **OAuth 2.0 Client ID** of type *Web application*.
-> 3. Add `https://localhost:7240/api/users/oauth-callback` as an **Authorized redirect URI**.
-> 4. Copy the generated **Client ID** and **Client Secret** into user secrets as shown above.
 
 ### 3. Apply Database Migrations
 
@@ -1239,10 +906,8 @@ dotnet ef database update \
 ### 4. Start Redis
 
 ```bash
-# Docker
+# Docker (recommended)
 docker run -d --name redis -p 6379:6379 redis:7-alpine
-
-# Or with Redis CLI: redis-server
 ```
 
 ### 5. (Optional) Start Seq
@@ -1262,6 +927,7 @@ dotnet run --project Connect.Backend/Connect.API
 | `http://localhost:5198` | Swagger UI (root path in Development) |
 | `http://localhost:5198/hangfire` | Hangfire dashboard |
 | `http://localhost:5341` | Seq log viewer |
+| `https://localhost:7240/hubs/notifications` | SignalR hub endpoint |
 
 ### 7. Run the Frontend
 
@@ -1269,115 +935,71 @@ dotnet run --project Connect.Backend/Connect.API
 cd Connect.Frontend/Connect.UI
 npm install
 npm run dev
+# → http://localhost:3000
 ```
 
-The SPA is served at `http://localhost:3000` and proxies API calls to `https://localhost:7240`.
+### 8. Run Unit Tests
+
+```bash
+dotnet test Connect.Backend/Connect.UnitTest
+```
 
 ---
 
 ## Design Decisions
 
-### Why a React SPA frontend?
+**Why a typed API client layer instead of a generated SDK?** Hand-authored API modules allow fine-grained control over Bearer injection, 401 auto-refresh, anonymous vs. authenticated calls, and `FormData` handling for multipart uploads. One function per endpoint keeps contracts immediately readable.
 
-The frontend demonstrates that the API is complete and correct — every endpoint, auth flow, and error state is exercised by real UI code. The typed API client layer (`src/api/`) also serves as living documentation of every request/response shape.
+**Why local cart state synced to the backend?** The local cart gives instant UI feedback without a round-trip on every click. The backend cart is authoritative at checkout — `Checkout.tsx` fetches the backend cart fresh before order creation and falls back to local state if the backend returns empty.
 
-### Why a typed API client layer instead of a generated SDK?
+**Why SignalR with Redis over polling?** Zero polling overhead for admin dashboards. Redis backplane means notifications work correctly across horizontally scaled API instances. The `admins` group model ensures only privileged clients receive sensitive operational data.
 
-Hand-authored API modules in `src/api/` allow fine-grained control over token injection, auto-refresh logic, anonymous vs. authenticated calls, and FormData handling (for multipart product uploads). They are also kept intentionally thin — one function per endpoint — so the contracts are immediately readable without code generation tooling.
+**Why Clean Architecture?** The domain and application layers have zero framework dependencies — they can be unit-tested without spinning up a database, HTTP server, or any external service. Infrastructure implementations can be swapped (e.g., PostgreSQL, Mailgun) without touching business logic.
 
-### Why local cart state synced to the backend?
+**Why DDD tactical patterns?** The e-commerce domain has genuine complexity: inventory management, pricing rules, order lifecycle transitions, coupon validity, payment status synchronization. Aggregates with private constructors and factory methods make invalid states unrepresentable.
 
-The local cart gives instant UI feedback without a round-trip on every click. The backend cart is the authoritative source at checkout time — `Checkout.tsx` fetches the backend cart fresh before order creation and falls back to the local state if the backend cart is empty or returns an error. This makes the checkout resilient to session gaps.
+**Why CQRS via MediatR?** Not for performance (no read/write DB split here), but for structural clarity. Every operation is a named, typed, discoverable object. Cross-cutting concerns (validation, logging) are registered once in the pipeline.
 
-### Why SignalR over polling or webhooks for admin notifications?
+**Why Data Protection for email tokens?** Provides cryptographically isolated purpose strings — a `registration-session` token cannot be used as an `email-verification` token. Entirely stateless with no database table or cleanup jobs.
 
-SignalR keeps admin dashboards in sync with zero polling overhead. The Redis backplane means notifications work correctly across horizontally scaled API instances. The `admins` group model ensures only privileged clients receive sensitive operational data (low stock, payment events), while the `user-{id}` group is reserved for future per-user notifications.
+**Why Hangfire for emails and notifications?** Background jobs decouple side effects from business transactions. If SMTP or SignalR is temporarily unavailable, Hangfire retries automatically. The business transaction never fails because of email or notification infrastructure.
 
-### Why Clean Architecture over a simpler layered approach?
-
-The domain and application layers have zero framework dependencies — they can be unit-tested without spinning up a database, HTTP server, or any external service. Infrastructure implementations can be swapped (e.g., PostgreSQL, Mailgun) without touching business logic.
-
-### Why DDD tactical patterns?
-
-The e-commerce domain has genuine complexity: inventory management, pricing rules, order lifecycle transitions, coupon validity, payment status synchronization. Aggregates with private constructors and factory methods make invalid states unrepresentable.
-
-### Why CQRS via MediatR?
-
-Not for performance (no read/write DB split), but for structural clarity. Every operation is a named, typed, discoverable object. Cross-cutting concerns (validation, logging) are registered once in a pipeline behavior.
-
-### Why Data Protection for email tokens?
-
-Data Protection provides cryptographically isolated purpose strings — a `registration-session` token cannot be used as an `email-verification` token. It is entirely stateless with no database table, cleanup jobs, or extra DB queries.
-
-### Why Hangfire for email and notification delivery?
-
-Background jobs decouple side effects from business transactions. If the SMTP server or SignalR hub is temporarily unavailable, Hangfire retries the job automatically. The business transaction (order creation, cancellation) never fails because of email or notification infrastructure.
-
-### Why BCrypt cost 12?
-
-~250ms per hash makes brute-force attacks impractical even with a leaked database, while being imperceptible to users at login frequency.
-
-### Why OAuth 2.0 Authorization Code flow for Google Sign-In?
-
-The Authorization Code flow keeps the client secret server-side and never exposes access tokens to the browser. `OAuthService` exchanges the authorization code for user info in one server-to-server call, then issues a Connect. JWT — the frontend only ever sees the app's own tokens, not Google's. This also keeps the auth model uniform: every user, regardless of how they signed up, is identified by the same JWT/refresh token pair.
+**Why BCrypt cost 12?** ~250ms per hash makes brute-force attacks impractical even with a leaked database, while being imperceptible to users at normal login frequency.
 
 ---
 
 ## Known Limitations & Future Work
 
-**Bug — Shipping fee double-application:**
-`Order.CalculateTotalPrice` has a missing `else if` for `SuperFast`. Standard orders are charged 30,000 + 80,000 VND instead of 30,000 VND.
+**Bug — Shipping fee double-application:** `Order.CalculateTotalPrice` has a missing `else if` for `SuperFast`. Standard orders are charged 30,000 + 80,000 VND instead of 30,000 VND. The unit test `CreateOrder_WithStandardShipping_BuggyBehaviourAdds110000` documents this explicitly.
 
-**Bug — `UserRegisterEvent` fires with UserID = 0:**
-`UserRegisterEvent` is raised inside the `User` constructor before EF Core assigns a database ID. `SendWelcomeEmailAsync` re-fetches by `UserID = 0`, which always fails. The event should be raised after the first `SaveChangesAsync`, or the handler should re-fetch by the email in the event payload.
+**Bug — `UserRegisterEvent` fires with UserID = 0:** `UserRegisterEvent` is raised inside the `User` constructor before EF Core assigns a database ID. `SendWelcomeEmailAsync` re-fetches by email value in the event payload (workaround), but `UserID = 0` is misleading. The event should be raised after the first `SaveChangesAsync`.
 
-**Missing — `ValidationException` → 400 mapping:**
-`ExceptionMiddleware` currently returns `500` for all unhandled exceptions. `FluentValidation.ValidationException` should map to `400`, `DomainExceptions` to `422`, and `UnauthorizedAccessException` to `403`.
+**Missing — `ValidationException` → 400 mapping:** `ExceptionMiddleware` returns `500` for all unhandled exceptions. `FluentValidation.ValidationException` should map to `400`, `DomainExceptions` to `422`, and `UnauthorizedAccessException` to `403`.
 
-**Missing — OAuth token delivery to frontend:**
-`GoogleCallBack` redirects to `http://localhost:3000/home` after authentication but does not yet pass the JWT/refresh token pair to the frontend. Options include a short-lived query parameter, a `Set-Cookie` header, or a one-time code exchanged at a dedicated frontend endpoint. Until this is wired, OAuth sign-in completes on the backend but the frontend session is not established.
+**Missing — SignalR client integration in the frontend:** `NotificationHub` is fully implemented on the backend. The React frontend does not yet include a SignalR connection or notification UI. Wiring `@microsoft/signalr` into `AppContext` and rendering a toast/badge for admin users is the natural next step.
 
-**Missing — OAuth account linking:**
-If a user who registered via email/password later tries to sign in with the same Google email, `ProcessOAuthCallbackHandler` throws `"Email already exists"`. An account-linking flow (verify ownership of the existing account, then attach the OAuth provider) would resolve this.
+**Missing — Pagination metadata in frontend:** All `GetAll*` handlers return `PagedResult<T>` with `TotalPages`, `HasNext`, `HasPrevious` — but the frontend does not yet render pagination controls.
 
-**Missing — SignalR client integration in the frontend:**
-`NotificationHub` is fully implemented on the backend. The React frontend does not yet include a SignalR connection or notification UI. Wiring `@microsoft/signalr` into `AppContext` and rendering a toast/badge for admin users is the natural next step.
+**Missing — Product filtering (frontend sidebar):** `WhereAsync` exists in the repository and product filter query handlers are implemented, but the frontend sidebar filters (category, price range, RAM, ROM, color) are currently display-only.
 
-**Missing — Pagination:**
-All `GetAll*` handlers return the entire table. Cursor-based or offset pagination is required for production use.
+**Missing — Unit and Integration Tests for Application/Infrastructure:** Test projects only cover the domain layer. Application handler tests and integration tests (using `WebApplicationFactory`) would significantly improve confidence.
 
-**Missing — Product filtering and search:**
-`WhereAsync` exists in the repository but no product handler uses it. Category, price-range, RAM, and ROM filters on the frontend sidebar are currently display-only.
+**Missing — Admin role assignment API:** Promoting a user to `Admin` requires a direct database update (`UPDATE Users SET Role = 'Admin' WHERE UserID = X`). A `POST /api/users/{id}/role` endpoint restricted to existing admins is the clean solution.
 
-**Missing — Unit and Integration Tests:**
-No test projects exist. The domain and application layers are highly testable in isolation.
+**Improvement — `OrderCompletedEvent` dispatch:** `Order.MarkOrderStatusToCompleted()` calls `RaiseDomainEvent(new OrderCompletedEvent(...))` — the event and handler exist, and the completion email will be sent correctly.
 
-**Missing — Admin role assignment API:**
-Promoting a user to `Admin` requires a direct database update. A `POST /api/users/{id}/role` endpoint restricted to existing admins is the clean solution.
+**Improvement — `OrderStatus.Processing`:** The enum value `Processing = 1` exists but no transition implements it. Inserting `Processing` between `Pending` and `Shipping` would provide more granular order tracking.
 
-**Improvement — `OrderCompletedEvent` dispatch:**
-`Order.MarkOrderStatusToCompleted()` never calls `RaiseDomainEvent`. Adding that call would complete the event chain and trigger the completion email.
-
-**Improvement — `OrderStatus.Processing`:**
-The enum value exists but no transition implements it. Inserting `Processing` between `Pending` and `Shipping` would provide more granular order tracking.
-
-**Improvement — OAuth user password guard:**
-`UpdateUserPassword` should throw or return a domain error when called on a user whose `PasswordHash` is null (i.e., an OAuth-only account).
+**Improvement — OAuth2 callback creates duplicate users:** `ProcessOAuthCallbackHandler` always calls `AddAsync` without checking for existing email. Returning the existing user on subsequent OAuth logins instead of throwing a DB duplicate-key error is required for production use.
 
 ---
 
 ## Author
 
-**datnguynx110605** — Built as a portfolio-grade reference implementation of full-stack Clean Architecture, Domain-Driven Design, CQRS, real-time notifications, and OAuth 2.0 social sign-in in .NET 10 + React 19.
+**datnguynx110605** — Built as a portfolio-grade reference implementation of full-stack Clean Architecture, Domain-Driven Design, CQRS, and real-time notifications in .NET 10 + React 19.
 
 ---
 
 ## License
 
 MIT © datnguynx110605
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
