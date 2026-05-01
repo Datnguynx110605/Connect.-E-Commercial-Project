@@ -253,7 +253,7 @@ export default function CategoryPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 {filteredProducts.map(product => (
                   <Link to={`/product/${product.productID}`} key={product.productID} className="group glass-panel overflow-hidden relative flex flex-col h-full">
                     
