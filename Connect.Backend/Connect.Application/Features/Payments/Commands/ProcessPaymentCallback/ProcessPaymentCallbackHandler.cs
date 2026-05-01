@@ -28,7 +28,7 @@ namespace Connect.Application.Features.Payments.Commands.ProcessPaymentCallback
             if (transaction)
                 return Result.Ok();
 
-            var order = await unitOfWork.Orders.GetByIdAsync(request.OrderID, cancellationToken);
+            var order = await unitOfWork.Orders.GetByIdAsync(result.OrderID, cancellationToken);
             if (order == null)
                 return Result.Fail("Order not found");
 

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Connect.Infrastructure.Migrations
 {
     [DbContext(typeof(ConnectDbContext))]
-    [Migration("20260430135702_ConnectDatabaseSystem")]
+    [Migration("20260501072857_ConnectDatabaseSystem")]
     partial class ConnectDatabaseSystem
     {
         /// <inheritdoc />

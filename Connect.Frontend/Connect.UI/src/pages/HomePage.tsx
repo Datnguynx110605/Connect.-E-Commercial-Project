@@ -21,12 +21,31 @@ function getPageNumbers(current: number, total: number): (number | '...')[] {
 
 export default function HomePage() {
   const { products, productsLoading, loadProducts, addToCart, user,
-          currentPage, totalPages, totalProducts, pageSize } = useAppContext();
+          currentPage, totalPages, totalProducts, pageSize, loadProfile } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Handle OAuth callback tokens from URL (check both search and hash, and different naming conventions)
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    
+    const accessToken = searchParams.get('accessToken') || searchParams.get('access_token') || searchParams.get('token') || hashParams.get('accessToken') || hashParams.get('access_token') || hashParams.get('token');
+    const refreshToken = searchParams.get('refreshToken') || searchParams.get('refresh_token') || hashParams.get('refreshToken') || hashParams.get('refresh_token');
+
+    if (accessToken && refreshToken) {
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      if (loadProfile) {
+        loadProfile();
+      }
+    }
+    
     loadProducts(1);
-  }, [loadProducts]);
+  }, [loadProducts, loadProfile]);
 
   const goToPage = (p: number) => {
     if (p < 1 || p > totalPages || p === currentPage) return;

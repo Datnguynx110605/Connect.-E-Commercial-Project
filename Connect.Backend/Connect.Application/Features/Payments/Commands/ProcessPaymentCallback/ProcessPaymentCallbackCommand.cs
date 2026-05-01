@@ -10,6 +10,5 @@ namespace Connect.Application.Features.Payments.Commands.ProcessPaymentCallback
     public sealed record ProcessPaymentCallbackCommand:IRequest<Result>
     {
         public HttpRequest HttpRequest { get; init; }
-        public int OrderID { get; init; }
     }
 }
