@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { formatCurrency, formatDate } from '../lib/utils';
+import { fetchApi } from '../lib/api';
+import { Pagination } from '../components/Pagination';
 
 interface Cart {
   cartID: number;
@@ -11,28 +13,59 @@ interface Cart {
   cartTotalPrice: number;
 }
 
+interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 export function Carts() {
   const [carts, setCarts] = useState<Cart[]>([]);
+  const [pagination, setPagination] = useState<Omit<PagedResult<Cart>, 'items'>>({
+    totalCount: 0,
+    page: 1,
+    pageSize: 10,
+    totalPages: 0,
+    hasNext: false,
+    hasPrevious: false
+  });
+
   const [searchId, setSearchId] = useState('');
   const [searchUser, setSearchUser] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    const loadCarts = async () => {
-      try {
-        setLoading(true);
-        const { fetchApi } = await import('../lib/api');
-        const data = await fetchApi('/api/carts/getall-cart?page=1&pageSize=50');
-        setCarts(data.items || []);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadCarts = async (page = 1) => {
+    try {
+      setLoading(true);
+      const data: PagedResult<Cart> = await fetchApi(`/api/carts/getall-cart?page=${page}&pageSize=10`);
+      setCarts(data.items || []);
+      setPagination({
+        totalCount: data.totalCount,
+        page: data.page,
+        pageSize: data.pageSize,
+        totalPages: data.totalPages,
+        hasNext: data.hasNext,
+        hasPrevious: data.hasPrevious
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadCarts();
   }, []);
+
+  const handlePageChange = (newPage: number) => {
+    loadCarts(newPage);
+  };
 
   const filtered = carts.filter(c => 
     c.cartID.toString().includes(searchId) &&
@@ -86,6 +119,10 @@ export function Carts() {
             ))}
           </tbody>
         </table>
+        <Pagination 
+          {...pagination}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );

@@ -1,38 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Star } from 'lucide-react';
 import { formatDate } from '../lib/utils';
+import { fetchApi } from '../lib/api';
+import { Pagination } from '../components/Pagination';
 
 interface Review {
   reviewID: number;
   productID: number;
   userID: number;
   rating: number;
-  comment: string;
+  body: string;
   createdAt: string;
+}
+
+interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
 }
 
 export function Reviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [pagination, setPagination] = useState<Omit<PagedResult<Review>, 'items'>>({
+    totalCount: 0,
+    page: 1,
+    pageSize: 10,
+    totalPages: 0,
+    hasNext: false,
+    hasPrevious: false
+  });
+
   const [searchId, setSearchId] = useState('');
   const [searchProd, setSearchProd] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    const loadReviews = async () => {
-      try {
-        setLoading(true);
-        const { fetchApi } = await import('../lib/api');
-        const data = await fetchApi('/api/reviews/getall-review?page=1&pageSize=50');
-        setReviews(data.items || []);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadReviews = async (page = 1) => {
+    try {
+      setLoading(true);
+      const data: PagedResult<Review> = await fetchApi(`/api/reviews/getall-review?page=${page}&pageSize=10`);
+      setReviews(data.items || []);
+      setPagination({
+        totalCount: data.totalCount,
+        page: data.page,
+        pageSize: data.pageSize,
+        totalPages: data.totalPages,
+        hasNext: data.hasNext,
+        hasPrevious: data.hasPrevious
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadReviews();
   }, []);
+
+  const handlePageChange = (newPage: number) => {
+    loadReviews(newPage);
+  };
 
   const filtered = reviews.filter(r => 
     r.reviewID.toString().includes(searchId) &&
@@ -86,12 +119,16 @@ export function Reviews() {
                     ))}
                   </div>
                 </td>
-                <td className="px-6 py-4 text-slate-600 max-w-xs truncate" title={r.comment}>{r.comment}</td>
+                <td className="px-6 py-4 text-slate-600 max-w-xs truncate" title={r.body}>{r.body}</td>
                 <td className="px-6 py-4 text-slate-500 text-xs">{formatDate(r.createdAt)}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        <Pagination 
+          {...pagination}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );

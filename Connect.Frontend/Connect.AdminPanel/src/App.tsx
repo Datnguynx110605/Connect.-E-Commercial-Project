@@ -18,6 +18,8 @@ import { Users } from './pages/Users';
 import { Notifications } from './pages/Notifications';
 import { Login } from './pages/Login';
 
+import { NotificationProvider } from './context/NotificationContext';
+
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('accessToken'));
   const [activePage, setActivePage] = useState('dashboard');
@@ -49,15 +51,17 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
-      <Sidebar activePage={activePage} setActivePage={setActivePage} />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header onLogout={handleLogout} />
-        <main className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-          {renderPage()}
-        </main>
+    <NotificationProvider>
+      <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+        <Sidebar activePage={activePage} setActivePage={setActivePage} />
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Header onLogout={handleLogout} />
+          <main className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+            {renderPage()}
+          </main>
+        </div>
       </div>
-    </div>
+    </NotificationProvider>
   );
 }
 

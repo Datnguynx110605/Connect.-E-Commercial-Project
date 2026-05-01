@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, RefreshCw } from 'lucide-react';
 import { formatDate } from '../lib/utils';
+import { fetchApi } from '../lib/api';
+import { Pagination } from '../components/Pagination';
 
 interface User {
   userName: string;
@@ -11,46 +13,154 @@ interface User {
   createdAt: string;
 }
 
+interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+type SearchType = 'all' | 'username' | 'email' | 'phone';
+
 export function Users() {
   const [users, setUsers] = useState<User[]>([]);
+  const [pagination, setPagination] = useState<Omit<PagedResult<User>, 'items'>>({
+    totalCount: 0,
+    page: 1,
+    pageSize: 10,
+    totalPages: 0,
+    hasNext: false,
+    hasPrevious: false
+  });
+
   const [search, setSearch] = useState('');
+  const [searchType, setSearchType] = useState<SearchType>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        setLoading(true);
-        const { fetchApi } = await import('../lib/api');
-        const data = await fetchApi('/api/users/getall-user?page=1&pageSize=50');
-        setUsers(data.items || []);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadUsers = async (page = 1) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data: PagedResult<User> = await fetchApi(`/api/users/getall-user?page=${page}&pageSize=10`);
+      setUsers(data.items || []);
+      setPagination({
+        totalCount: data.totalCount,
+        page: data.page,
+        pageSize: data.pageSize,
+        totalPages: data.totalPages,
+        hasNext: data.hasNext,
+        hasPrevious: data.hasPrevious
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadUsers();
   }, []);
 
-  const filtered = users.filter(u => 
-    u.userName?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase())
-  );
+  const handlePageChange = (newPage: number) => {
+    loadUsers(newPage);
+  };
 
-  if (loading) return <div className="p-6">Đang tải dữ liệu...</div>;
-  if (error) return <div className="p-6 text-red-500">Lỗi: {error}</div>;
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!search.trim()) {
+      loadUsers();
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      let data: any;
+
+      switch (searchType) {
+        case 'username':
+          data = await fetchApi(`/api/users/get-userbyusername?userName=${search}`);
+          setUsers(data ? [data] : []);
+          break;
+        case 'email':
+          data = await fetchApi(`/api/users/get-userbyemail?email=${search}`);
+          setUsers(data ? [data] : []);
+          break;
+        case 'phone':
+          data = await fetchApi(`/api/users/get-userbyphonenumber?phoneNumber=${search}`);
+          setUsers(data ? [data] : []);
+          break;
+        default:
+          // Fallback to client-side filter if 'all' is selected but search is pressed
+          await loadUsers();
+          break;
+      }
+    } catch (err: any) {
+      setError(err.message);
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filtered = searchType === 'all' 
+    ? users.filter(u => 
+        u.userName?.toLowerCase().includes(search.toLowerCase()) ||
+        u.email?.toLowerCase().includes(search.toLowerCase())
+      )
+    : users;
 
   return (
     <div className="space-y-6">
-      <div className="flex bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <div className="relative w-full max-w-md">
-           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-           <input type="text" placeholder="Tìm kiếm theo Tên đăng nhập, Email..." 
-              value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <form onSubmit={handleSearch} className="flex gap-4">
+          <select 
+            value={searchType}
+            onChange={(e) => setSearchType(e.target.value as SearchType)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">Lọc nhanh (Tên/Email)</option>
+            <option value="username">Tìm theo Username</option>
+            <option value="email">Tìm theo Email</option>
+            <option value="phone">Tìm theo Số điện thoại</option>
+          </select>
+          <div className="relative flex-1 max-w-md">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+             <input 
+                type="text" 
+                placeholder="Nhập thông tin tìm kiếm..." 
+                value={search} 
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-500" 
+             />
+          </div>
+          <button 
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            Tìm kiếm
+          </button>
+          <button 
+            type="button"
+            onClick={loadUsers}
+            className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
+            title="Làm mới danh sách"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </form>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-lg text-sm">
+          Lỗi: {error}
+        </div>
+      )}
 
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         <table className="w-full text-sm text-left">
@@ -81,9 +191,21 @@ export function Users() {
                 <td className="px-6 py-4 text-slate-500 text-xs">{formatDate(u.createdAt)}</td>
               </tr>
             ))}
+            {filtered.length === 0 && !loading && (
+              <tr>
+                <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                  Không tìm thấy người dùng nào.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
+        <Pagination 
+          {...pagination}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );
 }
+

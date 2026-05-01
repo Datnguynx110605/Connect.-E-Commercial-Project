@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { formatCurrency, formatDate } from '../lib/utils';
+import { fetchApi } from '../lib/api';
+import { Pagination } from '../components/Pagination';
 
 interface Payment {
   paymentID: number;
@@ -13,27 +15,58 @@ interface Payment {
   paidAt: string;
 }
 
+interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 export function Payments() {
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [pagination, setPagination] = useState<Omit<PagedResult<Payment>, 'items'>>({
+    totalCount: 0,
+    page: 1,
+    pageSize: 10,
+    totalPages: 0,
+    hasNext: false,
+    hasPrevious: false
+  });
+
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    const loadPayments = async () => {
-      try {
-        setLoading(true);
-        const { fetchApi } = await import('../lib/api');
-        const data = await fetchApi('/api/payments/getall-payment?page=1&pageSize=50');
-        setPayments(data.items || []);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadPayments = async (page = 1) => {
+    try {
+      setLoading(true);
+      const data: PagedResult<Payment> = await fetchApi(`/api/payments/getall-payment?page=${page}&pageSize=10`);
+      setPayments(data.items || []);
+      setPagination({
+        totalCount: data.totalCount,
+        page: data.page,
+        pageSize: data.pageSize,
+        totalPages: data.totalPages,
+        hasNext: data.hasNext,
+        hasPrevious: data.hasPrevious
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadPayments();
   }, []);
+
+  const handlePageChange = (newPage: number) => {
+    loadPayments(newPage);
+  };
 
   const filtered = payments.filter(p => 
     p.paymentID.toString().includes(search) ||
@@ -92,6 +125,10 @@ export function Payments() {
             ))}
           </tbody>
         </table>
+        <Pagination 
+          {...pagination}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );
