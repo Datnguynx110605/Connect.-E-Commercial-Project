@@ -79,14 +79,13 @@ namespace Connect.Infrastructure
             services.AddHangfire(config => config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180).UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSqlServerStorage(configuration.GetConnectionString("Default")));
             services.AddHangfireServer();
 
-            services.AddSignalR().AddStackExchangeRedis("localhost:6379");
+            services.AddSignalR();
             services.AddScoped<INotificationService, NotificationService>();
 
             var googleauthSection = configuration.GetSection("GoogleOAuth2");
             var scopesArray = googleauthSection.GetSection("scopes").Get<string[]>();
             var scopesString = scopesArray != null ? string.Join(" ", scopesArray) : "openid profile email";
             services.AddSingleton<IRequestFactory, RequestFactory>();
-
             services.AddSingleton<IClientConfiguration>(new ClientConfiguration
             {
                 ClientId = googleauthSection["client_id"]!,
@@ -96,7 +95,6 @@ namespace Connect.Infrastructure
                 ClientTypeName = "Google",
                 IsEnabled = true
             });
-
             services.AddSingleton<IClient, GoogleClient>();
             services.AddScoped<IOAuth2Service, OAuth2Service>();
 

@@ -1,7 +1,9 @@
 ﻿using Connect.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using StackExchange.Redis;
 using System.Data;
 using System.Text;
 using System.Threading.RateLimiting;
@@ -96,11 +98,27 @@ namespace Connect.API
                 };
             });
 
+            services.Configure<RedisSetting>(configuration.GetSection("Redis"));
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<RedisSetting>>().Value;
+
+                var options = ConfigurationOptions.Parse(settings.ConnectionString);
+
+                options.AbortOnConnectFail = false;
+                options.ConnectRetry = 3;
+                options.ConnectTimeout = 5000;
+                options.KeepAlive = 180;
+                options.Ssl = true;
+
+                return ConnectionMultiplexer.Connect(options);
+            });
+
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000")
+                    policy.WithOrigins("http://localhost:3000","http://localhost:3001")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials();

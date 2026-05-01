@@ -1,8 +1,8 @@
 using Connect.API;
 using Connect.Application;
 using Connect.Infrastructure;
+using Connect.Infrastructure.Hub;
 using Hangfire;
-using Microsoft.AspNetCore.Identity.Data;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -56,5 +56,7 @@ app.UseRateLimiter();
 app.UseHangfireDashboard();
 
 app.MapControllers();
+
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
