@@ -4,6 +4,8 @@ import { useAppContext } from '../context/AppContext';
 import { Star, Trash2, Edit2, ShoppingBag, Loader2 } from 'lucide-react';
 import { Product, Review } from '../types';
 import { productsApi, reviewsApi, ApiError } from '../services/api';
+import { formatROM } from '../utils/formatUtils';
+
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
@@ -190,7 +192,8 @@ export default function ProductPage() {
           <div className="flex items-center gap-4 mb-2 text-[14px] text-ink/70 font-medium">
             <span>{product.color}</span>
             <span>RAM: {product.ram}GB</span>
-            <span>ROM: {product.rom}GB</span>
+            <span>ROM: {formatROM(product.rom)}</span>
+
           </div>
           
           <div className="flex items-center gap-4 mb-6 text-[14px] text-ink/70 font-medium">
@@ -253,7 +256,8 @@ export default function ProductPage() {
             </div>
             <div className="glass-btn p-4 rounded-[16px] text-center">
               <div className="text-ink-muted text-[12px] mb-1">Bộ nhớ</div>
-              <div className="font-semibold">{product.rom}GB</div>
+              <div className="font-semibold">{formatROM(product.rom)}</div>
+
             </div>
             <div className="glass-btn p-4 rounded-[16px] text-center">
               <div className="text-ink-muted text-[12px] mb-1">Màu sắc</div>

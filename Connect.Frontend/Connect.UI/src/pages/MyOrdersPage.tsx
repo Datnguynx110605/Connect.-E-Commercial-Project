@@ -4,6 +4,8 @@ import { useAppContext } from '../context/AppContext';
 import { Package, Truck, CheckCircle2, XCircle, Clock, Loader2, CreditCard } from 'lucide-react';
 import { ordersApi, ApiError } from '../services/api';
 import { Product } from '../types';
+import { formatROM } from '../utils/formatUtils';
+
 
 export default function MyOrdersPage() {
   const { orders, ordersLoading, loadOrders, user, getProduct } = useAppContext();
@@ -177,7 +179,8 @@ export default function MyOrdersPage() {
                         </h4>
                         {product && (
                           <div className="text-[12px] text-ink-muted space-y-1 mb-2">
-                            <span>{product.color} • RAM: {product.ram}GB • ROM: {product.rom}GB</span>
+                            <span>{product.color} • RAM: {product.ram}GB • ROM: {formatROM(product.rom)}</span>
+
                           </div>
                         )}
                         <div className="text-[12px] font-semibold text-ink">

@@ -4,6 +4,8 @@ import { ShoppingCart, Filter, Loader2, ChevronLeft, ChevronRight } from 'lucide
 import { useAppContext } from '../context/AppContext';
 import { Product, Category } from '../types';
 import { productsApi, categoriesApi } from '../services/api';
+import { formatROM } from '../utils/formatUtils';
+
 
 export default function CategoryPage() {
   const { category } = useParams<{ category: string }>();
@@ -172,7 +174,8 @@ export default function CategoryPage() {
                     : 'glass-btn'
                 }`}
               >
-                {rom}GB
+                {formatROM(rom)}
+
               </button>
             ))}
           </div>
@@ -268,7 +271,8 @@ export default function CategoryPage() {
                     <div className="flex-1 flex flex-col p-5">
                       <h3 className="text-apple-body-strong text-ink mb-1 line-clamp-2">{product.productName}</h3>
                       <div className="text-[12px] text-ink-muted mb-2">
-                        {product.color} • RAM: {product.ram}GB • ROM: {product.rom}GB
+                        {product.color} • RAM: {product.ram}GB • ROM: {formatROM(product.rom)}
+
                       </div>
                       <div className="text-[12px] text-ink-muted mb-4">
                         {product.productStatus === 'InStock' ? `Kho: ${product.stock}` : 'Hết hàng'}

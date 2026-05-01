@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Trash2, Plus, Minus, Loader2 } from 'lucide-react';
 import { Product } from '../types';
+import { formatROM } from '../utils/formatUtils';
+
 
 export default function CartPage() {
   const { cart, cartLoading, removeCartItem, increaseCartItem, decreaseCartItem, user, getProduct } = useAppContext();
@@ -102,7 +104,8 @@ export default function CartPage() {
                     
                     <div className="text-[14px] text-ink-muted mb-4 space-y-1">
                       {productColor && <div>Màu sắc: {productColor}</div>}
-                      {productRom && <div>Dung lượng: {productRom}GB</div>}
+                      {productRom && <div>Dung lượng: {formatROM(productRom)}</div>}
+
                       {productRam && <div>Bộ nhớ: {productRam}GB</div>}
                     </div>
                     
