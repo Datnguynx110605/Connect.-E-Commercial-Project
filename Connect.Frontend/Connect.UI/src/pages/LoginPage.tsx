@@ -247,7 +247,7 @@ export default function LoginPage() {
                 <input
                   type="text"
                   required
-                  placeholder="johndoe"
+                  placeholder=""
                   pattern="^[a-z]{3,30}$"
                   title="3-30 ký tự, chỉ chữ thường"
                   className="w-full px-4 py-3 rounded-[12px] bg-white/50 backdrop-blur-md border border-white/50 focus:outline-none focus:border-primary focus:bg-white/80 transition-all shadow-sm text-[17px]"
@@ -260,7 +260,7 @@ export default function LoginPage() {
                 <input
                   type="tel"
                   required
-                  placeholder="0912345678"
+                  placeholder=""
                   pattern="^\d{10}$"
                   title="Đúng 10 chữ số"
                   className="w-full px-4 py-3 rounded-[12px] bg-white/50 backdrop-blur-md border border-white/50 focus:outline-none focus:border-primary focus:bg-white/80 transition-all shadow-sm text-[17px]"
@@ -275,7 +275,7 @@ export default function LoginPage() {
                   required
                   minLength={5}
                   maxLength={30}
-                  placeholder="Mật khẩu"
+                  placeholder=""
                   className="w-full px-4 py-3 rounded-[12px] bg-white/50 backdrop-blur-md border border-white/50 focus:outline-none focus:border-primary focus:bg-white/80 transition-all shadow-sm text-[17px]"
                   value={regForm.password}
                   onChange={(e) => setRegForm({...regForm, password: e.target.value})}
@@ -285,7 +285,7 @@ export default function LoginPage() {
                 <input
                   type="password"
                   required
-                  placeholder="Xác nhận mật khẩu"
+                  placeholder=""
                   className="w-full px-4 py-3 rounded-[12px] bg-white/50 backdrop-blur-md border border-white/50 focus:outline-none focus:border-primary focus:bg-white/80 transition-all shadow-sm text-[17px]"
                   value={regForm.confirmPassword}
                   onChange={(e) => setRegForm({...regForm, confirmPassword: e.target.value})}
@@ -297,7 +297,7 @@ export default function LoginPage() {
                   type="text"
                   required
                   minLength={10}
-                  placeholder="123 Nguyen Hue, District 1, Ho Chi Minh City"
+                  placeholder=""
                   className="w-full px-4 py-3 rounded-[12px] bg-white/50 backdrop-blur-md border border-white/50 focus:outline-none focus:border-primary focus:bg-white/80 transition-all shadow-sm text-[17px]"
                   value={regForm.address}
                   onChange={(e) => setRegForm({...regForm, address: e.target.value})}
