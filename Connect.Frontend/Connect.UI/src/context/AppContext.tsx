@@ -94,6 +94,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // On mount: check for existing token and load profile
   useEffect(() => {
+    // Handle OAuth callback tokens from URL
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    
+    const accessToken = searchParams.get('accessToken') || searchParams.get('access_token') || searchParams.get('token') || 
+                        hashParams.get('accessToken') || hashParams.get('access_token') || hashParams.get('token');
+    const refreshToken = searchParams.get('refreshToken') || searchParams.get('refresh_token') || 
+                         hashParams.get('refreshToken') || hashParams.get('refresh_token');
+
+    if (accessToken && refreshToken) {
+      setTokens(accessToken, refreshToken);
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     const token = getAccessToken();
     if (token) {
       loadProfile().finally(() => setIsAuthLoading(false));
