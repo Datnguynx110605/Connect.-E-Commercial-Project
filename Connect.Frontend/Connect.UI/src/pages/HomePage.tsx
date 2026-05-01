@@ -1,16 +1,38 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Loader2 } from 'lucide-react';
+import { ShoppingCart, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { Product } from '../types';
 
+
+
+function getPageNumbers(current: number, total: number): (number | '...')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | '...')[] = [];
+  pages.push(1);
+  if (current > 4) pages.push('...');
+  const start = Math.max(2, current - 2);
+  const end   = Math.min(total - 1, current + 2);
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (current < total - 3) pages.push('...');
+  pages.push(total);
+  return pages;
+}
+
 export default function HomePage() {
-  const { products, productsLoading, loadProducts, addToCart, user } = useAppContext();
+  const { products, productsLoading, loadProducts, addToCart, user,
+          currentPage, totalPages, totalProducts, pageSize } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadProducts(1, 20);
+    loadProducts(1);
   }, [loadProducts]);
+
+  const goToPage = (p: number) => {
+    if (p < 1 || p > totalPages || p === currentPage) return;
+    loadProducts(p);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleAddToCart = async (product: Product, e: React.MouseEvent) => {
     e.preventDefault();
@@ -46,8 +68,8 @@ export default function HomePage() {
             {/* Shimmer effect inside card */}
             <div className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-20deg] group-hover:animate-shimmer pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-            <h1 className="text-apple-hero mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-ink to-ink/70 drop-shadow-sm font-bold relative z-10">Chào mừng đến với Connect.</h1>
-            <p className="text-apple-display-md text-ink/80 font-medium mb-10 relative z-10 text-balance">Connect. là một dự án được phát triển bởi Nguyễn Tiến Đạt</p>
+            <h1 className="text-apple-hero mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-ink to-ink/70 drop-shadow-sm font-bold relative z-10">Welcome to Connect.</h1>
+            <p className="text-apple-display-md text-ink/80 font-medium mb-10 relative z-10 text-balance">Được phát triển bởi Đạt Nguyễn</p>
             <div className="flex items-center gap-6 mt-4 relative z-10">
               <Link to="/category/All" className="btn-primary px-10 py-4 font-semibold text-[17px] flex items-center justify-center">
                 Mua ngay
@@ -123,6 +145,60 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-14 flex flex-col items-center gap-4">
+            {/* Item count */}
+            <p className="text-[13px] text-ink-muted">
+              Hiển thị {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalProducts)} trong {totalProducts} sản phẩm
+            </p>
+
+            {/* Page controls */}
+            <div className="flex items-center gap-2">
+              {/* Prev */}
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="w-9 h-9 flex items-center justify-center rounded-full glass-btn disabled:opacity-30 transition-all"
+                aria-label="Trang trước"
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              {/* Page numbers */}
+              {getPageNumbers(currentPage, totalPages).map((p, idx) =>
+                p === '...' ? (
+                  <span key={`ellipsis-${idx}`} className="w-9 h-9 flex items-center justify-center text-[13px] text-ink-muted">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => goToPage(p as number)}
+                    className={`w-9 h-9 flex items-center justify-center rounded-full text-[13px] font-medium transition-all ${
+                      p === currentPage
+                        ? 'bg-primary text-white shadow-md scale-110'
+                        : 'glass-btn hover:scale-105'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+
+              {/* Next */}
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+                className="w-9 h-9 flex items-center justify-center rounded-full glass-btn disabled:opacity-30 transition-all"
+                aria-label="Trang sau"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

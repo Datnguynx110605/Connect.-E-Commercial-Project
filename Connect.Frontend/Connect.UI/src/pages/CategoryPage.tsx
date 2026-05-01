@@ -15,7 +15,26 @@ export default function CategoryPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const pageSize = 12;
+  const [pageSize, setPageSize] = useState(10);
+
+  function getPageNumbers(current: number, total: number): (number | '...')[] {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages: (number | '...')[] = [];
+    pages.push(1);
+    if (current > 4) pages.push('...');
+    const start = Math.max(2, current - 2);
+    const end   = Math.min(total - 1, current + 2);
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (current < total - 3) pages.push('...');
+    pages.push(total);
+    return pages;
+  }
+
+  const goToPage = (p: number) => {
+    if (p < 1 || p > totalPages || p === page) return;
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Filters
   const [priceFrom, setPriceFrom] = useState<number>(0);
@@ -36,14 +55,15 @@ export default function CategoryPage() {
       let result;
       
       if (category && category !== 'All' && matchedCategory) {
-        result = await productsApi.getByCategory(matchedCategory.categoryID, page, pageSize);
+        result = await productsApi.getByCategory(matchedCategory.categoryID, page);
       } else {
-        result = await productsApi.getAll(page, pageSize);
+        result = await productsApi.getAll(page);
       }
       
       setProducts(result.items);
       setTotalPages(result.totalPages);
       setTotalCount(result.totalCount);
+      setPageSize(result.pageSize);
     } catch (err) {
       setProducts([]);
     } finally {
@@ -282,24 +302,55 @@ export default function CategoryPage() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-12">
-                  <button 
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page <= 1}
-                    className="glass-btn p-3 rounded-full disabled:opacity-30"
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-                  <span className="text-[14px] text-ink-muted">
-                    Trang {page} / {totalPages}
-                  </span>
-                  <button 
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page >= totalPages}
-                    className="glass-btn p-3 rounded-full disabled:opacity-30"
-                  >
-                    <ChevronRight size={18} />
-                  </button>
+                <div className="mt-14 flex flex-col items-center gap-4">
+                  {/* Item count */}
+                  <p className="text-[13px] text-ink-muted">
+                    Hiển thị {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)} trong {totalCount} sản phẩm
+                  </p>
+
+                  {/* Page controls */}
+                  <div className="flex items-center gap-2">
+                    {/* Prev */}
+                    <button
+                      onClick={() => goToPage(page - 1)}
+                      disabled={page <= 1}
+                      className="w-9 h-9 flex items-center justify-center rounded-full glass-btn disabled:opacity-30 transition-all"
+                      aria-label="Trang trước"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+
+                    {/* Page numbers */}
+                    {getPageNumbers(page, totalPages).map((p, idx) =>
+                      p === '...' ? (
+                        <span key={`ellipsis-${idx}`} className="w-9 h-9 flex items-center justify-center text-[13px] text-ink-muted">
+                          …
+                        </span>
+                      ) : (
+                        <button
+                          key={p}
+                          onClick={() => goToPage(p as number)}
+                          className={`w-9 h-9 flex items-center justify-center rounded-full text-[13px] font-medium transition-all ${
+                            p === page
+                              ? 'bg-primary text-white shadow-md scale-110'
+                              : 'glass-btn hover:scale-105'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      )
+                    )}
+
+                    {/* Next */}
+                    <button
+                      onClick={() => goToPage(page + 1)}
+                      disabled={page >= totalPages}
+                      className="w-9 h-9 flex items-center justify-center rounded-full glass-btn disabled:opacity-30 transition-all"
+                      aria-label="Trang sau"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
                 </div>
               )}
             </>

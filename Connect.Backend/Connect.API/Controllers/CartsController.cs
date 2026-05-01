@@ -1,4 +1,5 @@
-﻿using Connect.Application.Features.Carts.Commands.AddToCart;
+﻿using Connect.Application.Commons.DTOs;
+using Connect.Application.Features.Carts.Commands.AddToCart;
 using Connect.Application.Features.Carts.Commands.IncreaseCartAmount;
 using Connect.Application.Features.Carts.Commands.ReduceCartAmount;
 using Connect.Application.Features.Carts.Commands.RemoveCart;
@@ -22,7 +23,7 @@ namespace Connect.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetAllCarts(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllCarts(CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetAllCartsQuery(page, pageSize), cancellationToken);
             return Ok(result);
@@ -32,7 +33,7 @@ namespace Connect.API.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetUserCart(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetUserCart(CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetUserCartQuery(page, pageSize), cancellationToken);
             return Ok(result);

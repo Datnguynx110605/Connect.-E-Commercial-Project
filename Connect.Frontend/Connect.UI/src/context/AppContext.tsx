@@ -27,6 +27,7 @@ interface AppContextType {
   totalProducts: number;
   currentPage: number;
   totalPages: number;
+  pageSize: number;
   loadProducts: (page?: number, pageSize?: number) => Promise<void>;
 
   // Categories
@@ -66,6 +67,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [totalProducts, setTotalProducts] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState(10); // Default to 10, will be updated from backend
   const [categories, setCategories] = useState<Category[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartLoading, setCartLoading] = useState(false);
@@ -119,7 +121,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Products ──────────────────────────────────────────────────────────────
 
-  const loadProducts = useCallback(async (page = 1, pageSize = 20) => {
+  const loadProducts = useCallback(async (page = 1, pageSize?: number) => {
     setProductsLoading(true);
     try {
       const result = await productsApi.getAll(page, pageSize);
@@ -127,6 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTotalProducts(result.totalCount);
       setCurrentPage(result.page);
       setTotalPages(result.totalPages);
+      setPageSize(result.pageSize);
       // Update cache
       setProductCache(prev => {
         const newCache = new Map(prev);
@@ -171,9 +174,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Cart ──────────────────────────────────────────────────────────────────
 
-  const loadCart = useCallback(async () => {
+  const loadCart = useCallback(async (silent = false) => {
     if (!getAccessToken()) return;
-    setCartLoading(true);
+    if (!silent) setCartLoading(true);
     try {
       const result = await cartApi.getMyCart();
       setCart(result.items);
@@ -182,7 +185,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setError(err.message || 'Failed to load cart');
       }
     } finally {
-      setCartLoading(false);
+      if (!silent) setCartLoading(false);
     }
   }, []);
 
@@ -196,7 +199,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addToCart = async (productID: number, quantity: number) => {
     try {
       await cartApi.addToCart(productID, quantity);
-      await loadCart();
+      await loadCart(true);
     } catch (err: any) {
       throw err;
     }
@@ -205,8 +208,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const increaseCartItem = async (cartID: number) => {
     try {
       await cartApi.increaseAmount(cartID);
-      await loadCart();
+      await loadCart(true);
     } catch (err: any) {
+      alert(err.message || 'Không thể cập nhật số lượng');
       setError(err.message || 'Failed to update cart');
     }
   };
@@ -214,7 +218,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const decreaseCartItem = async (cartID: number) => {
     try {
       await cartApi.reduceAmount(cartID);
-      await loadCart();
+      await loadCart(true);
     } catch (err: any) {
       setError(err.message || 'Failed to update cart');
     }
@@ -223,7 +227,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeCartItem = async (cartID: number) => {
     try {
       await cartApi.deleteCart(cartID);
-      await loadCart();
+      await loadCart(true);
     } catch (err: any) {
       setError(err.message || 'Failed to remove from cart');
     }
@@ -249,7 +253,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider value={{
       user, isAuthLoading, login, loginWithGoogle, logout, loadProfile,
-      products, productsLoading, totalProducts, currentPage, totalPages, loadProducts,
+      products, productsLoading, totalProducts, currentPage, totalPages, pageSize, loadProducts,
       categories, loadCategories,
       cart, cartLoading, loadCart, addToCart, increaseCartItem, decreaseCartItem, removeCartItem,
       orders, ordersLoading, loadOrders,

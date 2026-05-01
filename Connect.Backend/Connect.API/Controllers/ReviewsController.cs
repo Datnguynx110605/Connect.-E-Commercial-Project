@@ -1,4 +1,5 @@
-﻿using Connect.Application.Features.Reviews.Commands.CreateReview;
+﻿using Connect.Application.Commons.DTOs;
+using Connect.Application.Features.Reviews.Commands.CreateReview;
 using Connect.Application.Features.Reviews.Commands.DeleteReview;
 using Connect.Application.Features.Reviews.Commands.UpdateReview;
 using Connect.Application.Features.Reviews.Queries.GetAllReviews;
@@ -19,7 +20,7 @@ namespace Connect.API.Controllers
         [HttpGet("getall-review")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllReviews(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllReviews(CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetAllReviewsQuery(page, pageSize), cancellationToken);
             return Ok(result);
@@ -29,7 +30,7 @@ namespace Connect.API.Controllers
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetReviewByProduct(int productId, CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetReviewByProduct(int productId, CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetReviewByProductQuery { ProductID = productId, Page = page, PageSize = pageSize }, cancellationToken);
             return Ok(result);

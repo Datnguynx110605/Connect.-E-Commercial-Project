@@ -1,4 +1,5 @@
-﻿using Connect.Application.Features.Payments.Commands.CreatePayment;
+﻿using Connect.Application.Commons.DTOs;
+using Connect.Application.Features.Payments.Commands.CreatePayment;
 using Connect.Application.Features.Payments.Commands.ProcessPaymentCallback;
 using Connect.Application.Features.Payments.Queries.GetAllPayments;
 using Connect.Application.Interfaces.Services;
@@ -26,7 +27,7 @@ namespace Connect.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetAllPayments(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllPayments(CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetAllPaymentsQuery(page, pageSize), cancellationToken);
             return Ok(result);

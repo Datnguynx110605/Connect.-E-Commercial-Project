@@ -33,7 +33,7 @@ export default function CartPage() {
     loadProductInfo();
   }, [cart, getProduct]);
 
-  const totalAmount = cart.reduce((acc, item) => acc + item.cartTotalPrice, 0);
+  const totalAmount = cart.reduce((sum, item) => sum + (item.cartQuantity * item.cartUnitPrice), 0);
 
   if (!user) {
     return (
@@ -126,7 +126,7 @@ export default function CartPage() {
                           </button>
                         </div>
                         <span className="text-[13px] text-ink-muted">
-                          Tổng: {item.cartTotalPrice.toLocaleString('vi-VN')} ₫
+                          Tổng: {(item.cartQuantity * item.cartUnitPrice).toLocaleString('vi-VN')} ₫
                         </span>
                       </div>
                       
@@ -162,7 +162,7 @@ export default function CartPage() {
             
             <div className="border-t border-ink/10 pt-4 mb-8 flex justify-between items-end">
               <span className="text-apple-body-strong">Tổng cộng</span>
-              <span className="text-apple-display-md text-ink">{totalAmount.toLocaleString('vi-VN')} ₫</span>
+              <span className="text-apple-lead text-ink">{totalAmount.toLocaleString('vi-VN')} ₫</span>
             </div>
 
             <button 

@@ -1,4 +1,5 @@
-﻿using Connect.Application.Features.Coupons.Commands.CreateCoupon;
+﻿using Connect.Application.Commons.DTOs;
+using Connect.Application.Features.Coupons.Commands.CreateCoupon;
 using Connect.Application.Features.Coupons.Commands.UpdateCouponExpiryDate;
 using Connect.Application.Features.Coupons.Commands.UpdateCouponQuantity;
 using Connect.Application.Features.Coupons.Queries.GetAllCoupons;
@@ -20,7 +21,7 @@ namespace Connect.API.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetAllCoupons(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllCoupons(CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetAllCouponsQuery(page, pageSize), cancellationToken);
             return Ok(result);

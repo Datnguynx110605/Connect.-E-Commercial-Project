@@ -1,4 +1,5 @@
-﻿using Connect.Application.Features.Orders.Commands.CancelOrder;
+﻿using Connect.Application.Commons.DTOs;
+using Connect.Application.Features.Orders.Commands.CancelOrder;
 using Connect.Application.Features.Orders.Commands.CreateOrder;
 using Connect.Application.Features.Orders.Commands.MarkAsPaid;
 using Connect.Application.Features.Orders.Commands.UpdateOrderStatusToCompleted;
@@ -24,7 +25,7 @@ namespace Connect.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetAllOrders(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllOrders(CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetAllOrdersQuery(page, pageSize), cancellationToken);
             return Ok(result);
@@ -45,7 +46,7 @@ namespace Connect.API.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetOrderHistory(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetOrderHistory(CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetOrderHistoryQuery(page, pageSize), cancellationToken);
             return Ok(result);

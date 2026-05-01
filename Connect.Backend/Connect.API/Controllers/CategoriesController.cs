@@ -1,3 +1,4 @@
+using Connect.Application.Commons.DTOs;
 using Connect.Application.Features.Categories.Commands.CreateCategory;
 using Connect.Application.Features.Categories.Commands.DeleteCategory;
 using Connect.Application.Features.Categories.Commands.UpdateCategoryName;
@@ -19,7 +20,7 @@ namespace Connect.API.Controllers
         [HttpGet("getall-category")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllCategories(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllCategories(CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetAllCategoriesQuery(page, pageSize), cancellationToken);
             return Ok(result);

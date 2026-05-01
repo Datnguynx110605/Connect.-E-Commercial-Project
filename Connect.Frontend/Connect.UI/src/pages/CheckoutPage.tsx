@@ -32,7 +32,7 @@ export default function CheckoutPage() {
     loadProducts();
   }, [cart, getProduct]);
 
-  const subtotal = cart.reduce((acc, item) => acc + item.cartTotalPrice, 0);
+  const subtotal = cart.reduce((acc, item) => acc + (item.cartQuantity * item.cartUnitPrice), 0);
 
   // Shipping
   const shippingMethods = [
@@ -46,7 +46,7 @@ export default function CheckoutPage() {
   const paymentMethods = [
     { id: 0, name: 'Thanh toán khi nhận hàng', icon: <DollarSign size={20} className="text-[#22c55e]" /> },
     { id: 1, name: 'Chuyển khoản Ngân hàng', icon: <Wallet size={20} className="text-[#0066cc]" /> },
-    { id: 2, name: 'VNPAY', icon: <Wallet size={20} className="text-[#005BAA]" /> },
+    { id: 2, name: 'VNPAY', icon: <img src="https://haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png" alt="VNPAY" className="w-6 h-6 object-contain" /> },
   ];
   const [selectedPayment, setSelectedPayment] = useState(paymentMethods[0].id);
 
@@ -206,10 +206,10 @@ export default function CheckoutPage() {
       )}
 
       <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-12 lg:gap-20">
-        
+
         {/* Left Column */}
         <div className="flex-1 space-y-8">
-          
+
           {/* User Info */}
           <section className="glass-panel p-8">
             <h2 className="text-apple-body-strong mb-6 text-xl">1. Thông tin Giao hàng</h2>
@@ -245,14 +245,12 @@ export default function CheckoutPage() {
                   <button
                     key={method.id}
                     onClick={() => setSelectedShipping(method)}
-                    className={`flex flex-col items-start text-left p-6 rounded-[20px] transition-all duration-300 ${
-                      isSelected ? 'glass-btn-active' : 'glass-btn border-transparent'
-                    }`}
+                    className={`flex flex-col items-start text-left p-6 rounded-[20px] transition-all duration-300 ${isSelected ? 'glass-btn-active' : 'glass-btn border-transparent'
+                      }`}
                   >
                     <div className="flex w-full items-center justify-between mb-4">
-                      <div className={`w-10 h-10 rounded-full flex justify-center items-center backdrop-blur-md shadow-sm transition-all ${
-                        isSelected ? 'bg-white/90 text-primary scale-110' : 'bg-white/50 text-ink-muted'
-                      }`}>
+                      <div className={`w-10 h-10 rounded-full flex justify-center items-center backdrop-blur-md shadow-sm transition-all ${isSelected ? 'bg-white/90 text-primary scale-110' : 'bg-white/50 text-ink-muted'
+                        }`}>
                         {method.icon}
                       </div>
                     </div>
@@ -277,14 +275,12 @@ export default function CheckoutPage() {
                 <button
                   key={method.id}
                   onClick={() => setSelectedPayment(method.id)}
-                  className={`w-full flex items-center justify-between p-5 rounded-[16px] transition-all duration-300 ${
-                    selectedPayment === method.id ? 'glass-btn-active' : 'glass-btn border-transparent'
-                  }`}
+                  className={`w-full flex items-center justify-between p-5 rounded-[16px] transition-all duration-300 ${selectedPayment === method.id ? 'glass-btn-active' : 'glass-btn border-transparent'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex justify-center items-center backdrop-blur-md shadow-sm transition-all ${
-                      selectedPayment === method.id ? 'bg-white/90 scale-110' : 'bg-white/50'
-                    }`}>
+                    <div className={`w-10 h-10 rounded-full flex justify-center items-center backdrop-blur-md shadow-sm transition-all ${selectedPayment === method.id ? 'bg-white/90 scale-110' : 'bg-white/50'
+                      }`}>
                       {method.icon}
                     </div>
                     <span className={`font-semibold text-[15px] ${selectedPayment === method.id ? 'text-primary' : 'text-ink'}`}>
@@ -429,7 +425,7 @@ export default function CheckoutPage() {
         <div className="w-full lg:w-[380px] shrink-0">
           <div className="glass-panel p-8 lg:sticky lg:top-[80px]">
             <h2 className="text-apple-display-md mb-6 text-2xl">Đơn hàng của bạn</h2>
-            
+
             {/* Items */}
             <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2">
               {cart.map((item) => {
@@ -447,7 +443,7 @@ export default function CheckoutPage() {
                       <div className="font-semibold line-clamp-1">{product?.productName || `Sản phẩm #${item.productID}`}</div>
                       <div className="text-ink-muted">SL: {item.cartQuantity}</div>
                     </div>
-                    <div className="font-semibold">{item.cartTotalPrice.toLocaleString('vi-VN')} ₫</div>
+                    <div className="font-semibold">{(item.cartQuantity * item.cartUnitPrice).toLocaleString('vi-VN')} ₫</div>
                   </div>
                 );
               })}
@@ -470,7 +466,7 @@ export default function CheckoutPage() {
                 </div>
               )}
             </div>
-            
+
             <div className="border-t border-ink/10 pt-4 flex justify-between items-end mb-8">
               <span className="text-apple-body-strong">Tổng cộng</span>
               <span className="text-apple-display-md text-ink">{totalAmount.toLocaleString('vi-VN')} ₫</span>

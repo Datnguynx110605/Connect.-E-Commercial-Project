@@ -292,18 +292,20 @@ export const authApi = {
 
 // Products
 export const productsApi = {
-  getAll: (page = 1, pageSize = 10) =>
-    apiFetch<PagedResult<ProductDto>>(
-      `/api/products/getall-product?page=${page}&pageSize=${pageSize}`
-    ),
+  getAll: (page = 1, pageSize?: number) => {
+    const params = new URLSearchParams({ page: page.toString() });
+    if (pageSize) params.append('pageSize', pageSize.toString());
+    return apiFetch<PagedResult<ProductDto>>(`/api/products/getall-product?${params.toString()}`);
+  },
 
   getDetail: (id: number) =>
     apiFetch<ProductDto>(`/api/products/${id}/get-productdetail`),
 
-  getByCategory: (categoryId: number, page = 1, pageSize = 10) =>
-    apiFetch<PagedResult<ProductDto>>(
-      `/api/products/get-product-bycategory?id=${categoryId}&page=${page}&pageSize=${pageSize}`
-    ),
+  getByCategory: (categoryId: number, page = 1, pageSize?: number) => {
+    const params = new URLSearchParams({ id: categoryId.toString(), page: page.toString() });
+    if (pageSize) params.append('pageSize', pageSize.toString());
+    return apiFetch<PagedResult<ProductDto>>(`/api/products/get-product-bycategory?${params.toString()}`);
+  },
 };
 
 // Categories
@@ -338,11 +340,13 @@ export const cartApi = {
   increaseAmount: (cartId: number) =>
     apiFetch<CartDto>(`/api/carts/${cartId}/increase-cartamount`, {
       method: 'PATCH',
+      body: '{}',
     }, true),
 
   reduceAmount: (cartId: number) =>
     apiFetch<CartDto>(`/api/carts/${cartId}/reduce-cartamount`, {
       method: 'PATCH',
+      body: '{}',
     }, true),
 
   deleteCart: (cartId: number) =>

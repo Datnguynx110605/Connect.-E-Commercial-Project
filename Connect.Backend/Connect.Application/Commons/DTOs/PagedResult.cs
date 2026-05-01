@@ -7,7 +7,7 @@ namespace Connect.Application.Commons.DTOs
     public static class DefaultPagination
     {
         public const int Page = 1;
-        public const int PageSize = 10;
+        public const int PageSize = 12;
     }
 
     public sealed record PagedResult<T>

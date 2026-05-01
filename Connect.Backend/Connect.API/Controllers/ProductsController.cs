@@ -1,4 +1,5 @@
-﻿using Connect.Application.Features.Products.Commands.CreateProduct;
+﻿using Connect.Application.Commons.DTOs;
+using Connect.Application.Features.Products.Commands.CreateProduct;
 using Connect.Application.Features.Products.Commands.DeleteProduct;
 using Connect.Application.Features.Products.Commands.UpdateProductImage;
 using Connect.Application.Features.Products.Commands.UpdateProductStock;
@@ -25,7 +26,7 @@ namespace Connect.API.Controllers
         [HttpGet("getall-product")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllProducts(CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllProducts(CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetAllProductsQuery(page, pageSize), cancellationToken);
             return Ok(result);
@@ -45,7 +46,7 @@ namespace Connect.API.Controllers
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetProductByCategory(int id, CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetProductByCategory(int id, CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetProductByCategoryQuery { CategoryID = id , Page = page, PageSize= pageSize }, cancellationToken);
             return Ok(result);
@@ -55,7 +56,7 @@ namespace Connect.API.Controllers
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetProductByRAM(int ram, CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetProductByRAM(int ram, CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetProductByRAMQuery { Ram = ram , Page = page, PageSize = pageSize }, cancellationToken);
             return Ok(result);
@@ -65,7 +66,7 @@ namespace Connect.API.Controllers
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetProductByROM(int rom, CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetProductByROM(int rom, CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetProductByROMQuery { Rom = rom, Page = page, PageSize = pageSize }, cancellationToken);
             return Ok(result);
@@ -75,7 +76,7 @@ namespace Connect.API.Controllers
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetProductByColor(string color, CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetProductByColor(string color, CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetProductByColorQuery { Color = color, Page = page, PageSize = pageSize }, cancellationToken);
             return Ok(result);
@@ -85,7 +86,7 @@ namespace Connect.API.Controllers
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetProductByPriceRange(decimal from, decimal to, CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetProductByPriceRange(decimal from, decimal to, CancellationToken cancellationToken, [FromQuery] int page = DefaultPagination.Page, [FromQuery] int pageSize = DefaultPagination.PageSize)
         {
             var result = await Sender.Send(new GetProductByPriceRangeQuery { FromPrice =from, ToPrice=to, Page = page, PageSize = pageSize }, cancellationToken);
             return Ok(result);

@@ -80,7 +80,7 @@ namespace Connect.Domain.Core.Entities
             Amount quantity = Amount.Create(1);
 
             CartQuantity += quantity;
-            CartTotalPrice = CartUnitPrice * quantity;
+            CartTotalPrice = CartUnitPrice * CartQuantity;
         }
 
         public void ReduceCartAmount()
@@ -97,7 +97,7 @@ namespace Connect.Domain.Core.Entities
             Amount quantity = Amount.Create(1);
 
             CartQuantity -= quantity;
-            CartTotalPrice = CartUnitPrice * quantity;
+            CartTotalPrice = CartUnitPrice * CartQuantity;
         }
     }
 }
