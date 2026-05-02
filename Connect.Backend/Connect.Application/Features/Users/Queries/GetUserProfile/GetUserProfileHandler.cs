@@ -28,9 +28,9 @@ namespace Connect.Application.Features.Users.Queries.GetUserProfile
             {
                 UserName = identity.UserName.Value,
                 Email = identity.Email.Value,
-                PhoneNumber = identity.PhoneNumber.Value,
-                Address = identity.Address,
-                OAuthProviderName=identity.OAuthProviderName,
+                PhoneNumber = identity.PhoneNumber?.Value ?? string.Empty, 
+                Address = identity.Address ?? string.Empty,
+                OAuthProviderName =identity.OAuthProviderName,
                 CreatedAt = identity.CreatedAt
             };
         }
