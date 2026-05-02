@@ -5,6 +5,7 @@ import { useAppContext } from '../context/AppContext';
 import { Product } from '../types';
 import { setTokens } from '../services/api';
 import { formatROM } from '../utils/formatUtils';
+import CompleteProfileModal from '../components/Auth/CompleteProfileModal';
 
 
 
@@ -247,6 +248,13 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {user && (
+        <CompleteProfileModal 
+          user={user} 
+          onComplete={loadProfile} 
+        />
+      )}
     </div>
   );
 }
