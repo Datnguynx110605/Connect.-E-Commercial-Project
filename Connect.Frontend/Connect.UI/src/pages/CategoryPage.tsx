@@ -62,10 +62,10 @@ export default function CategoryPage() {
         result = await productsApi.getAll(page);
       }
       
-      setProducts(result.items);
-      setTotalPages(result.totalPages);
-      setTotalCount(result.totalCount);
-      setPageSize(result.pageSize);
+      setProducts(result?.items || []);
+      setTotalPages(result?.totalPages || 1);
+      setTotalCount(result?.totalCount || 0);
+      setPageSize(result?.pageSize || 10);
     } catch (err) {
       setProducts([]);
     } finally {

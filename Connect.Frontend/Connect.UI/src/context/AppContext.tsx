@@ -94,21 +94,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // On mount: check for existing token and load profile
   useEffect(() => {
-    // Handle OAuth callback tokens from URL
-    const searchParams = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-    
-    const accessToken = searchParams.get('accessToken') || searchParams.get('access_token') || searchParams.get('token') || 
-                        hashParams.get('accessToken') || hashParams.get('access_token') || hashParams.get('token');
-    const refreshToken = searchParams.get('refreshToken') || searchParams.get('refresh_token') || 
-                         hashParams.get('refreshToken') || hashParams.get('refresh_token');
-
-    if (accessToken && refreshToken) {
-      setTokens(accessToken, refreshToken);
-      // Clean up URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
     const token = getAccessToken();
     if (token) {
       loadProfile().finally(() => setIsAuthLoading(false));
@@ -140,19 +125,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setProductsLoading(true);
     try {
       const result = await productsApi.getAll(page, pageSize);
-      setProducts(result.items);
-      setTotalProducts(result.totalCount);
-      setCurrentPage(result.page);
-      setTotalPages(result.totalPages);
-      setPageSize(result.pageSize);
+      const items = result?.items || [];
+      setProducts(items);
+      setTotalProducts(result?.totalCount || 0);
+      setCurrentPage(result?.page || 1);
+      setTotalPages(result?.totalPages || 1);
+      setPageSize(result?.pageSize || 10);
       // Update cache
       setProductCache(prev => {
         const newCache = new Map(prev);
-        result.items.forEach(p => newCache.set(p.productID, p));
+        items.forEach(p => newCache.set(p.productID, p));
         return newCache;
       });
     } catch (err: any) {
-      setError(err.message || 'Failed to load products');
+      setError(err.message || 'Không thể tải danh sách sản phẩm');
     } finally {
       setProductsLoading(false);
     }
@@ -194,11 +180,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!silent) setCartLoading(true);
     try {
       const result = await cartApi.getMyCart();
-      setCart(result.items);
+      setCart(result?.items || []);
     } catch (err: any) {
-      if (!(err instanceof ApiError && err.status === 401)) {
-        setError(err.message || 'Failed to load cart');
-      }
+      console.error('Failed to load cart:', err);
+      // Don't set global error for cart failure to avoid blocking the main UI
     } finally {
       if (!silent) setCartLoading(false);
     }

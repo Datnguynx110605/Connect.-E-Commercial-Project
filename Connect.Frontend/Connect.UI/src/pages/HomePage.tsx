@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { Product } from '../types';
+import { setTokens } from '../services/api';
 import { formatROM } from '../utils/formatUtils';
 
 
@@ -23,12 +24,42 @@ function getPageNumbers(current: number, total: number): (number | '...')[] {
 
 export default function HomePage() {
   const { products, productsLoading, loadProducts, addToCart, user,
-          currentPage, totalPages, totalProducts, pageSize, loadProfile } = useAppContext();
+          currentPage, totalPages, totalProducts, pageSize, loadProfile,
+          error, clearError } = useAppContext();
   const navigate = useNavigate();
+  const oauthHandled = useRef(false);
 
   useEffect(() => {
-    loadProducts(1);
-  }, [loadProducts]);
+    if (oauthHandled.current) return;
+ 
+    const params = new URLSearchParams(window.location.search);
+    const accessToken  = params.get('accessToken');
+    const refreshToken = params.get('refreshToken');
+ 
+    if (!accessToken || !refreshToken) return;
+ 
+    oauthHandled.current = true;
+ 
+    setTokens(accessToken, refreshToken);
+    window.history.replaceState({}, document.title, window.location.pathname);
+ 
+    loadProfile().catch(() => {
+    });
+  }, [loadProfile]);
+
+  useEffect(() => {
+    loadProducts();
+    
+    const params = new URLSearchParams(window.location.search);
+    const accessToken  = params.get('accessToken');
+    const refreshToken = params.get('refreshToken');
+
+    if (accessToken && refreshToken) {
+      setTokens(accessToken, refreshToken);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      loadProfile();
+    }
+  }, [loadProducts, loadProfile]);
 
   const goToPage = (p: number) => {
     if (p < 1 || p > totalPages || p === currentPage) return;
@@ -92,8 +123,22 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-[20px] mb-8 text-center">
+            <p className="font-semibold">Lỗi tải dữ liệu</p>
+            <p className="text-[14px]">{error}</p>
+            <button 
+              onClick={() => { clearError(); loadProducts(); }}
+              className="mt-3 text-[13px] font-bold text-red-700 hover:underline"
+            >
+              Thử lại
+            </button>
+          </div>
+        )}
+
         {/* Empty State */}
-        {!productsLoading && products.length === 0 && (
+        {!productsLoading && products.length === 0 && !error && (
           <div className="text-center py-20 text-ink-muted">
             <p className="text-apple-body-strong mb-2">Chưa có sản phẩm nào</p>
             <p>Hãy quay lại sau nhé.</p>
