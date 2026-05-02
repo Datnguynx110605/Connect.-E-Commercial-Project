@@ -42,7 +42,7 @@ namespace Connect.Infrastructure.Services
                 return;
             }
 
-            var subject = $"Order Confirmation #{orderID} — Connect.";
+            var subject = $"Đơn hàng {orderID} đã được đặt thành công, xin cảm ơn quý khách — Connect.";
             var body = BuildOrderConfirmationHtml(user.UserName.Value, order.OrderID, order.OrderFinalPrice.Value, order.OrderShippingMethod.ToString(), order.OrderPaymentMethod.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
@@ -63,7 +63,7 @@ namespace Connect.Infrastructure.Services
                 return;
             }
 
-            var subject = $"Order Cancelled #{orderID} | Connect.";
+            var subject = $"Đơn hàng {orderID} đã được hủy thành công, xin cảm ơn quý khách | Connect.";
             var body = BuildOrderCancelledHtml(user.UserName.Value, order.OrderID, order.OrderStatus.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
@@ -84,7 +84,7 @@ namespace Connect.Infrastructure.Services
                 return;
             }
 
-            var subject = $"Payment Successful — Order #{orderID} | Connect.";
+            var subject = $"Đơn hàng {orderID} đã được thanh toán thành công, xin cảm ơn quý khách | Connect.";
             var body = BuildPaymentSuccessBillHtml(user.UserName.Value, order.OrderID, order.OrderFinalPrice.Value, order.OrderPaymentStatus.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
@@ -105,14 +105,14 @@ namespace Connect.Infrastructure.Services
                 return;
             }
 
-            var subject = $"Order is completed - Order #{orderID} | Connect.";
+            var subject = $"Đơn hàng {orderID} đã hoàn thành, xin cảm ơn quý khách | Connect.";
             var body = BuildOrderCompletedHtml(user.UserName.Value, order.OrderID, order.OrderStatus.ToString());
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
 
         public async Task SendEmailVerificationAsync(string toEmail, string verificationUrl, CancellationToken cancellationToken = default)
         {
-            var subject = "Verify your email — Connect.";
+            var subject = "Xin mời quý khách xác thực Email | Connect.";
             var body = BuildEmailVerificationHtml(verificationUrl);
             await SendAsync(toEmail, subject, body, cancellationToken);
         }
@@ -127,7 +127,7 @@ namespace Connect.Infrastructure.Services
                 return;
             }
 
-            var subject = $"Welcome to Connect. - {userName} | Connect. ";
+            var subject = $"Chào mừng {userName} đã đến Connect. | Connect. ";
             var body = BuildWelcomeHtml(user.UserName.Value);
             await SendAsync(user.Email.Value, subject, body, cancellationToken);
         }
@@ -182,12 +182,12 @@ namespace Connect.Infrastructure.Services
                         <table cellpadding="0" cellspacing="0">
                           <tr>
                             <td style="background:#22863a;border-radius:20px;padding:5px 14px;">
-                              <p style="margin:0;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Order confirmed</p>
+                              <p style="margin:0;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Xác nhận đặt đơn hàng thành công</p>
                             </td>
                           </tr>
                         </table>
-                        <p style="margin:12px 0 0;font-size:22px;font-weight:600;color:#1a1a1a;">Your order is placed!</p>
-                        <p style="margin:6px 0 0;font-size:15px;color:#5f5e5a;line-height:1.5;">Hi <strong style="color:#1a1a1a;">{userName}</strong>, we've received your order and it's being prepared.</p>
+                        <p style="margin:12px 0 0;font-size:22px;font-weight:600;color:#1a1a1a;">Đặt hàng thành công</p>
+                        <p style="margin:6px 0 0;font-size:15px;color:#5f5e5a;line-height:1.5;">Xin chào <strong style="color:#1a1a1a;">{userName}</strong>, Connect. xác nhận đơn hàng của bạn đã được đặt thành công và đang trong quá trình chuẩn bị</p>
                       </td>
                     </tr>
 
@@ -198,18 +198,18 @@ namespace Connect.Infrastructure.Services
                         <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e8e3;border-radius:8px;overflow:hidden;">
                           <tr style="background:#f9f9f7;">
                             <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;border-bottom:1px solid #e8e8e3;">Order ID</td>
-                            <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#1a1a1a;text-align:right;border-bottom:1px solid #e8e8e3;">#{orderID}</td>
+                            <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#1a1a1a;text-align:right;border-bottom:1px solid #e8e8e3;">{orderID}</td>
                           </tr>
                           <tr>
-                            <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;border-bottom:1px solid #e8e8e3;">Shipping method</td>
+                            <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;border-bottom:1px solid #e8e8e3;">Phương thức vận chuyển</td>
                             <td style="padding:12px 16px;font-size:13px;color:#1a1a1a;text-align:right;border-bottom:1px solid #e8e8e3;">{shipMethod}</td>
                           </tr>
                           <tr style="background:#f9f9f7;">
-                            <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;border-bottom:1px solid #e8e8e3;">Payment method</td>
+                            <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;border-bottom:1px solid #e8e8e3;">Phương thức thanh toán</td>
                             <td style="padding:12px 16px;font-size:13px;color:#1a1a1a;text-align:right;border-bottom:1px solid #e8e8e3;">{payMethod}</td>
                           </tr>
                           <tr>
-                            <td style="padding:14px 16px;font-size:14px;font-weight:600;color:#1a1a1a;">Total</td>
+                            <td style="padding:14px 16px;font-size:14px;font-weight:600;color:#1a1a1a;">Tổng cộng</td>
                             <td style="padding:14px 16px;font-size:16px;font-weight:700;color:#22863a;text-align:right;">{totalPrice:N0} ₫</td>
                           </tr>
                         </table>
@@ -222,7 +222,7 @@ namespace Connect.Infrastructure.Services
                         <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f7;border-radius:8px;border-left:3px solid #1a1a1a;">
                           <tr>
                             <td style="padding:14px 16px;font-size:13px;color:#5f5e5a;line-height:1.5;">
-                              You'll receive another email when your order has been shipped. You can track your order status in your account.
+                              Bạn sẽ nhận được email cập nhật trạng thái tiếp theo về đơn hàng của Connect., xin cảm ơn!
                             </td>
                           </tr>
                         </table>
@@ -232,7 +232,7 @@ namespace Connect.Infrastructure.Services
                     <!-- Footer -->
                     <tr>
                       <td style="background:#f9f9f7;padding:20px 40px;border-top:1px solid #e8e8e3;border-radius:0 0 12px 12px;">
-                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · Questions? Reply to this email.</p>
+                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · Nếu có thắc mắc xin hãy liên hệ với chúng tôi.</p>
                       </td>
                     </tr>
 
@@ -264,26 +264,26 @@ namespace Connect.Infrastructure.Services
                         <table cellpadding="0" cellspacing="0">
                           <tr>
                             <td style="background:#c0392b;border-radius:20px;padding:5px 14px;">
-                              <p style="margin:0;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Order cancelled</p>
+                              <p style="margin:0;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Xác nhận hủy đơn hàng</p>
                             </td>
                           </tr>
                         </table>
-                        <p style="margin:12px 0 0;font-size:22px;font-weight:600;color:#1a1a1a;">Your order has been cancelled</p>
-                        <p style="margin:6px 0 0;font-size:15px;color:#5f5e5a;line-height:1.5;">Hi <strong style="color:#1a1a1a;">{userName}</strong>, we're confirming your cancellation request.</p>
+                        <p style="margin:12px 0 0;font-size:22px;font-weight:600;color:#1a1a1a;">Đơn hàng đã được hủy thành công</p>
+                        <p style="margin:6px 0 0;font-size:15px;color:#5f5e5a;line-height:1.5;">Xin chào <strong style="color:#1a1a1a;">{userName}</strong>, Connect. xác nhận đơn hàng của bạn đã được hủy thành công</p>
                       </td>
                     </tr>
 
                     <!-- Order details -->
                     <tr>
                       <td style="padding:32px 40px;">
-                        <p style="margin:0 0 16px;font-size:13px;font-weight:600;color:#888780;letter-spacing:0.6px;text-transform:uppercase;">Cancellation details</p>
+                        <p style="margin:0 0 16px;font-size:13px;font-weight:600;color:#888780;letter-spacing:0.6px;text-transform:uppercase;">Chi tiết</p>
                         <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e8e3;border-radius:8px;overflow:hidden;">
                           <tr style="background:#f9f9f7;">
                             <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;border-bottom:1px solid #e8e8e3;">Order ID</td>
-                            <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#1a1a1a;text-align:right;border-bottom:1px solid #e8e8e3;">#{orderID}</td>
+                            <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#1a1a1a;text-align:right;border-bottom:1px solid #e8e8e3;">{orderID}</td>
                           </tr>
                           <tr>
-                            <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;">Status</td>
+                            <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;">Trạng thái đơn hàng</td>
                             <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#c0392b;text-align:right;">{orderStatus}</td>
                           </tr>
                         </table>
@@ -296,7 +296,7 @@ namespace Connect.Infrastructure.Services
                         <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f7;border-radius:8px;border-left:3px solid #c0392b;">
                           <tr>
                             <td style="padding:14px 16px;font-size:13px;color:#5f5e5a;line-height:1.5;">
-                              If this cancellation was a mistake or you have questions, please contact our support team and we'll do our best to help.
+                              Nếu cần hỗ trợ, hãy liên hệ chúng tôi. Xin cảm ơn!
                             </td>
                           </tr>
                         </table>
@@ -306,7 +306,7 @@ namespace Connect.Infrastructure.Services
                     <!-- Footer -->
                     <tr>
                       <td style="background:#f9f9f7;padding:20px 40px;border-top:1px solid #e8e8e3;border-radius:0 0 12px 12px;">
-                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · Questions? Reply to this email.</p>
+                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · Nếu có thắc mắc xin hãy liên hệ với chúng tôi.</p>
                       </td>
                     </tr>
 
@@ -338,12 +338,12 @@ namespace Connect.Infrastructure.Services
                         <table cellpadding="0" cellspacing="0">
                           <tr>
                             <td style="background:#22863a;border-radius:20px;padding:5px 14px;">
-                              <p style="margin:0;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Payment received</p>
+                              <p style="margin:0;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Thanh toán thành công</p>
                             </td>
                           </tr>
                         </table>
                         <p style="margin:12px 0 0;font-size:22px;font-weight:600;color:#1a1a1a;">Payment successful</p>
-                        <p style="margin:6px 0 0;font-size:15px;color:#5f5e5a;line-height:1.5;">Hi <strong style="color:#1a1a1a;">{userName}</strong>, your payment has been processed. Here's your receipt.</p>
+                        <p style="margin:6px 0 0;font-size:15px;color:#5f5e5a;line-height:1.5;">Xin chào <strong style="color:#1a1a1a;">{userName}</strong>, Connect. xác nhận đơn hàng của bạn đã thanh toán thành công, đây là hóa đơn thanh toán của bạn</p>
                       </td>
                     </tr>
 
@@ -354,14 +354,14 @@ namespace Connect.Infrastructure.Services
                         <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e8e3;border-radius:8px;overflow:hidden;">
                           <tr style="background:#f9f9f7;">
                             <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;border-bottom:1px solid #e8e8e3;">Order ID</td>
-                            <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#1a1a1a;text-align:right;border-bottom:1px solid #e8e8e3;">#{orderID}</td>
+                            <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#1a1a1a;text-align:right;border-bottom:1px solid #e8e8e3;">{orderID}</td>
                           </tr>
                           <tr>
-                            <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;border-bottom:1px solid #e8e8e3;">Payment status</td>
+                            <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;border-bottom:1px solid #e8e8e3;">Trạng thái thanh toán</td>
                             <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#22863a;text-align:right;border-bottom:1px solid #e8e8e3;">{payStatus}</td>
                           </tr>
                           <tr style="background:#f9f9f7;">
-                            <td style="padding:14px 16px;font-size:14px;font-weight:600;color:#1a1a1a;">Total paid</td>
+                            <td style="padding:14px 16px;font-size:14px;font-weight:600;color:#1a1a1a;">Tổng cộng</td>
                             <td style="padding:14px 16px;font-size:18px;font-weight:700;color:#22863a;text-align:right;">{totalPrice:N0} ₫</td>
                           </tr>
                         </table>
@@ -374,7 +374,7 @@ namespace Connect.Infrastructure.Services
                         <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f7;border-radius:8px;border-left:3px solid #1a1a1a;">
                           <tr>
                             <td style="padding:14px 16px;font-size:13px;color:#5f5e5a;line-height:1.5;">
-                              Thank you for your purchase. Your order is now being processed and will be shipped soon.
+                              Cảm ơn vì đã tin tưởng và sử dụng dịch vụ của chúng tôi!
                             </td>
                           </tr>
                         </table>
@@ -384,7 +384,7 @@ namespace Connect.Infrastructure.Services
                     <!-- Footer -->
                     <tr>
                       <td style="background:#f9f9f7;padding:20px 40px;border-top:1px solid #e8e8e3;border-radius:0 0 12px 12px;">
-                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · Keep this email as your payment receipt.</p>
+                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · Nếu có thắc mắc xin hãy liên hệ với chúng tôi.</p>
                       </td>
                     </tr>
 
@@ -416,12 +416,12 @@ namespace Connect.Infrastructure.Services
                         <table cellpadding="0" cellspacing="0">
                           <tr>
                             <td style="background:#22863a;border-radius:20px;padding:5px 14px;">
-                              <p style="margin:0;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Order completed</p>
+                              <p style="margin:0;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Hoàn tất đơn hàng</p>
                             </td>
                           </tr>
                         </table>
                         <p style="margin:12px 0 0;font-size:22px;font-weight:600;color:#1a1a1a;">Your order is complete</p>
-                        <p style="margin:6px 0 0;font-size:15px;color:#5f5e5a;line-height:1.5;">Hi <strong style="color:#1a1a1a;">{userName}</strong>, thank you for shopping with us.</p>
+                        <p style="margin:6px 0 0;font-size:15px;color:#5f5e5a;line-height:1.5;">Xin chào <strong style="color:#1a1a1a;">{userName}</strong>, Connect. xác nhận đơn hàng của bạn đã hoàn tất</p>
                       </td>
                     </tr>
 
@@ -432,10 +432,10 @@ namespace Connect.Infrastructure.Services
                         <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e8e3;border-radius:8px;overflow:hidden;">
                           <tr style="background:#f9f9f7;">
                             <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;border-bottom:1px solid #e8e8e3;">Order ID</td>
-                            <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#1a1a1a;text-align:right;border-bottom:1px solid #e8e8e3;">#{orderID}</td>
+                            <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#1a1a1a;text-align:right;border-bottom:1px solid #e8e8e3;">{orderID}</td>
                           </tr>
                           <tr>
-                            <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;">Status</td>
+                            <td style="padding:12px 16px;font-size:13px;color:#5f5e5a;">Trạng thái đơn hàng</td>
                             <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#22863a;text-align:right;">{orderStatus}</td>
                           </tr>
                         </table>
@@ -445,7 +445,7 @@ namespace Connect.Infrastructure.Services
                     <!-- CTA -->
                     <tr>
                       <td style="padding:0 40px 32px;text-align:center;">
-                        <p style="margin:0 0 16px;font-size:14px;color:#5f5e5a;">Enjoyed your experience? We'd love to hear your thoughts.</p>
+                        <p style="margin:0 0 16px;font-size:14px;color:#5f5e5a;">Nếu có ý kiến và đánh giá, chúng tôi sẵn sàng đón nhận từ bạn</p>
                         <a href="#" style="display:inline-block;padding:13px 28px;background:#1a1a1a;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:500;">Leave a review</a>
                       </td>
                     </tr>
@@ -453,7 +453,7 @@ namespace Connect.Infrastructure.Services
                     <!-- Footer -->
                     <tr>
                       <td style="background:#f9f9f7;padding:20px 40px;border-top:1px solid #e8e8e3;border-radius:0 0 12px 12px;">
-                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · It's been a pleasure having you.</p>
+                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · Nếu có thắc mắc xin hãy liên hệ với chúng tôi.</p>
                       </td>
                     </tr>
 
@@ -482,25 +482,20 @@ namespace Connect.Infrastructure.Services
                     <!-- Body -->
                     <tr>
                       <td style="padding:40px;">
-                        <p style="margin:0 0 8px;font-size:22px;font-weight:600;color:#1a1a1a;">Verify your email address</p>
+                        <p style="margin:0 0 8px;font-size:22px;font-weight:600;color:#1a1a1a;">Xác nhận email người dùng</p>
                         <p style="margin:0 0 32px;font-size:15px;line-height:1.6;color:#5f5e5a;">
-                          To complete your registration, click the button below. This link expires in <strong style="color:#1a1a1a;">30 minutes</strong>.
+                          Để hoàn thành việc Đăng Ký Tài Khoản, xin hãy nhấn xác nhận, việc xác nhận này sẽ hiệu lực trong <strong style="color:#1a1a1a;">30 phút</strong>.
                         </p>
 
                         <table cellpadding="0" cellspacing="0">
                           <tr>
                             <td style="border-radius:8px;background:#1a1a1a;">
                               <a href="{verificationUrl}" style="display:inline-block;padding:14px 32px;color:#ffffff;text-decoration:none;font-size:15px;font-weight:500;border-radius:8px;">
-                                Verify email address
+                                Xác nhận Email đăng ký
                               </a>
                             </td>
                           </tr>
                         </table>
-
-                        <p style="margin:32px 0 0;font-size:13px;color:#888780;line-height:1.5;">
-                          Or copy and paste this link into your browser:<br>
-                          <span style="color:#5f5e5a;font-size:12px;">{verificationUrl}</span>
-                        </p>
                       </td>
                     </tr>
 
@@ -510,7 +505,7 @@ namespace Connect.Infrastructure.Services
                         <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f7;border-radius:8px;border-left:3px solid #888780;">
                           <tr>
                             <td style="padding:14px 16px;font-size:13px;color:#5f5e5a;line-height:1.5;">
-                              If you didn't create a Connect. account, you can safely ignore this email. Someone may have entered your email address by mistake.
+                              Nếu bạn không muốn Đăng Ký Tài Khoản Connect., xin hãy bỏ qua email này
                             </td>
                           </tr>
                         </table>
@@ -520,7 +515,7 @@ namespace Connect.Infrastructure.Services
                     <!-- Footer -->
                     <tr>
                       <td style="background:#f9f9f7;padding:20px 40px;border-top:1px solid #e8e8e3;border-radius:0 0 12px 12px;">
-                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · This link expires in 30 minutes.</p>
+                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · Nếu có thắc mắc xin hãy liên hệ với chúng tôi.</p>
                       </td>
                     </tr>
 
@@ -549,36 +544,18 @@ namespace Connect.Infrastructure.Services
                     <!-- Welcome body -->
                     <tr>
                       <td style="padding:40px;">
-                        <p style="margin:0 0 8px;font-size:22px;font-weight:600;color:#1a1a1a;">Welcome, {userName}.</p>
+                        <p style="margin:0 0 8px;font-size:22px;font-weight:600;color:#1a1a1a;">Xin chào, {userName}.</p>
                         <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#5f5e5a;">
-                          Your account is ready. Browse thousands of products, track your orders, and enjoy a seamless shopping experience — all in one place.
+                          Chào mừng bạn đã đến với Connect.. Hãy tận hưởng trải nghiệm mua sắm tốt nhất cái Hóc Môn này đi mấy con gà.
                         </p>
 
                         <table cellpadding="0" cellspacing="0">
                           <tr>
                             <td style="border-radius:8px;background:#1a1a1a;">
                               <a href="#" style="display:inline-block;padding:14px 32px;color:#ffffff;text-decoration:none;font-size:15px;font-weight:500;border-radius:8px;">
-                                Start shopping
+                                Bắt đầu mua sắm
                               </a>
                             </td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
-
-                    <!-- What's next -->
-                    <tr>
-                      <td style="padding:0 40px 32px;">
-                        <p style="margin:0 0 16px;font-size:13px;font-weight:600;color:#888780;letter-spacing:0.6px;text-transform:uppercase;">What you can do</p>
-                        <table width="100%" cellpadding="0" cellspacing="0">
-                          <tr>
-                            <td style="padding:10px 0;border-bottom:1px solid #e8e8e3;font-size:14px;color:#1a1a1a;">Browse &amp; filter thousands of products</td>
-                          </tr>
-                          <tr>
-                            <td style="padding:10px 0;border-bottom:1px solid #e8e8e3;font-size:14px;color:#1a1a1a;">Track your orders in real time</td>
-                          </tr>
-                          <tr>
-                            <td style="padding:10px 0;font-size:14px;color:#1a1a1a;">Use discount codes at checkout</td>
                           </tr>
                         </table>
                       </td>
@@ -587,7 +564,7 @@ namespace Connect.Infrastructure.Services
                     <!-- Footer -->
                     <tr>
                       <td style="background:#f9f9f7;padding:20px 40px;border-top:1px solid #e8e8e3;border-radius:0 0 12px 12px;">
-                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · Thanks for joining us.</p>
+                        <p style="margin:0;font-size:12px;color:#888780;">© Connect. · Nếu có thắc mắc xin hãy liên hệ với chúng tôi.</p>
                       </td>
                     </tr>
 

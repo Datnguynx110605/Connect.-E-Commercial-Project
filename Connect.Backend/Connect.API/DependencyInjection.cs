@@ -85,7 +85,10 @@ namespace Connect.API
             {
                 options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
                     RateLimitPartition.GetFixedWindowLimiter(
-                        partitionKey: httpContext.User.Identity?.Name ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
+                       partitionKey: httpContext.User.Identity?.Name
+                            ?? httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                            ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                            ?? Guid.NewGuid().ToString(),
                         factory: partition => new FixedWindowRateLimiterOptions
                         {
                             AutoReplenishment = true,
@@ -119,14 +122,11 @@ namespace Connect.API
             services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<RedisSetting>>().Value;
-
                 var options = ConfigurationOptions.Parse(settings.ConnectionString);
-
                 options.AbortOnConnectFail = false;
                 options.ConnectRetry = 3;
                 options.ConnectTimeout = 5000;
                 options.KeepAlive = 180;
-                options.Ssl = true;
 
                 return ConnectionMultiplexer.Connect(options);
             });
