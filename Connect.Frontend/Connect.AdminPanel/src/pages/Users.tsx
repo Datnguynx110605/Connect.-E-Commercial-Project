@@ -46,14 +46,14 @@ export function Users() {
       setLoading(true);
       setError(null);
       const data: PagedResult<User> = await fetchApi(`/api/users/getall-user?page=${page}&pageSize=10`);
-      setUsers(data.items || []);
+      setUsers(data?.items || []);
       setPagination({
-        totalCount: data.totalCount,
-        page: data.page,
-        pageSize: data.pageSize,
-        totalPages: data.totalPages,
-        hasNext: data.hasNext,
-        hasPrevious: data.hasPrevious
+        totalCount: data?.totalCount || 0,
+        page: data?.page || 1,
+        pageSize: data?.pageSize || 10,
+        totalPages: data?.totalPages || 0,
+        hasNext: data?.hasNext || false,
+        hasPrevious: data?.hasPrevious || false
       });
     } catch (err: any) {
       setError(err.message);

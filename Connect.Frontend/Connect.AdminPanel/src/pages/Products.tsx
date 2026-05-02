@@ -75,14 +75,14 @@ export function Products() {
     try {
       setLoading(true);
       const data: PagedResult<Product> = await fetchApi(`/api/products/getall-product?page=${page}&pageSize=10`);
-      setProducts(data.items || []);
+      setProducts(data?.items || []);
       setPagination({
-        totalCount: data.totalCount,
-        page: data.page,
-        pageSize: data.pageSize,
-        totalPages: data.totalPages,
-        hasNext: data.hasNext,
-        hasPrevious: data.hasPrevious
+        totalCount: data?.totalCount || 0,
+        page: data?.page || 1,
+        pageSize: data?.pageSize || 10,
+        totalPages: data?.totalPages || 0,
+        hasNext: data?.hasNext || false,
+        hasPrevious: data?.hasPrevious || false
       });
     } catch (err: any) {
       setError(err.message);
@@ -123,8 +123,7 @@ export function Products() {
 
       await fetchApi('/api/products/create-product', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }, // Overriding because our fetchApi defaults to JSON and the example shows JSON.
-        body: JSON.stringify(payload),
+        body: fd,
       });
 
       await loadProducts();
@@ -166,9 +165,12 @@ export function Products() {
       // Update images if changed
       const newImages = editFormData.imageURL.split('\n').filter(url => url.trim() !== '');
       if (JSON.stringify(newImages) !== JSON.stringify(editingProduct.imageURL)) {
+         const imgFd = new FormData();
+         newImages.forEach(url => imgFd.append('imageURL', url));
+         
          await fetchApi(`/api/products/${editingProduct.productID}/update-image`, {
             method: 'PATCH',
-            body: JSON.stringify({ imageURL: newImages }),
+            body: imgFd,
          });
       }
 
@@ -209,7 +211,7 @@ export function Products() {
   );
 
   if (loading && products.length === 0) return <div className="p-6">Đang tải dữ liệu...</div>;
-  if (error && products.length === 0) return <div className="p-6 text-red-500">Lỗi: {error}</div>;
+  // Removed error blocking to allow access even when API fails (e.g. data uncreated)
 
   return (
     <div className="space-y-6">

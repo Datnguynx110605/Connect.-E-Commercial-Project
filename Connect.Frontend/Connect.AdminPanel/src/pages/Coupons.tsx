@@ -63,14 +63,14 @@ export function Coupons() {
     try {
       setLoading(true);
       const data: PagedResult<Coupon> = await fetchApi(`/api/coupons/getall-coupon?page=${page}&pageSize=10`);
-      setCoupons(data.items || []);
+      setCoupons(data?.items || []);
       setPagination({
-        totalCount: data.totalCount,
-        page: data.page,
-        pageSize: data.pageSize,
-        totalPages: data.totalPages,
-        hasNext: data.hasNext,
-        hasPrevious: data.hasPrevious
+        totalCount: data?.totalCount || 0,
+        page: data?.page || 1,
+        pageSize: data?.pageSize || 10,
+        totalPages: data?.totalPages || 0,
+        hasNext: data?.hasNext || false,
+        hasPrevious: data?.hasPrevious || false
       });
     } catch (err: any) {
       setError(err.message);
@@ -162,7 +162,7 @@ export function Coupons() {
   const filtered = coupons.filter(c => c.couponCode.toLowerCase().includes(search.toLowerCase()));
 
   if (loading && coupons.length === 0) return <div className="p-6">Đang tải dữ liệu...</div>;
-  if (error && coupons.length === 0) return <div className="p-6 text-red-500">Lỗi: {error}</div>;
+  // Removed error blocking to allow access even when API fails (e.g. data uncreated)
 
   return (
     <div className="space-y-6">

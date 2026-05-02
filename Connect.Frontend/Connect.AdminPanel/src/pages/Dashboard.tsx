@@ -31,14 +31,18 @@ export function Dashboard() {
           fetchApi('/api/products/getall-product?pageSize=1'),
         ]);
 
-        const totalRevenue = (ordersData.items || []).reduce((acc: number, order: any) => acc + order.orderFinalPrice, 0);
-        const completedOrders = (ordersData.items || []).filter((o: any) => o.orderStatus === 'Completed').length;
+        const usersItems = usersData?.items || [];
+        const ordersItems = ordersData?.items || [];
+        const productsItems = productsData?.items || [];
+
+        const totalRevenue = ordersItems.reduce((acc: number, order: any) => acc + order.orderFinalPrice, 0);
+        const completedOrders = ordersItems.filter((o: any) => o.orderStatus === 'Completed').length;
 
         setStats([
           { title: 'Tổng Doanh Thu', value: totalRevenue, isCurrency: true, icon: DollarSign, trend: '+12%' },
-          { title: 'Tổng Đơn Hàng', value: ordersData.totalCount || 0, isCurrency: false, icon: ShoppingBag, trend: '+5%' },
-          { title: 'Khách Hàng', value: usersData.totalCount || 0, isCurrency: false, icon: Users, trend: '+8%' },
-          { title: 'Sản Phẩm', value: productsData.totalCount || 0, isCurrency: false, icon: TrendingUp, trend: '+2%' },
+          { title: 'Tổng Đơn Hàng', value: ordersData?.totalCount || 0, isCurrency: false, icon: ShoppingBag, trend: '+5%' },
+          { title: 'Khách Hàng', value: usersData?.totalCount || 0, isCurrency: false, icon: Users, trend: '+8%' },
+          { title: 'Sản Phẩm', value: productsData?.totalCount || 0, isCurrency: false, icon: TrendingUp, trend: '+2%' },
         ]);
 
         // Mock chart data based on real orders if available, else placeholders
