@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 using System.Data;
 using System.Text;
@@ -65,19 +66,31 @@ namespace Connect.API
                     Version = "v1",
                     Description = "Connect. API platform"
                 });
+
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
                     Description = "Chỉ cần dán Token vào đây",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.Http, 
+                    Type = SecuritySchemeType.Http,
                     Scheme = "Bearer",
                     BearerFormat = "JWT"
                 });
 
-                options.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
+                // Cách viết chuẩn cho .NET 9
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                     [new OpenApiSecuritySchemeReference("Bearer", doc)]=[]
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
                 });
             });
 

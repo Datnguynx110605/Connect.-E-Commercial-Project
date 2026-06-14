@@ -1,0 +1,13 @@
+﻿# Bỏ qua các file tạm và thư mục build
+bin/
+obj/
+.git
+.vs
+.vscode
+*.user
+*.lock
+
+# ĐẢM BẢO KHÔNG BỎ QUA FILE CSPROJ (Quan trọng!)
+!**/*.csproj
+!**/*.sln
+!**/*.cs
